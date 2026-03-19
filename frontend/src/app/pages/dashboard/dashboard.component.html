@@ -1,0 +1,109 @@
+<div class="dashboard-container">
+  <h1>Sionna Visualizer</h1>
+  <h3>6G Simulation Results Dashboard</h3>
+
+  <!-- Simulation Parameters Form -->
+  <mat-card class="form-card" style="margin-bottom: 24px;">
+    <mat-card-header>
+      <mat-card-title>Simulation Parameters</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="simForm" (ngSubmit)="runSimulation()" class="sim-form">
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px;">
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+            <mat-label>SNR Min (dB)</mat-label>
+            <input matInput type="number" formControlName="snrMin">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+            <mat-label>SNR Max (dB)</mat-label>
+            <input matInput type="number" formControlName="snrMax">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+            <mat-label>Modulation</mat-label>
+            <mat-select formControlName="modulation">
+              <mat-option value="QPSK">QPSK</mat-option>
+              <mat-option value="16QAM">16QAM</mat-option>
+              <mat-option value="64QAM">64QAM</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+            <mat-label>Number of Symbols</mat-label>
+            <input matInput type="number" formControlName="numSymbols">
+          </mat-form-field>
+        </div>
+
+        <button mat-raised-button color="primary" type="submit" 
+                style="width: 100%; padding: 8px 0;" 
+                [disabled]="simForm.invalid || isSimulating">
+          <span *ngIf="!isSimulating">Run Simulation</span>
+          <mat-spinner *ngIf="isSimulating" diameter="20" style="margin: 0 auto;"></mat-spinner>
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50" color="accent"></mat-spinner>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMsg" class="error-container">
+    <p>{{ errorMsg }}</p>
+  </div>
+
+  <!-- Data Display State -->
+  <ng-container *ngIf="!isLoading && simulationData">
+    
+    <!-- Chart Section -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Performance Metrics</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-wrapper">
+          <canvas baseChart
+                  [data]="lineChartData"
+                  [options]="lineChartOptions"
+                  [legend]="lineChartLegend"
+                  type="line">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Metadata Section -->
+    <mat-card class="metadata-card" style="margin-top: 24px;">
+      <mat-card-header>
+        <mat-card-title>Simulation Hardware Overview</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metadata-content" style="display: flex; gap: 32px; padding: 16px 0;">
+          <div class="meta-item">
+            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">OFDM Symbols</span>
+            <span class="value" style="font-size: 1.2em;">{{ simulationData.metadata['num_ofdm_symbols'] || 'N/A' }}</span>
+          </div>
+          
+          <div class="meta-item">
+            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">FFT Size</span>
+            <span class="value" style="font-size: 1.2em;">{{ simulationData.metadata['fft_size'] || 'N/A' }}</span>
+          </div>
+          
+          <div class="meta-item">
+            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Hardware Used</span>
+            <span class="value" style="font-size: 1.2em;">{{ simulationData.metadata['sionna_used'] ? 'NVIDIA GPU (Sionna)' : 'Mock Generation' }}</span>
+          </div>
+
+          <div class="meta-item">
+            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Timestamp</span>
+            <span class="value" style="font-size: 1.2em;">{{ simulationData.timestamp | date:'medium' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </ng-container>
+</div>

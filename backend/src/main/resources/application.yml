@@ -1,0 +1,34 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sionna_visualizer}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # "update" mode auto-creates or modifies tables to match our entity classes
+      # Use "create-drop" in tests to reset the schema each time
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    # Prints the actual SQL queries to the console — very helpful for learning/debugging
+    show-sql: true
+
+# JWT configuration parameters
+jwt:
+  secret: ${JWT_SECRET:sionna-visualizer-secret-key-2026-sionna-visualizer-secret-key-2026}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+python-bridge:
+  url: ${PYTHON_BRIDGE_URL:http://localhost:8001/simulate/demo}
+
+# Show INFO-level logs for the main app package so we can trace requests
+logging:
+  level:
+    com.sionnavisualizer: INFO
+    org.springframework.web: INFO

@@ -1,0 +1,136 @@
+.landing-container {
+  display: flex;
+  flex-direction: column;
+  color: #eeeeee;
+  min-height: calc(100vh - 64px); 
+}
+
+.hero-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 120px 20px;
+  background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+  border-bottom: 2px solid #222;
+}
+
+.hero-content {
+  max-width: 800px;
+}
+
+.headline {
+  font-size: 3.8rem;
+  font-weight: 800;
+  margin-bottom: 24px;
+  background: -webkit-linear-gradient(45deg, #00ff88, #00bfff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+}
+
+.subline {
+  font-size: 1.5rem;
+  font-weight: 300;
+  margin-bottom: 40px;
+  color: #aaaaaa;
+}
+
+.cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.btn-primary {
+  font-size: 1.2rem;
+  padding: 8px 32px;
+  border-radius: 30px;
+  background-color: #00ff88 !important;
+  color: #121212 !important;
+  font-weight: bold;
+}
+
+.btn-secondary {
+  font-size: 1.2rem;
+  padding: 8px 32px;
+  border-radius: 30px;
+  border-color: #00ff88;
+  color: #00ff88;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 60px 20px;
+  background-color: #0d0d0d;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-item h2 {
+  font-size: 3.5rem;
+  color: #00ff88;
+  margin: 0;
+  font-weight: 800;
+}
+
+.stat-item p {
+  font-size: 1.3rem;
+  color: #aaaaaa;
+  margin-top: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.features-section {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  padding: 80px 40px;
+  flex-wrap: wrap;
+  background-color: #1a1a1a;
+}
+
+.feature-card {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+  background-color: #222222;
+  border-radius: 12px;
+  padding: 24px;
+  border-top: 4px solid #00ff88;
+}
+
+.feature-icon {
+  font-size: 40px;
+  height: 48px;
+  width: 48px;
+  margin-bottom: 16px;
+  color: #00ff88;
+}
+
+.feature-card mat-card-title {
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin-bottom: 16px;
+}
+
+.feature-card mat-card-content p {
+  color: #bbbbbb;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+.landing-footer {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #0a0a0a;
+  color: #666666;
+  font-size: 1rem;
+  border-top: 1px solid #222;
+}

@@ -1,0 +1,47 @@
+.main-toolbar {
+  background-color: #1e1e1e !important;
+  color: #eeeeee;
+  border-bottom: 1px solid #333333;
+  padding: 0 2rem;
+
+  .brand-text {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #00ff88;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1rem;
+
+    button {
+      color: #aaaaaa;
+      font-size: 1.05rem;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: #eeeeee;
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+    }
+
+    /* Target the button when it's the active route */
+    .active-link {
+      color: #00ff88 !important;
+      background-color: rgba(0, 255, 136, 0.1);
+      font-weight: 500;
+    }
+  }
+}
+
+.main-content {
+  background-color: #121212;
+  min-height: calc(100vh - 64px); /* Assuming toolbar is 64px max */
+}

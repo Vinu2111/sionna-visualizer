@@ -1,0 +1,100 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 64px); // Screen explicitly minus the standard header padding exclusively
+  background-color: #121212;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background-color: #1e1e1e;
+  color: #eeeeee;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  padding: 1.5rem;
+
+  .login-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    mat-card-title {
+      font-size: 2rem;
+      color: #00ff88;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    
+    mat-card-subtitle {
+      color: #aaaaaa;
+    }
+  }
+
+  .full-width {
+    width: 100%;
+    margin-bottom: 1rem;
+    
+    // Explicit targeting modifying global native internal parameters
+    ::ng-deep .mat-mdc-form-field-flex {
+      background-color: rgba(255,255,255,0.05);
+    }
+  }
+
+  .submit-btn {
+    width: 100%;
+    height: 48px;
+    background-color: #00ff88;
+    color: #121212;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .btn-spinner {
+      margin-right: 0;
+    }
+  }
+
+  mat-card-footer {
+    padding: 1rem 0;
+    margin-top: 1.5rem;
+    border-top: 1px solid #333333;
+
+    .toggle-mode {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: #aaaaaa;
+
+      button {
+        color: #00ff88;
+        font-weight: bold;
+      }
+    }
+  }
+
+  .alert {
+    padding: 0.8rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    
+    &.error {
+      background-color: rgba(255, 68, 68, 0.1);
+      color: #ff4444;
+      border: 1px solid #ff4444;
+    }
+
+    &.success {
+      background-color: rgba(0, 255, 136, 0.1);
+      color: #00ff88;
+      border: 1px solid #00ff88;
+    }
+  }
+}

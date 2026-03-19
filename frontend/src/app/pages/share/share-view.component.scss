@@ -1,0 +1,138 @@
+.share-page {
+  min-height: 100vh;
+  background-color: #121212;
+  color: #eeeeee;
+  display: flex;
+  flex-direction: column;
+}
+
+.public-banner {
+  background-color: #1a1a1a;
+  padding: 1rem 2rem;
+  border-bottom: 2px solid #00ff88;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #00ff88;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+
+  .subtitle {
+    color: #aaaaaa;
+    font-size: 0.9rem;
+    margin-left: auto;
+  }
+}
+
+.content-body {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.error-card {
+  background-color: #ffebee;
+  color: #c62828;
+
+  mat-card-header {
+    mat-icon {
+      margin-right: 0.5rem;
+    }
+    mat-card-title {
+      color: #c62828;
+    }
+  }
+
+  button {
+    margin-top: 1rem;
+  }
+}
+
+.chart-box {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 1.5rem;
+
+  mat-card-title {
+    color: #00ff88;
+  }
+  
+  mat-card-subtitle {
+    color: #aaaaaa;
+  }
+
+  .canvas-wrapper {
+    height: 400px;
+    margin-top: 1rem;
+  }
+}
+
+.specs-card {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 1.5rem;
+
+  mat-card-title {
+    color: #00ff88;
+    font-size: 1.2rem;
+  }
+
+  .meta-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 1rem 0 0 0;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+
+    li {
+      background-color: #2a2a2a;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      color: #dddddd;
+
+      strong {
+        color: #00ff88;
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}
+
+.cta-banner {
+  background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+  padding: 3rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #333333;
+
+  h2 {
+    color: #ffffff;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+  }
+
+  button {
+    font-size: 1.2rem;
+    padding: 0 2rem;
+    height: 54px;
+  }
+}

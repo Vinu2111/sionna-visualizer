@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
 import { SimulationHistoryItem } from '../../models/simulation-result.model';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -17,7 +17,7 @@ import { Router, RouterModule } from '@angular/router';
   standalone: true,
   imports: [
     CommonModule, 
-    BaseChartDirective, 
+    NgChartsModule, 
     MatCardModule, 
     MatProgressSpinnerModule, 
     MatButtonModule, 

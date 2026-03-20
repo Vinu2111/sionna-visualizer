@@ -8,7 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
 import { SimulationResult } from '../../models/simulation-result.model';
 
@@ -17,7 +17,7 @@ import { SimulationResult } from '../../models/simulation-result.model';
   standalone: true,
   imports: [
     CommonModule, 
-    BaseChartDirective, 
+    NgChartsModule, 
     MatCardModule, 
     MatProgressSpinnerModule,
     MatFormFieldModule,

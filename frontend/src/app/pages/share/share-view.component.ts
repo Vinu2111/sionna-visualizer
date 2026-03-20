@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
 import { SimulationHistoryItem } from '../../models/simulation-result.model';
 
@@ -20,7 +20,7 @@ import { SimulationHistoryItem } from '../../models/simulation-result.model';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    BaseChartDirective
+    NgChartsModule
   ],
   templateUrl: './share-view.component.html',
   styleUrl: './share-view.component.scss'

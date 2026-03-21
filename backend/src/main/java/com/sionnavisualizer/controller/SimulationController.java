@@ -20,7 +20,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(originPatterns = {"https://*.vercel.app", "http://localhost:4200"})
 public class SimulationController {
 
     // Inject SimulationService — Spring provides this via constructor injection
@@ -92,8 +92,11 @@ public class SimulationController {
             if (entity.getId().equals(id)) {
                 java.util.Map<String, String> response = new java.util.HashMap<>();
                 response.put("shareToken", entity.getShareToken());
-                // In production structurally this might dynamically capture window coordinates.
-                response.put("shareUrl", "http://localhost:4200/share/" + entity.getShareToken());
+                // The shared link points to the live Vercel frontend
+                String frontendBase = System.getenv("FRONTEND_URL") != null
+                    ? System.getenv("FRONTEND_URL")
+                    : "http://localhost:4200";
+                response.put("shareUrl", frontendBase + "/share/" + entity.getShareToken());
                 return ResponseEntity.ok(response);
             }
         }

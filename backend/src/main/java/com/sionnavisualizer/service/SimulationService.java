@@ -281,12 +281,22 @@ public class SimulationService {
      */
     private String buildSimulateUrl() {
         String base = PYTHON_BRIDGE_BASE_URL;
+        
+        if (base != null && !base.startsWith("http://") && !base.startsWith("https://")) {
+            base = "https://" + base;
+        }
+
         // Remove old legacy path suffix if present in the config value
         if (base.endsWith("/simulate/demo")) {
             base = base.substring(0, base.length() - "/simulate/demo".length());
         } else if (base.endsWith("/simulate")) {
             base = base.substring(0, base.length() - "/simulate".length());
         }
+        
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        
         return base + "/simulate";
     }
 }

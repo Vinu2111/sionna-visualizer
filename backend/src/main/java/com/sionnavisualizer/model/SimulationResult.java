@@ -64,6 +64,31 @@ public class SimulationResult {
     /** Wall-clock time the Python simulation took in milliseconds */
     private Integer simulationTimeMs;
 
+    // ─── Beam Pattern columns (Day 12) ───────────────────────────────────────
+
+    @Column(length = 50)
+    private String simulationType = "BER_SNR";
+
+    @Column(columnDefinition = "TEXT")
+    private String beamAngles;
+
+    @Column(columnDefinition = "TEXT")
+    private String beamPatternDb;
+
+    @Column(precision = 6, scale = 2)
+    private BigDecimal steeringAngle;
+
+    private Integer numAntennas;
+
+    @Column(precision = 6, scale = 2)
+    private BigDecimal frequencyGhz;
+
+    @Column(precision = 6, scale = 2)
+    private BigDecimal mainLobeWidth;
+
+    @Column(precision = 6, scale = 2)
+    private BigDecimal sideLobeLevel;
+
     // ─── Legacy columns kept for backward compatibility ──────────────────────
 
     /** Legacy field — OFDM symbols per slot (from the old mock simulation) */
@@ -122,6 +147,30 @@ public class SimulationResult {
 
     public Integer getSimulationTimeMs() { return simulationTimeMs; }
     public void setSimulationTimeMs(Integer simulationTimeMs) { this.simulationTimeMs = simulationTimeMs; }
+
+    public String getSimulationType() { return simulationType; }
+    public void setSimulationType(String simulationType) { this.simulationType = simulationType; }
+
+    public String getBeamAngles() { return beamAngles; }
+    public void setBeamAngles(String beamAngles) { this.beamAngles = beamAngles; }
+
+    public String getBeamPatternDb() { return beamPatternDb; }
+    public void setBeamPatternDb(String beamPatternDb) { this.beamPatternDb = beamPatternDb; }
+
+    public BigDecimal getSteeringAngle() { return steeringAngle; }
+    public void setSteeringAngle(BigDecimal steeringAngle) { this.steeringAngle = steeringAngle; }
+
+    public Integer getNumAntennas() { return numAntennas; }
+    public void setNumAntennas(Integer numAntennas) { this.numAntennas = numAntennas; }
+
+    public BigDecimal getFrequencyGhz() { return frequencyGhz; }
+    public void setFrequencyGhz(BigDecimal frequencyGhz) { this.frequencyGhz = frequencyGhz; }
+
+    public BigDecimal getMainLobeWidth() { return mainLobeWidth; }
+    public void setMainLobeWidth(BigDecimal mainLobeWidth) { this.mainLobeWidth = mainLobeWidth; }
+
+    public BigDecimal getSideLobeLevel() { return sideLobeLevel; }
+    public void setSideLobeLevel(BigDecimal sideLobeLevel) { this.sideLobeLevel = sideLobeLevel; }
 
     public Integer getNumOfdmSymbols() { return numOfdmSymbols; }
     public void setNumOfdmSymbols(Integer numOfdmSymbols) { this.numOfdmSymbols = numOfdmSymbols; }

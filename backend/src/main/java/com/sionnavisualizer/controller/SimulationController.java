@@ -2,6 +2,8 @@ package com.sionnavisualizer.controller;
 
 import com.sionnavisualizer.dto.SimulationDto;
 import com.sionnavisualizer.dto.SimulationRequestDto;
+import com.sionnavisualizer.dto.BeamPatternRequestDto;
+import com.sionnavisualizer.dto.BeamPatternResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +68,21 @@ public class SimulationController {
     public ResponseEntity<?> runSimulation(@RequestBody SimulationRequestDto request) {
         try {
             SimulationDto result = simulationService.runSimulation(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
+    /**
+     * POST /api/simulations/beam-pattern
+     *
+     * Runs a ULA beam pattern simulation.
+     */
+    @PostMapping("/simulations/beam-pattern")
+    public ResponseEntity<?> runBeamPattern(@RequestBody BeamPatternRequestDto request) {
+        try {
+            BeamPatternResultDto result = simulationService.runBeamPattern(request);
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
             return ResponseEntity.internalServerError().body(ex.getMessage());

@@ -45,3 +45,19 @@ class SimulationResult(BaseModel):
     code_rate: float = Field(description="Code rate used in this run")
     simulation_time_ms: int = Field(description="Wall-clock time for the simulation in milliseconds")
     num_bits_simulated: int = Field(description="Total bits processed in the Monte-Carlo run")
+
+class BeamPatternRequest(BaseModel):
+    num_antennas: int = 16
+    steering_angle: float = 0.0
+    frequency_ghz: float = 28.0
+    array_spacing: float = 0.5
+
+class BeamPatternResult(BaseModel):
+    angles: List[float]
+    pattern_db: List[float]
+    steering_angle: float
+    num_antennas: int
+    frequency_ghz: float
+    main_lobe_width: float
+    side_lobe_level: float
+    array_gain_db: float

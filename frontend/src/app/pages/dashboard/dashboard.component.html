@@ -2,126 +2,263 @@
   <h1>Sionna Visualizer</h1>
   <h3>6G Simulation Results Dashboard</h3>
 
-  <!-- Simulation Parameters Form -->
-  <mat-card class="form-card" style="margin-bottom: 24px;">
-    <mat-card-header>
-      <mat-card-title>Simulation Parameters</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="simForm" (ngSubmit)="runSimulation()" class="sim-form">
-        
-        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
-          
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
-            <mat-label>Modulation</mat-label>
-            <mat-select formControlName="modulation">
-              <mat-option value="BPSK">BPSK</mat-option>
-              <mat-option value="QPSK">QPSK</mat-option>
-              <mat-option value="16QAM">16QAM</mat-option>
-              <mat-option value="64QAM">64QAM</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
-            <mat-label>SNR Min (dB)</mat-label>
-            <input matInput type="number" formControlName="snrMin">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
-            <mat-label>SNR Max (dB)</mat-label>
-            <input matInput type="number" formControlName="snrMax">
-          </mat-form-field>
-
-        </div>
-        
-        <div style="display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 24px; padding-left: 10px; padding-right: 10px;">
-          
-          <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
-            <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Code Rate ({{ simForm.get('codeRate')?.value | number:'1.2-2' }})</span>
-            <mat-slider min="0.1" max="1.0" step="0.1" discrete style="width: 100%;">
-              <input matSliderThumb formControlName="codeRate">
-            </mat-slider>
-          </div>
-
-          <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
-            <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Number of SNR Points ({{ simForm.get('snrSteps')?.value }})</span>
-            <mat-slider min="10" max="50" step="5" discrete style="width: 100%;">
-              <input matSliderThumb formControlName="snrSteps">
-            </mat-slider>
-          </div>
-          
-        </div>
-
-        <button mat-raised-button color="primary" type="submit" 
-                style="width: 100%; padding: 8px 0;" 
-                [disabled]="simForm.invalid || isSimulating">
-          <span *ngIf="!isSimulating">Run Simulation</span>
-          <mat-spinner *ngIf="isSimulating" diameter="20" style="margin: 0 auto;"></mat-spinner>
-        </button>
-      </form>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-container">
-    <mat-spinner diameter="50" color="accent"></mat-spinner>
-  </div>
-
-  <!-- Error State -->
-  <div *ngIf="errorMsg" class="error-container">
-    <p>{{ errorMsg }}</p>
-  </div>
-
-  <!-- Data Display State -->
-  <ng-container *ngIf="!isLoading && simulationData">
+  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" style="margin-bottom: 24px; margin-top: 16px;">
     
-    <!-- Chart Section -->
-    <mat-card class="chart-card">
-      <mat-card-header>
-        <mat-card-title>Performance Metrics</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="chart-wrapper">
-          <canvas baseChart
-                  [data]="lineChartData"
-                  [options]="lineChartOptions"
-                  [legend]="lineChartLegend"
-                  type="line">
-          </canvas>
+    <!-- Tab 1: BER vs SNR -->
+    <mat-tab label="BER vs SNR">
+      <div style="padding-top: 24px;">
+
+        <!-- Simulation Parameters Form -->
+        <mat-card class="form-card" style="margin-bottom: 24px;">
+          <mat-card-header>
+            <mat-card-title>Simulation Parameters</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="simForm" (ngSubmit)="runSimulation()" class="sim-form">
+              
+              <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
+                
+                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                  <mat-label>Modulation</mat-label>
+                  <mat-select formControlName="modulation">
+                    <mat-option value="BPSK">BPSK</mat-option>
+                    <mat-option value="QPSK">QPSK</mat-option>
+                    <mat-option value="16QAM">16QAM</mat-option>
+                    <mat-option value="64QAM">64QAM</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                  <mat-label>SNR Min (dB)</mat-label>
+                  <input matInput type="number" formControlName="snrMin">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                  <mat-label>SNR Max (dB)</mat-label>
+                  <input matInput type="number" formControlName="snrMax">
+                </mat-form-field>
+
+              </div>
+              
+              <div style="display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 24px; padding-left: 10px; padding-right: 10px;">
+                
+                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
+                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Code Rate ({{ simForm.get('codeRate')?.value | number:'1.2-2' }})</span>
+                  <mat-slider min="0.1" max="1.0" step="0.1" discrete style="width: 100%;">
+                    <input matSliderThumb formControlName="codeRate">
+                  </mat-slider>
+                </div>
+
+                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
+                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Number of SNR Points ({{ simForm.get('snrSteps')?.value }})</span>
+                  <mat-slider min="10" max="50" step="5" discrete style="width: 100%;">
+                    <input matSliderThumb formControlName="snrSteps">
+                  </mat-slider>
+                </div>
+                
+              </div>
+
+              <button mat-raised-button color="primary" type="submit" 
+                      style="width: 100%; padding: 8px 0;" 
+                      [disabled]="simForm.invalid || isSimulating">
+                <span *ngIf="!isSimulating">Run Simulation</span>
+                <mat-spinner *ngIf="isSimulating" diameter="20" style="margin: 0 auto;"></mat-spinner>
+              </button>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="50" color="accent"></mat-spinner>
         </div>
-      </mat-card-content>
-    </mat-card>
 
-    <!-- Metadata Section -->
-    <mat-card class="metadata-card" style="margin-top: 24px;">
-      <mat-card-header>
-        <mat-card-title>Simulation Metadata</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="metadata-content" style="display: flex; gap: 32px; padding: 16px 0; flex-wrap: wrap;">
-          <div class="meta-item">
-            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Modulation</span>
-            <span class="value" style="font-size: 1.2em;">{{ simulationData.modulation }}</span>
-          </div>
-          
-          <div class="meta-item">
-            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Code Rate</span>
-            <span class="value" style="font-size: 1.2em;">{{ simulationData.code_rate | number:'1.2-2' }}</span>
-          </div>
-
-          <div class="meta-item">
-            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Bits Simulated (Per Point)</span>
-            <span class="value" style="font-size: 1.2em;">{{ simulationData.num_bits_simulated | number }}</span>
-          </div>
-
-          <div class="meta-item">
-            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Compute Time</span>
-            <span class="value" style="font-size: 1.2em;">{{ simulationData.simulation_time_ms }} ms</span>
-          </div>
-          
+        <!-- Error State -->
+        <div *ngIf="errorMsg" class="error-container">
+          <p>{{ errorMsg }}</p>
         </div>
-      </mat-card-content>
-    </mat-card>
 
-  </ng-container>
+        <!-- Data Display State -->
+        <ng-container *ngIf="!isLoading && simulationData">
+          
+          <!-- Chart Section -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Performance Metrics</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas baseChart
+                        [data]="lineChartData"
+                        [options]="lineChartOptions"
+                        [legend]="lineChartLegend"
+                        type="line">
+                </canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Metadata Section -->
+          <mat-card class="metadata-card" style="margin-top: 24px;">
+            <mat-card-header>
+              <mat-card-title>Simulation Metadata</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="metadata-content" style="display: flex; gap: 32px; padding: 16px 0; flex-wrap: wrap;">
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Modulation</span>
+                  <span class="value" style="font-size: 1.2em;">{{ simulationData.modulation }}</span>
+                </div>
+                
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Code Rate</span>
+                  <span class="value" style="font-size: 1.2em;">{{ simulationData.code_rate | number:'1.2-2' }}</span>
+                </div>
+
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Bits Simulated</span>
+                  <span class="value" style="font-size: 1.2em;">{{ simulationData.num_bits_simulated | number }}</span>
+                </div>
+
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Compute Time</span>
+                  <span class="value" style="font-size: 1.2em;">{{ simulationData.simulation_time_ms }} ms</span>
+                </div>
+                
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </ng-container>
+
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: Beam Pattern -->
+    <mat-tab label="Beam Pattern">
+      <div style="padding-top: 24px;">
+
+        <!-- Beam Pattern Params -->
+        <mat-card class="form-card" style="margin-bottom: 24px;">
+          <mat-card-header>
+            <mat-card-title>Beam Pattern Parameters</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="beamForm" (ngSubmit)="runBeamSimulation()" class="sim-form">
+              <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
+                
+                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                  <mat-label>Number of Antennas</mat-label>
+                  <mat-select formControlName="numAntennas">
+                    <mat-option [value]="8">8 Elements</mat-option>
+                    <mat-option [value]="16">16 Elements</mat-option>
+                    <mat-option [value]="32">32 Elements</mat-option>
+                    <mat-option [value]="64">64 Elements</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                  <mat-label>Frequency</mat-label>
+                  <mat-select formControlName="frequencyGhz">
+                    <mat-option [value]="28.0">28 GHz (n257)</mat-option>
+                    <mat-option [value]="39.0">39 GHz (n260)</mat-option>
+                    <mat-option [value]="60.0">60 GHz (V-Band)</mat-option>
+                    <mat-option [value]="77.0">77 GHz</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+              </div>
+              
+              <div style="display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 24px; padding-left: 10px; padding-right: 10px;">
+                
+                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
+                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Steering Angle ({{ beamForm.get('steeringAngle')?.value }}°)</span>
+                  <mat-slider min="-90" max="90" step="5" discrete style="width: 100%;">
+                    <input matSliderThumb formControlName="steeringAngle">
+                  </mat-slider>
+                </div>
+
+                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
+                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Array Spacing ({{ beamForm.get('arraySpacing')?.value | number:'1.1-1' }} λ)</span>
+                  <mat-slider min="0.3" max="1.0" step="0.1" discrete style="width: 100%;">
+                    <input matSliderThumb formControlName="arraySpacing">
+                  </mat-slider>
+                </div>
+                
+              </div>
+
+              <button mat-raised-button color="primary" type="submit" 
+                      style="width: 100%; padding: 8px 0;" 
+                      [disabled]="beamForm.invalid || isBeamSimulating">
+                <span *ngIf="!isBeamSimulating">Run Beam Pattern</span>
+                <mat-spinner *ngIf="isBeamSimulating" diameter="20" style="margin: 0 auto;"></mat-spinner>
+              </button>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Error State -->
+        <div *ngIf="errorMsg" class="error-container">
+          <p>{{ errorMsg }}</p>
+        </div>
+
+        <!-- Data Display State -->
+        <ng-container *ngIf="beamData">
+          
+          <!-- Chart Section -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Radiation Pattern (Polar)</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper" style="position: relative; height: 450px; width: 100%; padding: 10px;">
+                <canvas baseChart
+                        [data]="radarChartData"
+                        [options]="radarChartOptions"
+                        type="radar">
+                </canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Metrics Section -->
+          <mat-card class="metadata-card" style="margin-top: 24px;">
+            <mat-card-header>
+              <mat-card-title>Antenna Metrics</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="metadata-content" style="display: flex; gap: 32px; padding: 16px 0; flex-wrap: wrap;">
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Main Lobe Width</span>
+                  <span class="value" style="font-size: 1.2em;">{{ beamData.main_lobe_width | number:'1.1-1' }}°</span>
+                </div>
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Side Lobe Level</span>
+                  <span class="value" style="font-size: 1.2em;">{{ beamData.side_lobe_level | number:'1.2-2' }} dB</span>
+                </div>
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Array Gain</span>
+                  <span class="value" style="font-size: 1.2em;">{{ beamData.array_gain_db | number:'1.1-1' }} dB</span>
+                </div>
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Steering Angle</span>
+                  <span class="value" style="font-size: 1.2em;">{{ beamData.steering_angle }}°</span>
+                </div>
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Frequency</span>
+                  <span class="value" style="font-size: 1.2em;">{{ beamData.frequency_ghz }} GHz</span>
+                </div>
+                <div class="meta-item">
+                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Antennas</span>
+                  <span class="value" style="font-size: 1.2em;">{{ beamData.num_antennas }} elements</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </ng-container>
+
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 </div>

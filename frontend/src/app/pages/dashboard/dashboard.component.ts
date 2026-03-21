@@ -8,10 +8,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ChartConfiguration, ChartOptions } from 'chart.js';
+import { MatTabsModule } from '@angular/material/tabs';
+import { ChartConfiguration, ChartOptions, ChartData } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
-import { SimulationResult, SimulationRequest } from '../../models/simulation-result.model';
+import { SimulationResult, SimulationRequest, BeamPatternResult, BeamPatternRequest } from '../../models/simulation-result.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,6 +27,7 @@ import { SimulationResult, SimulationRequest } from '../../models/simulation-res
     MatSelectModule,
     MatButtonModule,
     MatSliderModule,
+    MatTabsModule,
     ReactiveFormsModule
   ],
   templateUrl: './dashboard.component.html',
@@ -33,11 +35,45 @@ import { SimulationResult, SimulationRequest } from '../../models/simulation-res
 })
 export class DashboardComponent implements OnInit {
   simulationData: SimulationResult | null = null;
+  beamData: BeamPatternResult | null = null;
   isLoading = true;
   isSimulating = false;
+  isBeamSimulating = false;
   errorMsg = '';
   
   simForm: FormGroup;
+  beamForm: FormGroup;
+
+  public radarChartOptions: ChartConfiguration<'radar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: { display: true, text: 'Antenna Beam Pattern', color: '#eeeeee' },
+      legend: { display: false }
+    },
+    scales: {
+      r: {
+        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+        pointLabels: { color: '#eeeeee', font: { size: 10 } },
+        ticks: { backdropColor: 'transparent', color: '#aaaaaa' },
+        min: -40,
+        max: 0
+      }
+    }
+  };
+
+  public radarChartData: ChartData<'radar'> = {
+    labels: [],
+    datasets: [{
+      data: [],
+      label: 'Signal Strength (dB)',
+      borderColor: '#64ffda',
+      backgroundColor: 'rgba(100, 255, 218, 0.1)',
+      borderWidth: 2,
+      pointRadius: 0
+    }]
+  };
 
   public lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
@@ -117,6 +153,13 @@ export class DashboardComponent implements OnInit {
       codeRate: [0.5, [Validators.required, Validators.min(0.1), Validators.max(1.0)]],
       snrSteps: [25, [Validators.required, Validators.min(10), Validators.max(50)]]
     });
+
+    this.beamForm = this.fb.group({
+      numAntennas: [16, Validators.required],
+      steeringAngle: [0, [Validators.required, Validators.min(-90), Validators.max(90)]],
+      frequencyGhz: [28.0, Validators.required],
+      arraySpacing: [0.5, [Validators.required, Validators.min(0.3), Validators.max(1.0)]]
+    });
   }
 
   ngOnInit(): void {
@@ -190,5 +233,39 @@ export class DashboardComponent implements OnInit {
     
     // Trigger chart update
     this.lineChartData = { ...this.lineChartData };
+  }
+
+  runBeamSimulation(): void {
+    if (this.beamForm.invalid) return;
+    this.isBeamSimulating = true;
+    this.errorMsg = '';
+    
+    const vals = this.beamForm.value;
+    const req: BeamPatternRequest = {
+      num_antennas: vals.numAntennas,
+      steering_angle: vals.steeringAngle,
+      frequency_ghz: vals.frequencyGhz,
+      array_spacing: vals.arraySpacing
+    };
+
+    this.simulationService.runBeamPattern(req).subscribe({
+      next: (res) => {
+        this.beamData = res;
+        this.radarChartData.labels = res.angles.map(a => a + '°');
+        this.radarChartData.datasets[0].data = res.pattern_db;
+        
+        if (this.radarChartOptions?.plugins?.title) {
+          this.radarChartOptions.plugins.title.text = `Antenna Beam Pattern — ${res.num_antennas} Element ULA at ${res.frequency_ghz} GHz`;
+        }
+        
+        this.radarChartData = { ...this.radarChartData };
+        this.isBeamSimulating = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.errorMsg = 'Failed to generate beam pattern.';
+        this.isBeamSimulating = false;
+      }
+    });
   }
 }

@@ -49,16 +49,14 @@
           <td mat-cell *matCellDef="let sim"> {{ sim.createdAt | date:'medium' }} </td>
         </ng-container>
 
-        <!-- OFDM Symbols Column -->
-        <ng-container matColumnDef="numOfdmSymbols">
-          <th mat-header-cell *matHeaderCellDef> OFDM Symbols </th>
-          <td mat-cell *matCellDef="let sim"> {{ sim.numOfdmSymbols || 'N/A' }} </td>
-        </ng-container>
-
-        <!-- FFT Size Column -->
-        <ng-container matColumnDef="fftSize">
-          <th mat-header-cell *matHeaderCellDef> FFT Size </th>
-          <td mat-cell *matCellDef="let sim"> {{ sim.fftSize || 'N/A' }} </td>
+        <!-- Type Column -->
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef> Type </th>
+          <td mat-cell *matCellDef="let sim">
+            <span class="chip" [style.background-color]="sim.simulationType === 'BEAM_PATTERN' ? '#7b1fa2' : '#00796b'">
+              {{ sim.simulationType === 'BEAM_PATTERN' ? 'Beam Pattern' : 'BER/SNR' }}
+            </span>
+          </td>
         </ng-container>
 
         <!-- Hardware Column -->

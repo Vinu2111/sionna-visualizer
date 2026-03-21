@@ -9,8 +9,9 @@ Exposes:
 
 import datetime
 from fastapi import FastAPI, HTTPException
-from models import SimulationRequest, SimulationResult
+from models import SimulationRequest, SimulationResult, BeamPatternRequest, BeamPatternResult
 from sionna_runner import run_awgn_simulation
+from beam_pattern import compute_ula_beam_pattern
 
 app = FastAPI(
     title="Sionna Visualizer Bridge",
@@ -76,6 +77,31 @@ def simulate_demo(request: SimulationRequest = None):
     if request is None:
         request = SimulationRequest()
     return simulate(request)
+
+
+# ---------------------------------------------------------------------------
+# Beam Pattern endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/beam-pattern", response_model=BeamPatternResult)
+def simulate_beam_pattern(request: BeamPatternRequest):
+    """
+    Run a ULA beam pattern generation with the supplied parameters.
+    """
+    try:
+        result = compute_ula_beam_pattern(
+            num_antennas=request.num_antennas,
+            steering_angle=request.steering_angle,
+            frequency_ghz=request.frequency_ghz,
+            array_spacing=request.array_spacing,
+        )
+        return BeamPatternResult(**result)
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Beam pattern computation failed: {str(exc)}",
+        )
 
 
 # ---------------------------------------------------------------------------

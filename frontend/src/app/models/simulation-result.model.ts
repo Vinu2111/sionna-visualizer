@@ -30,15 +30,41 @@ export interface SimulationRequest {
  */
 export interface SimulationHistoryItem {
   id: number;
+  simulationType: string;
   snrDb: string;           // JSON array string stored in DB
   berTheoretical: string;  // JSON array string stored in DB
   berSimulated: string;    // JSON array string stored in DB
+  beamAngles: string;      // JSON array string stored in DB
+  beamPatternDb: string;   // JSON array string stored in DB
   modulationType: string;
   codeRate: number;
   snrMin: number;
   snrMax: number;
+  steeringAngle: number;
+  numAntennas: number;
+  frequencyGhz: number;
+  mainLobeWidth: number;
+  sideLobeLevel: number;
   simulationTimeMs: number;
   hardwareUsed: string;
   timestamp: string;
   createdAt: string;
+}
+
+export interface BeamPatternRequest {
+  num_antennas: number;
+  steering_angle: number;
+  frequency_ghz: number;
+  array_spacing: number;
+}
+
+export interface BeamPatternResult {
+  angles: number[];
+  pattern_db: number[];
+  steering_angle: number;
+  num_antennas: number;
+  frequency_ghz: number;
+  main_lobe_width: number;
+  side_lobe_level: number;
+  array_gain_db: number;
 }

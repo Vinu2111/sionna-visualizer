@@ -41,7 +41,7 @@ export class HistoryComponent implements OnInit {
   errorMsg = '';
 
   // The columns to display in the Angular Material table
-  displayedColumns: string[] = ['index', 'createdAt', 'numOfdmSymbols', 'fftSize', 'hardwareUsed', 'action'];
+  displayedColumns: string[] = ['index', 'type', 'createdAt', 'hardwareUsed', 'action'];
 
   // Chart.js Configuration
   public lineChartData: ChartConfiguration<'line'>['data'] = {
@@ -130,14 +130,32 @@ export class HistoryComponent implements OnInit {
   selectSimulation(simulation: SimulationHistoryItem): void {
     this.selectedSimulation = simulation;
     
-    // Convert the database JSON strings back into numerical arrays
-    // e.g., "[0.0, 2.0]" -> [0.0, 2.0]
-    const snrDbArray: number[] = JSON.parse(simulation.snrDb);
-    const berArray: number[] = JSON.parse(simulation.ber);
+    if (simulation.simulationType === 'BEAM_PATTERN') {
+      // Beam pattern doesn't use the line chart, could implement radar chart viewing later
+      return;
+    }
 
-    // Apply strictly to the chart datasets
+    // Convert the database JSON strings back into numerical arrays
+    const snrDbArray: number[] = JSON.parse(simulation.snrDb);
+    const berTheoreticalArray: number[] = simulation.berTheoretical ? JSON.parse(simulation.berTheoretical) : [];
+    const berSimulatedArray: number[] = simulation.berSimulated ? JSON.parse(simulation.berSimulated) : [];
+
+    // Assuming we update lineChartData to have two datasets for BER vs SNR
+    if (!this.lineChartData.datasets[1]) {
+        this.lineChartData.datasets.push({
+            data: [],
+            label: 'Simulated BER',
+            fill: false,
+            tension: 0.1,
+            borderColor: '#ff6b6b'
+        });
+        this.lineChartData.datasets[0].label = 'Theoretical BER';
+        this.lineChartData.datasets[0].borderColor = '#64ffda';
+    }
+
     this.lineChartData.labels = snrDbArray;
-    this.lineChartData.datasets[0].data = berArray;
+    this.lineChartData.datasets[0].data = berTheoreticalArray;
+    this.lineChartData.datasets[1].data = berSimulatedArray;
   }
 
   /**

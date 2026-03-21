@@ -3,6 +3,8 @@ package com.sionnavisualizer.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sionnavisualizer.dto.SimulationDto;
 import com.sionnavisualizer.dto.SimulationRequestDto;
+import com.sionnavisualizer.dto.BeamPatternRequestDto;
+import com.sionnavisualizer.dto.BeamPatternResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.repository.SimulationResultRepository;
 import org.springframework.stereotype.Service;
@@ -112,6 +114,52 @@ public class SimulationService {
                     + ". Ensure uvicorn is running. Details: " + ex.getMessage());
         } catch (Exception ex) {
             throw new RuntimeException("Simulation failed: " + ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Run a beam pattern simulation via Python bridge and persist the result.
+     */
+    public BeamPatternResultDto runBeamPattern(BeamPatternRequestDto requestParams) {
+        try {
+            String url = buildSimulateUrl() + "/beam-pattern";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<BeamPatternRequestDto> httpRequest = new HttpEntity<>(requestParams, headers);
+
+            BeamPatternResultDto dto = restTemplate.postForObject(url, httpRequest, BeamPatternResultDto.class);
+
+            if (dto == null) {
+                throw new RuntimeException("Python bridge returned an empty response for beam pattern");
+            }
+
+            String anglesJson = objectMapper.writeValueAsString(dto.getAngles());
+            String patternJson = objectMapper.writeValueAsString(dto.getPattern_db());
+
+            SimulationResult entity = new SimulationResult();
+            entity.setSimulationType("BEAM_PATTERN");
+            entity.setBeamAngles(anglesJson);
+            entity.setBeamPatternDb(patternJson);
+            entity.setSteeringAngle(BigDecimal.valueOf(dto.getSteering_angle()));
+            entity.setNumAntennas(dto.getNum_antennas());
+            entity.setFrequencyGhz(BigDecimal.valueOf(dto.getFrequency_ghz()));
+            entity.setMainLobeWidth(BigDecimal.valueOf(dto.getMain_lobe_width()));
+            entity.setSideLobeLevel(BigDecimal.valueOf(dto.getSide_lobe_level()));
+            
+            entity.setHardwareUsed("Mathematical ULA (numpy)");
+            entity.setTimestamp(LocalDateTime.now());
+            entity.setShareToken(java.util.UUID.randomUUID().toString());
+            entity.setIsPublic(true);
+
+            simulationResultRepository.save(entity);
+
+            return dto;
+
+        } catch (RestClientException ex) {
+            throw new RuntimeException("Could not reach the Python bridge. Details: " + ex.getMessage());
+        } catch (Exception ex) {
+            throw new RuntimeException("Beam pattern generation failed: " + ex.getMessage(), ex);
         }
     }
 

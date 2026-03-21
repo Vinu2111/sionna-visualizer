@@ -269,6 +269,43 @@
   .history-container {
     padding: 1rem;
 
-    .header-row h1 { font-size: 1.5rem; }
   }
 }
+
+/* ── Export Buttons ──────────────────────────────────────────────────────── */
+.bulk-export-btn {
+  border: 1px solid rgba(100, 255, 218, 0.4) !important;
+  color: #64ffda !important;
+  font-weight: 500 !important;
+  height: 44px;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+
+  mat-icon { margin-right: 6px; }
+
+  &:not([disabled]):hover {
+    background-color: rgba(100, 255, 218, 0.1) !important;
+    border-color: #64ffda !important;
+  }
+}
+
+.action-cell {
+  .export-icon-btn {
+    color: rgba(100, 255, 218, 0.6) !important;
+    width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+    }
+
+    &:hover { color: #64ffda !important; }
+  }
+}
+

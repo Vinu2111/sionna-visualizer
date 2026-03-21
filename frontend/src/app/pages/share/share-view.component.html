@@ -22,6 +22,22 @@
 
     <!-- ── Actual Chart ─────────────────────────────────────────────────── -->
     <div class="simulation-view" *ngIf="simulationData && !isLoading">
+      
+      <div class="export-actions-row">
+        <button mat-stroked-button class="export-btn" (click)="downloadPng()" matTooltip="Download chart as PNG">
+          <mat-icon>image</mat-icon> PNG
+        </button>
+        <button mat-stroked-button class="export-btn" (click)="downloadCsv()" matTooltip="Download results as CSV">
+          <mat-icon>grid_on</mat-icon> CSV
+        </button>
+        <button mat-stroked-button class="export-btn" (click)="downloadJson()" matTooltip="Download raw JSON">
+          <mat-icon>code</mat-icon> JSON
+        </button>
+        <button mat-stroked-button class="export-btn" (click)="copyJson()" matTooltip="Copy JSON to clipboard">
+          <mat-icon>content_copy</mat-icon> Copy JSON
+        </button>
+      </div>
+
       <mat-card class="chart-box">
         <mat-card-header>
           <mat-card-title>Bit Error Rate vs SNR</mat-card-title>
@@ -29,7 +45,7 @@
         </mat-card-header>
         <mat-card-content>
           <div class="canvas-wrapper">
-            <canvas baseChart
+            <canvas baseChart #chart="base-chart"
                     [data]="lineChartData"
                     [options]="lineChartOptions"
                     type="line">

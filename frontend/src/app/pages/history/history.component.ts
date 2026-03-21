@@ -15,6 +15,8 @@ import { SimulationHistoryItem } from '../../models/simulation-result.model';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ShareLinkDialogComponent } from '../../components/share-dialog/share-dialog.component';
 import { Router, RouterModule } from '@angular/router';
+import { ExportService } from '../../services/export.service';
+import { ExportDialogComponent } from '../../components/export-dialog/export-dialog.component';
 
 @Component({
   selector: 'app-history',
@@ -95,7 +97,8 @@ export class HistoryComponent implements OnInit {
     private simulationService: SimulationService,
     private dialog: MatDialog,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
@@ -196,5 +199,45 @@ export class HistoryComponent implements OnInit {
         queryParams: { id1: this.compareSelection[0].id, id2: sim.id }
       });
     }
+  }
+
+  // ─── Export Logic ────────────────────────────────────────────────────────
+
+  openBulkExportDialog(all: boolean = false): void {
+    const items = all ? this.simulationHistory : this.compareSelection;
+    if (items.length === 0) {
+      this.snackBar.open('Please select at least one simulation to export.', 'OK', { duration: 3000 });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ExportDialogComponent, {
+      width: '400px',
+      data: { simulations: items }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.snackBar.open(`Started bulk export for ${items.length} items...`, 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  exportRowCsv(sim: SimulationHistoryItem): void {
+    const filename = this.exportService.berFilename(sim.modulationType || 'qpsk', 'csv');
+    const content = this.exportService.generateBerCsv(sim);
+    this.exportService.downloadCSV(filename, content);
+  }
+
+  exportRowJson(sim: SimulationHistoryItem): void {
+    const filename = this.exportService.berFilename(sim.modulationType || 'qpsk', 'json');
+    const wrapped = this.exportService.wrapWithMetadata(sim.simulationType, sim);
+    this.exportService.downloadJSON(filename, wrapped);
+  }
+
+  copyRowJson(sim: SimulationHistoryItem): void {
+    const wrapped = this.exportService.wrapWithMetadata(sim.simulationType, sim);
+    this.exportService.copyToClipboard(wrapped).then(() => {
+      this.snackBar.open('JSON copied to clipboard', 'OK', { duration: 2000 });
+    });
   }
 }

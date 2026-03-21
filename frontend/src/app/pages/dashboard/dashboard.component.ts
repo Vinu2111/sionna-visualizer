@@ -16,6 +16,10 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ViewChild } from '@angular/core';
+import { BaseChartDirective } from 'ng2-charts';
+import { ExportService } from '../../services/export.service';
 import { ChartConfiguration, ChartOptions, ChartData } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
@@ -54,6 +58,7 @@ function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
     MatTabsModule,
     MatSnackBarModule,
     MatIconModule,
+    MatTooltipModule,
     ReactiveFormsModule,
     FormsModule,
     RouterModule
@@ -72,6 +77,12 @@ export class DashboardComponent implements OnInit {
   isModSimulating = false;
   isCapSimulating = false;
   loadError = false;
+
+  @ViewChild('berChart') berChart?: BaseChartDirective;
+  @ViewChild('beamChart') beamChart?: BaseChartDirective;
+  @ViewChild('modChart') modChart?: BaseChartDirective;
+  @ViewChild('capChart') capChart?: BaseChartDirective;
+  @ViewChild('spectralChart') spectralChart?: BaseChartDirective;
 
   apiKeys: any[] = [];
   newKeyDescription = '';
@@ -258,7 +269,8 @@ export class DashboardComponent implements OnInit {
     private simulationService: SimulationService,
     private fb: FormBuilder,
     private snackBar: MatSnackBar,
-    private http: HttpClient
+    private http: HttpClient,
+    private exportService: ExportService
   ) {
     this.simForm = this.fb.group({
       modulation: ['QPSK', Validators.required],
@@ -529,6 +541,115 @@ export class DashboardComponent implements OnInit {
         console.error('Error revoking API key', err);
         this.isRevoking = false;
       }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // EXPORT METHODS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  downloadPng(chartType: 'ber' | 'beam' | 'mod' | 'cap' | 'spectral'): void {
+    let chart: BaseChartDirective | undefined;
+    let filename = '';
+
+    switch (chartType) {
+      case 'ber':
+        chart = this.berChart;
+        filename = this.exportService.berFilename(this.simulationData?.modulation || 'qpsk', 'png');
+        break;
+      case 'beam':
+        chart = this.beamChart;
+        filename = this.exportService.beamFilename(this.beamData?.num_antennas || 16, 'png');
+        break;
+      case 'mod':
+        chart = this.modChart;
+        filename = this.exportService.modFilename('png');
+        break;
+      case 'cap':
+        chart = this.capChart;
+        filename = this.exportService.capFilename('png');
+        break;
+      case 'spectral':
+        chart = this.spectralChart;
+        filename = `sionna-spectral-efficiency-${new Date().toISOString().slice(0, 10)}.png`;
+        break;
+    }
+
+    if (chart?.chart) {
+      this.exportService.downloadCanvasPng(chart.chart.canvas, filename);
+    }
+  }
+
+  downloadCsv(type: 'ber' | 'beam' | 'mod' | 'cap'): void {
+    let csv = '';
+    let filename = '';
+
+    switch (type) {
+      case 'ber':
+        csv = this.exportService.generateBerCsv(this.simulationData);
+        filename = this.exportService.berFilename(this.simulationData?.modulation || 'qpsk', 'csv');
+        break;
+      case 'beam':
+        csv = this.exportService.generateBeamCsv(this.beamData);
+        filename = this.exportService.beamFilename(this.beamData?.num_antennas || 16, 'csv');
+        break;
+      case 'mod':
+        csv = this.exportService.generateModComparisonCsv(this.modData);
+        filename = this.exportService.modFilename('csv');
+        break;
+      case 'cap':
+        csv = this.exportService.generateCapacityCsv(this.capData);
+        filename = this.exportService.capFilename('csv');
+        break;
+    }
+    this.exportService.downloadCSV(filename, csv);
+  }
+
+  downloadJson(type: 'ber' | 'beam' | 'mod' | 'cap'): void {
+    let data: any;
+    let filename = '';
+    let simType = '';
+
+    switch (type) {
+      case 'ber':
+        data = this.simulationData;
+        filename = this.exportService.berFilename(data?.modulation || 'qpsk', 'json');
+        simType = 'BER_SNR';
+        break;
+      case 'beam':
+        data = this.beamData;
+        filename = this.exportService.beamFilename(data?.num_antennas || 16, 'json');
+        simType = 'BEAM_PATTERN';
+        break;
+      case 'mod':
+        data = this.modData;
+        filename = this.exportService.modFilename('json');
+        simType = 'MOD_COMPARISON';
+        break;
+      case 'cap':
+        data = this.capData;
+        filename = this.exportService.capFilename('json');
+        simType = 'CHANNEL_CAPACITY';
+        break;
+    }
+    const wrapped = this.exportService.wrapWithMetadata(simType, data);
+    this.exportService.downloadJSON(filename, wrapped);
+  }
+
+  copyJson(type: 'ber' | 'beam' | 'mod' | 'cap'): void {
+    let data: any;
+    let simType = '';
+
+    switch (type) {
+      case 'ber': data = this.simulationData; simType = 'BER_SNR'; break;
+      case 'beam': data = this.beamData; simType = 'BEAM_PATTERN'; break;
+      case 'mod': data = this.modData; simType = 'MOD_COMPARISON'; break;
+      case 'cap': data = this.capData; simType = 'CHANNEL_CAPACITY'; break;
+    }
+
+    const wrapped = this.exportService.wrapWithMetadata(simType, data);
+    this.exportService.copyToClipboard(wrapped).then(() => {
+      this.snackBar.open('JSON copied to clipboard', 'OK', { duration: 2000 });
     });
   }
 }

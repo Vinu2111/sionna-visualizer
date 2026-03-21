@@ -15,6 +15,22 @@
         <span class="selection-badge" *ngIf="compareSelection.length > 0">{{ compareSelection.length }}/2</span>
       </button>
 
+      <button mat-stroked-button class="bulk-export-btn"
+              [disabled]="compareSelection.length === 0"
+              (click)="openBulkExportDialog(false)"
+              matTooltip="Download CSV/JSON for selected items">
+        <mat-icon>file_download</mat-icon>
+        Export Selected
+      </button>
+
+      <button mat-stroked-button class="bulk-export-btn"
+              [disabled]="simulationHistory.length === 0"
+              (click)="openBulkExportDialog(true)"
+              matTooltip="Download all history as single JSON or multiple files">
+        <mat-icon>archive</mat-icon>
+        Export All
+      </button>
+
       <button mat-raised-button color="primary"
               class="generate-btn"
               (click)="runNewSimulation()">
@@ -105,6 +121,18 @@
                     matTooltip="Compare with another simulation" color="accent">
               <mat-icon>compare_arrows</mat-icon>
             </button>
+            
+            <div class="row-export-group" style="margin-left: 8px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; display: flex;">
+              <button mat-icon-button class="export-icon-btn" (click)="exportRowCsv(sim)" matTooltip="Download CSV">
+                <mat-icon style="font-size: 18px;">grid_on</mat-icon>
+              </button>
+              <button mat-icon-button class="export-icon-btn" (click)="exportRowJson(sim)" matTooltip="Download JSON">
+                <mat-icon style="font-size: 18px;">code</mat-icon>
+              </button>
+              <button mat-icon-button class="export-icon-btn" (click)="copyRowJson(sim)" matTooltip="Copy JSON to clipboard">
+                <mat-icon style="font-size: 18px;">content_copy</mat-icon>
+              </button>
+            </div>
           </td>
         </ng-container>
 
@@ -127,7 +155,7 @@
       </mat-card-header>
       <mat-card-content>
         <div class="chart-wrapper">
-          <canvas baseChart
+          <canvas baseChart #historyChart="base-chart"
                   [data]="lineChartData"
                   [options]="lineChartOptions"
                   [legend]="lineChartLegend"

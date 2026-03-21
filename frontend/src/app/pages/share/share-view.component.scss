@@ -163,3 +163,37 @@
     font-weight: 600 !important;
   }
 }
+
+/* ── Export Buttons ──────────────────────────────────────────────────────── */
+.export-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.export-btn {
+  border: 1px solid rgba(100, 255, 218, 0.4) !important;
+  color: #64ffda !important;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  border-radius: 6px !important;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    margin-right: 6px;
+  }
+
+  &:hover {
+    background-color: rgba(100, 255, 218, 0.1) !important;
+    border-color: #64ffda !important;
+    box-shadow: 0 0 12px rgba(100, 255, 218, 0.15);
+  }
+}
+

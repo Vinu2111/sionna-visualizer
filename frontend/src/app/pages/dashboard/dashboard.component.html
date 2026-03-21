@@ -96,11 +96,26 @@
         <!-- Data display -->
         <ng-container *ngIf="!isLoading && simulationData">
 
+          <div class="export-actions-row" *ngIf="simulationData">
+            <button mat-stroked-button class="export-btn" (click)="downloadCsv('ber')" matTooltip="Download results as CSV">
+              <mat-icon>grid_on</mat-icon> Download CSV
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="downloadJson('ber')" matTooltip="Download raw JSON">
+              <mat-icon>code</mat-icon> Download JSON
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="copyJson('ber')" matTooltip="Copy JSON to clipboard">
+              <mat-icon>content_copy</mat-icon> Copy JSON
+            </button>
+          </div>
+
           <mat-card class="chart-card">
+            <button mat-icon-button class="chart-download-btn" (click)="downloadPng('ber')" matTooltip="Download chart as PNG">
+              <mat-icon>download</mat-icon>
+            </button>
             <mat-card-header><mat-card-title>Performance Metrics</mat-card-title></mat-card-header>
             <mat-card-content>
               <div class="chart-wrapper">
-                <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [legend]="lineChartLegend" type="line"></canvas>
+                <canvas baseChart #berChart="base-chart" [data]="lineChartData" [options]="lineChartOptions" [legend]="lineChartLegend" type="line"></canvas>
               </div>
             </mat-card-content>
           </mat-card>
@@ -205,11 +220,26 @@
         </div>
 
         <ng-container *ngIf="beamData">
+          <div class="export-actions-row">
+            <button mat-stroked-button class="export-btn" (click)="downloadCsv('beam')" matTooltip="Download results as CSV">
+              <mat-icon>grid_on</mat-icon> Download CSV
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="downloadJson('beam')" matTooltip="Download raw JSON">
+              <mat-icon>code</mat-icon> Download JSON
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="copyJson('beam')" matTooltip="Copy JSON to clipboard">
+              <mat-icon>content_copy</mat-icon> Copy JSON
+            </button>
+          </div>
+
           <mat-card class="chart-card">
+            <button mat-icon-button class="chart-download-btn" (click)="downloadPng('beam')" matTooltip="Download chart as PNG">
+              <mat-icon>download</mat-icon>
+            </button>
             <mat-card-header><mat-card-title>Radiation Pattern (Polar)</mat-card-title></mat-card-header>
             <mat-card-content>
               <div class="chart-wrapper" style="height: 450px; padding: 10px;">
-                <canvas baseChart [data]="radarChartData" [options]="radarChartOptions" type="radar"></canvas>
+                <canvas baseChart #beamChart="base-chart" [data]="radarChartData" [options]="radarChartOptions" type="radar"></canvas>
               </div>
             </mat-card-content>
           </mat-card>
@@ -301,13 +331,27 @@
           <p>Run comparison to see BPSK / QPSK / 16QAM / 64QAM on one chart</p>
         </div>
 
-        <ng-container *ngIf="modData">
+        <ng-container *ngIf="!isModSimulating && modData">
+          <div class="export-actions-row">
+            <button mat-stroked-button class="export-btn" (click)="downloadCsv('mod')" matTooltip="Download results as CSV">
+              <mat-icon>grid_on</mat-icon> Download CSV
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="downloadJson('mod')" matTooltip="Download raw JSON">
+              <mat-icon>code</mat-icon> Download JSON
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="copyJson('mod')" matTooltip="Copy JSON to clipboard">
+              <mat-icon>content_copy</mat-icon> Copy JSON
+            </button>
+          </div>
 
           <mat-card class="chart-card">
-            <mat-card-header><mat-card-title>BER vs SNR — All Modulations</mat-card-title></mat-card-header>
+            <button mat-icon-button class="chart-download-btn" (click)="downloadPng('mod')" matTooltip="Download chart as PNG">
+              <mat-icon>download</mat-icon>
+            </button>
+            <mat-card-header><mat-card-title>Performance Metrics</mat-card-title></mat-card-header>
             <mat-card-content>
               <div class="chart-wrapper">
-                <canvas baseChart [data]="modChartData" [options]="modChartOptions" type="line"></canvas>
+                <canvas baseChart #modChart="base-chart" [data]="modChartData" [options]="modChartOptions" type="line"></canvas>
               </div>
             </mat-card-content>
           </mat-card>
@@ -412,18 +456,35 @@
         </div>
 
         <ng-container *ngIf="capData">
+          <div class="export-actions-row">
+            <button mat-stroked-button class="export-btn" (click)="downloadCsv('cap')" matTooltip="Download results as CSV">
+              <mat-icon>grid_on</mat-icon> Download CSV
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="downloadJson('cap')" matTooltip="Download raw JSON">
+              <mat-icon>code</mat-icon> Download JSON
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="copyJson('cap')" matTooltip="Copy JSON to clipboard">
+              <mat-icon>content_copy</mat-icon> Copy JSON
+            </button>
+          </div>
           
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
             <mat-card class="chart-card" style="margin-bottom: 0;">
+              <button mat-icon-button class="chart-download-btn" (click)="downloadPng('cap')" matTooltip="Download chart as PNG">
+                <mat-icon>download</mat-icon>
+              </button>
               <mat-card-header><mat-card-title>Capacity vs SNR</mat-card-title></mat-card-header>
               <mat-card-content>
                 <div class="chart-wrapper">
-                  <canvas baseChart [data]="capChartData" [options]="capChartOptions" type="line"></canvas>
+                  <canvas baseChart #capChart="base-chart" [data]="capChartData" [options]="capChartOptions" type="line"></canvas>
                 </div>
               </mat-card-content>
             </mat-card>
 
             <mat-card class="chart-card" style="margin-bottom: 0;">
+              <button mat-icon-button class="chart-download-btn" (click)="downloadPng('spectral')" matTooltip="Download chart as PNG">
+                <mat-icon>download</mat-icon>
+              </button>
               <mat-card-header><mat-card-title>Spectral Efficiency</mat-card-title></mat-card-header>
               <mat-card-content>
                 <div class="chart-wrapper">

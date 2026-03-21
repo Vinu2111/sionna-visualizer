@@ -282,3 +282,66 @@
     flex-direction: column;
   }
 }
+
+/* ── Export Buttons ──────────────────────────────────────────────────────── */
+.export-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.export-btn {
+  border: 1px solid rgba(100, 255, 218, 0.4) !important;
+  color: #64ffda !important;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease !important;
+  height: 36px !important;
+  line-height: 36px !important;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    margin-right: 6px;
+  }
+
+  &:hover {
+    background-color: rgba(100, 255, 218, 0.1) !important;
+    border-color: #64ffda !important;
+    box-shadow: 0 0 12px rgba(100, 255, 218, 0.15);
+  }
+}
+
+.chart-card {
+  position: relative;
+}
+
+.chart-download-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  border: 1px solid rgba(100, 255, 218, 0.3) !important;
+  color: #64ffda !important;
+  background-color: rgba(13, 17, 23, 0.8) !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+  }
+
+  &:hover {
+    background-color: rgba(100, 255, 218, 0.1) !important;
+    border-color: #64ffda !important;
+  }
+}
+

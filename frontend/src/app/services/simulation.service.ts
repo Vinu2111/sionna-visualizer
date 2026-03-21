@@ -114,4 +114,11 @@ export class SimulationService {
   getShareLink(id: number): Observable<{ shareToken: string; shareUrl: string }> {
     return this.http.get<{ shareToken: string; shareUrl: string }>(`${this.historyUrl}/${id}/share-link`);
   }
+
+  /**
+   * Retrieves a simulation result by its public share token.
+   */
+  getSimulationByShareToken(token: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/api/simulations/public/${token}`);
+  }
 }

@@ -1,6 +1,7 @@
 package com.sionnavisualizer.controller;
 
 import com.sionnavisualizer.dto.SimulationDto;
+import com.sionnavisualizer.dto.SimulationRequestDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
 import org.springframework.http.ResponseEntity;
@@ -9,97 +10,117 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST Controller that exposes the Java backend API endpoints.
- * Angular will call these endpoints instead of the Python bridge directly.
+ * REST Controller exposing Sionna simulation API endpoints to the Angular frontend.
  *
- * All endpoints start with /api so they are clearly distinct from any
- * static file paths Angular might serve.
- *
- * @CrossOrigin allows the Angular dev server (localhost:4200) to call
- * this Java backend (localhost:8080) without browser CORS errors.
+ * Endpoints:
+ *   GET  /api/simulate/demo            – Quick demo simulation (QPSK defaults)
+ *   POST /api/simulate                 – Custom simulation with user parameters
+ *   GET  /api/simulations              – Full history from PostgreSQL
+ *   GET  /api/share/{token}            – View a publicly shared simulation
+ *   GET  /api/simulations/{id}/share-link – Get share URL for a saved run
  */
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(originPatterns = {"https://*.vercel.app", "http://localhost:4200"})
 public class SimulationController {
 
-    // Inject SimulationService — Spring provides this via constructor injection
     private final SimulationService simulationService;
 
     public SimulationController(SimulationService simulationService) {
         this.simulationService = simulationService;
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Simulation endpoints
+    // ─────────────────────────────────────────────────────────────────────────
+
     /**
      * GET /api/simulate/demo
      *
-     * Triggers a new simulation run:
-     * 1. Calls the Python bridge
-     * 2. Saves the result to PostgreSQL
-     * 3. Returns the result as JSON to Angular
-     *
-     * Returns 200 OK with SimulationDto on success.
-     * Returns 500 Internal Server Error with error message if Python bridge is down.
+     * Triggers a QPSK rate-1/2 simulation with default parameters.
+     * Used for the initial dashboard load — no request body needed.
      */
     @GetMapping("/simulate/demo")
     public ResponseEntity<?> runDemoSimulation() {
         try {
-            // Delegate to the service layer — controller should not contain logic
             SimulationDto result = simulationService.runDemoSimulation();
             return ResponseEntity.ok(result);
-        } catch (RuntimeException exception) {
-            // Return HTTP 500 with the error message as a plain string response
-            return ResponseEntity.internalServerError().body(exception.getMessage());
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
         }
     }
 
     /**
+     * POST /api/simulate
+     *
+     * Runs a simulation with user-supplied parameters:
+     *   - modulation_order  (2/4/16/64)
+     *   - code_rate         (0.1 – 1.0)
+     *   - num_bits_per_symbol
+     *   - snr_min, snr_max, snr_steps
+     *
+     * Returns the full SimulationDto with both BER curves.
+     * Returns HTTP 500 with a plain error message if the Python bridge fails.
+     */
+    @PostMapping("/simulate")
+    public ResponseEntity<?> runSimulation(@RequestBody SimulationRequestDto request) {
+        try {
+            SimulationDto result = simulationService.runSimulation(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // History / sharing endpoints
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
      * GET /api/simulations
      *
-     * Returns all previously completed simulation runs from the PostgreSQL database,
-     * ordered newest first. Useful for building a history/log screen in Angular.
-     *
-     * Returns 200 OK with an array of SimulationResult objects.
+     * Returns all saved simulation runs from PostgreSQL, newest first.
      */
     @GetMapping("/simulations")
     public ResponseEntity<List<SimulationResult>> getAllSimulations() {
-        // Retrieve the full list directly from the service
-        List<SimulationResult> allResults = simulationService.getAllSimulations();
-        return ResponseEntity.ok(allResults);
+        return ResponseEntity.ok(simulationService.getAllSimulations());
     }
 
     /**
-     * Resolves mathematical parameters perfectly inherently explicitly effectively mapped.
+     * GET /api/share/{shareToken}
+     *
+     * Fetches a single simulation by its public share token.
+     * Returns 404 if the token is unknown or the run is private.
      */
     @GetMapping("/share/{shareToken}")
     public ResponseEntity<?> viewSharedSimulation(@PathVariable String shareToken) {
         try {
             SimulationDto result = simulationService.getSimulationByShareToken(shareToken);
             return ResponseEntity.ok(result);
-        } catch (RuntimeException exception) {
-            return ResponseEntity.status(404).body(exception.getMessage());
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(404).body(ex.getMessage());
         }
     }
 
     /**
-     * Extracts exactly mathematical URL identities returning uniquely permanently structurally.
+     * GET /api/simulations/{id}/share-link
+     *
+     * Returns the public share URL for a saved simulation record.
      */
     @GetMapping("/simulations/{id}/share-link")
     public ResponseEntity<?> getShareLink(@PathVariable Long id) {
-        // We find the tracked identity row
         List<SimulationResult> records = simulationService.getAllSimulations();
         for (SimulationResult entity : records) {
             if (entity.getId().equals(id)) {
                 java.util.Map<String, String> response = new java.util.HashMap<>();
                 response.put("shareToken", entity.getShareToken());
-                // The shared link points to the live Vercel frontend
                 String frontendBase = System.getenv("FRONTEND_URL") != null
-                    ? System.getenv("FRONTEND_URL")
-                    : "http://localhost:4200";
+                        ? System.getenv("FRONTEND_URL")
+                        : "http://localhost:4200";
                 response.put("shareUrl", frontendBase + "/share/" + entity.getShareToken());
                 return ResponseEntity.ok(response);
             }
         }
-        return ResponseEntity.status(404).body("Simulation explicitly securely fundamentally unmapped unfortunately.");
+        return ResponseEntity.status(404).body("Simulation not found with id: " + id);
     }
 }

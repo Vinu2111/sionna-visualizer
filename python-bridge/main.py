@@ -1,56 +1,89 @@
-import datetime
-from fastapi import FastAPI
-from models import SimulationRequest, SimulationResult
-from sionna_runner import run_ofdm_simulation
+"""
+main.py — FastAPI application for the Sionna Visualizer Python bridge.
 
-app = FastAPI(title="Sionna Visualizer Bridge")
+Exposes:
+  GET  /health              — liveness probe
+  POST /simulate            — full simulation with user-supplied parameters
+  POST /simulate/demo       — same, but with sensible defaults (for Angular dev)
+"""
+
+import datetime
+from fastapi import FastAPI, HTTPException
+from models import SimulationRequest, SimulationResult
+from sionna_runner import run_awgn_simulation
+
+app = FastAPI(
+    title="Sionna Visualizer Bridge",
+    description="CPU-only AWGN BER-vs-SNR simulation microservice",
+    version="2.0.0",
+)
+
+
+# ---------------------------------------------------------------------------
+# Health probe — Railway / k8s liveness check
+# ---------------------------------------------------------------------------
 
 @app.get("/health")
 def health_check():
     """
-    Health check endpoint for the bridge service.
-    This remains unchanged as requested.
+    Returns 200 OK to signal the service is up.
+    Used by Railway health checks and the Java backend's connectivity test.
     """
-    return {"status": "ok", "service": "sionna-bridge"}
+    return {"status": "ok", "service": "sionna-bridge", "version": "2.0.0"}
 
+
+# ---------------------------------------------------------------------------
+# Core simulation endpoint
+# ---------------------------------------------------------------------------
 
 @app.post("/simulate", response_model=SimulationResult)
 def simulate(request: SimulationRequest):
     """
-    Run an OFDM simulation using parameters sent in the HTTP Request Body.
-    If NVIDIA Sionna is unavailable, it gracefully returns a mock curve.
-    """
-    
-    # 1. Unpack user request values, falling back to Pydantic defaults if missing
-    snr_db, ber, metadata = run_ofdm_simulation(
-        num_ofdm_symbols=request.num_ofdm_symbols,
-        fft_size=request.fft_size,
-        snr_min=request.snr_min,
-        snr_max=request.snr_max
-    )
-    
-    # 2. Structure the data into our Pydantic response entity
-    # Generating an ISO timestamp so the frontend knows exactly when this ran
-    timestamp = datetime.datetime.utcnow().isoformat()
-    
-    return SimulationResult(
-        snr_db=snr_db,
-        ber=ber,
-        metadata=metadata,
-        timestamp=timestamp
-    )
+    Run an AWGN BER-vs-SNR simulation with the supplied parameters.
 
+    Returns both a theoretical BER curve (closed-form) and a Monte-Carlo
+    simulated BER curve.  Raises HTTP 500 on any internal error so callers
+    always get a structured failure message instead of a silent empty body.
+    """
+    try:
+        result = run_awgn_simulation(
+            modulation_order=request.modulation_order,
+            code_rate=request.code_rate,
+            num_bits_per_symbol=request.num_bits_per_symbol,
+            snr_min=request.snr_min,
+            snr_max=request.snr_max,
+            snr_steps=request.snr_steps,
+        )
+        return SimulationResult(**result)
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Simulation failed: {str(exc)}",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Demo endpoint — POST with default QPSK parameters
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/demo", response_model=SimulationResult)
+def simulate_demo(request: SimulationRequest = None):
+    """
+    Runs a simulation with default QPSK rate-1/2 params.
+    If a body is provided, it uses those params.
+    """
+    if request is None:
+        request = SimulationRequest()
+    return simulate(request)
+
+
+# ---------------------------------------------------------------------------
+# Keep a GET /simulate/demo alias so the old Java GET call still works
+# during the transition period before the Java service is updated.
+# ---------------------------------------------------------------------------
 
 @app.get("/simulate/demo", response_model=SimulationResult)
-def simulate_demo():
-    """
-    Run a fast simulation using standard default parameters.
-    Very useful when developing the Angular frontend layout since we don't 
-    have to construct a complex payload object yet.
-    """
-    
-    # Generate an empty request object which uses all the Pydantic defaults
-    default_request = SimulationRequest()
-    
-    # We call the POST logic directly to adhere to DRY (Don't Repeat Yourself)
-    return simulate(default_request)
+def simulate_demo_get():
+    """Legacy GET alias — kept for backward compatibility."""
+    return simulate(SimulationRequest())

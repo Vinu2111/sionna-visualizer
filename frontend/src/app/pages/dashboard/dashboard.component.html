@@ -9,7 +9,19 @@
     </mat-card-header>
     <mat-card-content>
       <form [formGroup]="simForm" (ngSubmit)="runSimulation()" class="sim-form">
-        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px;">
+        
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
+          
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+            <mat-label>Modulation</mat-label>
+            <mat-select formControlName="modulation">
+              <mat-option value="BPSK">BPSK</mat-option>
+              <mat-option value="QPSK">QPSK</mat-option>
+              <mat-option value="16QAM">16QAM</mat-option>
+              <mat-option value="64QAM">64QAM</mat-option>
+            </mat-select>
+          </mat-form-field>
+
           <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
             <mat-label>SNR Min (dB)</mat-label>
             <input matInput type="number" formControlName="snrMin">
@@ -20,19 +32,24 @@
             <input matInput type="number" formControlName="snrMax">
           </mat-form-field>
 
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
-            <mat-label>Modulation</mat-label>
-            <mat-select formControlName="modulation">
-              <mat-option value="QPSK">QPSK</mat-option>
-              <mat-option value="16QAM">16QAM</mat-option>
-              <mat-option value="64QAM">64QAM</mat-option>
-            </mat-select>
-          </mat-form-field>
+        </div>
+        
+        <div style="display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 24px; padding-left: 10px; padding-right: 10px;">
+          
+          <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
+            <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Code Rate ({{ simForm.get('codeRate')?.value | number:'1.2-2' }})</span>
+            <mat-slider min="0.1" max="1.0" step="0.1" discrete style="width: 100%;">
+              <input matSliderThumb formControlName="codeRate">
+            </mat-slider>
+          </div>
 
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
-            <mat-label>Number of Symbols</mat-label>
-            <input matInput type="number" formControlName="numSymbols">
-          </mat-form-field>
+          <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
+            <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Number of SNR Points ({{ simForm.get('snrSteps')?.value }})</span>
+            <mat-slider min="10" max="50" step="5" discrete style="width: 100%;">
+              <input matSliderThumb formControlName="snrSteps">
+            </mat-slider>
+          </div>
+          
         </div>
 
         <button mat-raised-button color="primary" type="submit" 
@@ -78,29 +95,30 @@
     <!-- Metadata Section -->
     <mat-card class="metadata-card" style="margin-top: 24px;">
       <mat-card-header>
-        <mat-card-title>Simulation Hardware Overview</mat-card-title>
+        <mat-card-title>Simulation Metadata</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <div class="metadata-content" style="display: flex; gap: 32px; padding: 16px 0;">
+        <div class="metadata-content" style="display: flex; gap: 32px; padding: 16px 0; flex-wrap: wrap;">
           <div class="meta-item">
-            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">OFDM Symbols</span>
-            <span class="value" style="font-size: 1.2em;">{{ simulationData.metadata['num_ofdm_symbols'] || 'N/A' }}</span>
+            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Modulation</span>
+            <span class="value" style="font-size: 1.2em;">{{ simulationData.modulation }}</span>
           </div>
           
           <div class="meta-item">
-            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">FFT Size</span>
-            <span class="value" style="font-size: 1.2em;">{{ simulationData.metadata['fft_size'] || 'N/A' }}</span>
-          </div>
-          
-          <div class="meta-item">
-            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Hardware Used</span>
-            <span class="value" style="font-size: 1.2em;">{{ simulationData.metadata['sionna_used'] ? 'NVIDIA GPU (Sionna)' : 'Mock Generation' }}</span>
+            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Code Rate</span>
+            <span class="value" style="font-size: 1.2em;">{{ simulationData.code_rate | number:'1.2-2' }}</span>
           </div>
 
           <div class="meta-item">
-            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Timestamp</span>
-            <span class="value" style="font-size: 1.2em;">{{ simulationData.timestamp | date:'medium' }}</span>
+            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Bits Simulated (Per Point)</span>
+            <span class="value" style="font-size: 1.2em;">{{ simulationData.num_bits_simulated | number }}</span>
           </div>
+
+          <div class="meta-item">
+            <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Compute Time</span>
+            <span class="value" style="font-size: 1.2em;">{{ simulationData.simulation_time_ms }} ms</span>
+          </div>
+          
         </div>
       </mat-card-content>
     </mat-card>

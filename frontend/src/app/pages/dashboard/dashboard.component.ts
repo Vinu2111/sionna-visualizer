@@ -6,11 +6,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSliderModule } from '@angular/material/slider';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
-import { SimulationResult } from '../../models/simulation-result.model';
+import { SimulationResult, SimulationRequest } from '../../models/simulation-result.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -24,6 +25,7 @@ import { SimulationResult } from '../../models/simulation-result.model';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
+    MatSliderModule,
     ReactiveFormsModule
   ],
   templateUrl: './dashboard.component.html',
@@ -42,14 +44,27 @@ export class DashboardComponent implements OnInit {
     datasets: [
       {
         data: [],
-        label: 'Bit Error Rate',
+        label: 'Theoretical BER',
         fill: false,
         tension: 0.1,
-        borderColor: '#00ff88',
-        pointBackgroundColor: '#00ff88',
+        borderDash: [5, 5],
+        borderColor: '#64ffda', // teal
+        pointBackgroundColor: '#64ffda',
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(148,159,177,0.8)'
+        pointHoverBorderColor: 'rgba(100,255,218,0.8)',
+        pointRadius: 0
+      },
+      {
+        data: [],
+        label: 'Simulated BER',
+        fill: false,
+        tension: 0.1,
+        borderColor: '#ff6b6b', // coral
+        pointBackgroundColor: '#ff6b6b',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgba(255,107,107,0.8)'
       }
     ]
   };
@@ -59,7 +74,7 @@ export class DashboardComponent implements OnInit {
     maintainAspectRatio: false,
     plugins: {
       legend: { labels: { color: '#eeeeee' } },
-      title: { display: true, text: 'Bit Error Rate vs SNR', color: '#eeeeee' }
+      title: { display: true, text: 'BER vs SNR', color: '#eeeeee' }
     },
     scales: {
       y: {
@@ -72,7 +87,7 @@ export class DashboardComponent implements OnInit {
         ticks: {
           color: '#aaaaaa',
           callback: function(value: any) {
-            return Number(value).toExponential(0);
+             return Number(value).toExponential(0);
           }
         },
         grid: { color: '#333333' }
@@ -80,7 +95,7 @@ export class DashboardComponent implements OnInit {
       x: {
         title: {
           display: true,
-          text: 'Signal-to-Noise Ratio (dB)',
+          text: 'SNR (dB)',
           color: '#aaaaaa'
         },
         ticks: { color: '#aaaaaa' },
@@ -96,10 +111,11 @@ export class DashboardComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.simForm = this.fb.group({
-      snrMin: [0, [Validators.required, Validators.min(-10), Validators.max(10)]],
-      snrMax: [20, [Validators.required, Validators.min(10), Validators.max(40)]],
       modulation: ['QPSK', Validators.required],
-      numSymbols: [10000, Validators.required]
+      snrMin: [-5, [Validators.required, Validators.min(-15), Validators.max(10)]],
+      snrMax: [20, [Validators.required, Validators.min(10), Validators.max(40)]],
+      codeRate: [0.5, [Validators.required, Validators.min(0.1), Validators.max(1.0)]],
+      snrSteps: [25, [Validators.required, Validators.min(10), Validators.max(50)]]
     });
   }
 
@@ -111,9 +127,7 @@ export class DashboardComponent implements OnInit {
     this.isLoading = true;
     this.simulationService.getDemoSimulation().subscribe({
       next: (result) => {
-        this.simulationData = result;
-        this.lineChartData.labels = result.snr_db;
-        this.lineChartData.datasets[0].data = result.ber;
+        this.updateChartData(result);
         this.isLoading = false;
       },
       error: (err) => {
@@ -132,12 +146,27 @@ export class DashboardComponent implements OnInit {
     this.isSimulating = true;
     this.errorMsg = '';
     
-    // Call the API with these parameters properly injected dynamically gracefully
-    this.simulationService.runNewSimulation(this.simForm.value).subscribe({
+    const formVal = this.simForm.value;
+    
+    let modOrder = 4;
+    let bitsPerSym = 2;
+    if (formVal.modulation === 'BPSK') { modOrder = 2; bitsPerSym = 1; }
+    else if (formVal.modulation === 'QPSK') { modOrder = 4; bitsPerSym = 2; }
+    else if (formVal.modulation === '16QAM') { modOrder = 16; bitsPerSym = 4; }
+    else if (formVal.modulation === '64QAM') { modOrder = 64; bitsPerSym = 6; }
+
+    const request: SimulationRequest = {
+      modulation_order: modOrder,
+      code_rate: formVal.codeRate,
+      num_bits_per_symbol: bitsPerSym,
+      snr_min: formVal.snrMin,
+      snr_max: formVal.snrMax,
+      snr_steps: formVal.snrSteps
+    };
+
+    this.simulationService.runNewSimulation(request).subscribe({
       next: (result) => {
-        this.simulationData = result;
-        this.lineChartData.labels = result.snr_db;
-        this.lineChartData.datasets[0].data = result.ber;
+        this.updateChartData(result);
         this.isSimulating = false;
       },
       error: (err) => {
@@ -146,5 +175,20 @@ export class DashboardComponent implements OnInit {
         this.isSimulating = false;
       }
     });
+  }
+
+  private updateChartData(result: SimulationResult): void {
+    this.simulationData = result;
+    this.lineChartData.labels = result.snr_db;
+    this.lineChartData.datasets[0].data = result.ber_theoretical;
+    this.lineChartData.datasets[1].data = result.ber_simulated;
+    
+    // Dynamically update the chart title to include modulation format
+    if (this.lineChartOptions?.plugins?.title) {
+        this.lineChartOptions.plugins.title.text = `BER vs SNR — ${result.modulation}`;
+    }
+    
+    // Trigger chart update
+    this.lineChartData = { ...this.lineChartData };
   }
 }

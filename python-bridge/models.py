@@ -1,22 +1,47 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
+from typing import List
+
 
 class SimulationRequest(BaseModel):
     """
-    Parameters for the OFDM Simulation.
-    If not provided, these will default to standard values.
+    Parameters for the AWGN BER vs SNR simulation.
+    Defaults correspond to a standard QPSK rate-1/2 scenario.
     """
-    num_ofdm_symbols: Optional[int] = Field(default=14, description="Number of OFDM symbols per slot")
-    fft_size: Optional[int] = Field(default=76, description="FFT size (number of subcarriers)")
-    snr_min: Optional[int] = Field(default=0, description="Minimum Signal-to-Noise Ratio (SNR) in dB")
-    snr_max: Optional[int] = Field(default=20, description="Maximum Signal-to-Noise Ratio (SNR) in dB")
+    modulation_order: int = Field(
+        default=4,
+        description="Modulation order: 2=BPSK, 4=QPSK, 16=16QAM, 64=64QAM"
+    )
+    code_rate: float = Field(
+        default=0.5,
+        description="Code rate (fraction of bits that are data, e.g. 0.5 = rate-1/2)"
+    )
+    num_bits_per_symbol: int = Field(
+        default=2,
+        description="Bits per symbol: 1=BPSK, 2=QPSK, 4=16QAM, 6=64QAM"
+    )
+    snr_min: float = Field(
+        default=-5.0,
+        description="Minimum SNR in dB"
+    )
+    snr_max: float = Field(
+        default=20.0,
+        description="Maximum SNR in dB"
+    )
+    snr_steps: int = Field(
+        default=25,
+        description="Number of SNR points on the BER curve"
+    )
+
 
 class SimulationResult(BaseModel):
     """
-    Results from the OFDM Simulation execution.
-    Contains data points that the frontend will map to charts.
+    Results from the AWGN BER vs SNR simulation.
+    Contains both theoretically computed and Monte-Carlo simulated BER curves.
     """
-    snr_db: List[float] = Field(description="List of SNR values tested in this run")
-    ber: List[float] = Field(description="List of Bit Error Rate (BER) values matching the SNR points")
-    metadata: Dict[str, Any] = Field(description="Simulation configuration parameters used")
-    timestamp: str = Field(description="ISO format timestamp indicating when the simulation completed")
+    snr_db: List[float] = Field(description="SNR values tested (dB)")
+    ber_theoretical: List[float] = Field(description="Theoretical BER at each SNR point")
+    ber_simulated: List[float] = Field(description="Monte-Carlo simulated BER at each SNR point")
+    modulation: str = Field(description="Modulation scheme name (e.g. QPSK)")
+    code_rate: float = Field(description="Code rate used in this run")
+    simulation_time_ms: int = Field(description="Wall-clock time for the simulation in milliseconds")
+    num_bits_simulated: int = Field(description="Total bits processed in the Monte-Carlo run")

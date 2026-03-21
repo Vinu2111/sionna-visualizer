@@ -63,6 +63,8 @@
   }
 }
 
+
+
 .generate-btn {
   background: linear-gradient(135deg, #64ffda, #00bfff) !important;
   color: #0a0e1a !important;
@@ -170,6 +172,33 @@
     .selected-row {
       background-color: rgba(100, 255, 218, 0.08) !important;
       border-left: 3px solid #64ffda;
+    }
+
+    .compare-row-a {
+      background-color: rgba(100, 255, 218, 0.06) !important;
+      border-left: 3px solid #64ffda;
+    }
+
+    .compare-row-b {
+      background-color: rgba(255, 107, 107, 0.06) !important;
+      border-left: 3px solid #ff6b6b;
+    }
+
+    .check-a ::ng-deep .mdc-checkbox__background {
+      border-color: #64ffda !important;
+      background-color: #64ffda !important;
+    }
+
+    .check-b ::ng-deep .mdc-checkbox__background {
+      border-color: #ff6b6b !important;
+      background-color: #ff6b6b !important;
+    }
+
+    .action-cell {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: nowrap;
     }
 
     .compare-row-a {

@@ -2,23 +2,41 @@
   <h1>Sionna Visualizer</h1>
   <h3>6G Simulation Results Dashboard</h3>
 
+  <!-- Progress bar while initial data loads -->
+  <div class="loading-bar-container" *ngIf="isLoading">
+    <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+  </div>
+
+  <!-- Connection error state -->
+  <mat-card class="load-error-card" *ngIf="loadError && !isLoading">
+    <mat-card-content>
+      <mat-icon>wifi_off</mat-icon>
+      <h3>Unable to connect to simulation engine</h3>
+      <p>Please check your connection and make sure the backend is running.</p>
+      <button mat-raised-button color="accent" (click)="fetchSimulationData()">
+        Retry
+      </button>
+    </mat-card-content>
+  </mat-card>
+
   <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" style="margin-bottom: 24px; margin-top: 16px;">
-    
-    <!-- Tab 1: BER vs SNR -->
+
+    <!-- ════════════════════════════════════════
+         Tab 1: BER vs SNR
+         ════════════════════════════════════════ -->
     <mat-tab label="BER vs SNR">
       <div style="padding-top: 24px;">
 
-        <!-- Simulation Parameters Form -->
-        <mat-card class="form-card" style="margin-bottom: 24px;">
+        <!-- Parameters form -->
+        <mat-card class="form-card">
           <mat-card-header>
             <mat-card-title>Simulation Parameters</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <form [formGroup]="simForm" (ngSubmit)="runSimulation()" class="sim-form">
-              
-              <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
-                
-                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
                   <mat-label>Modulation</mat-label>
                   <mat-select formControlName="modulation">
                     <mat-option value="BPSK">BPSK</mat-option>
@@ -28,126 +46,114 @@
                   </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                <mat-form-field appearance="outline">
                   <mat-label>SNR Min (dB)</mat-label>
                   <input matInput type="number" formControlName="snrMin">
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                <mat-form-field appearance="outline">
                   <mat-label>SNR Max (dB)</mat-label>
                   <input matInput type="number" formControlName="snrMax">
                 </mat-form-field>
-
               </div>
-              
-              <div style="display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 24px; padding-left: 10px; padding-right: 10px;">
-                
-                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
-                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Code Rate ({{ simForm.get('codeRate')?.value | number:'1.2-2' }})</span>
+
+              <!-- Range validation error -->
+              <div class="validation-error" *ngIf="simForm.hasError('snrRangeInvalid')">
+                SNR Min must be less than SNR Max.
+              </div>
+
+              <div class="slider-row">
+                <div class="slider-field">
+                  <span class="slider-label">Code Rate ({{ simForm.get('codeRate')?.value | number:'1.2-2' }})</span>
                   <mat-slider min="0.1" max="1.0" step="0.1" discrete style="width: 100%;">
                     <input matSliderThumb formControlName="codeRate">
                   </mat-slider>
                 </div>
 
-                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
-                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Number of SNR Points ({{ simForm.get('snrSteps')?.value }})</span>
+                <div class="slider-field">
+                  <span class="slider-label">SNR Points ({{ simForm.get('snrSteps')?.value }})</span>
                   <mat-slider min="10" max="50" step="5" discrete style="width: 100%;">
                     <input matSliderThumb formControlName="snrSteps">
                   </mat-slider>
                 </div>
-                
               </div>
 
-              <button mat-raised-button color="primary" type="submit" 
-                      style="width: 100%; padding: 8px 0;" 
+              <button mat-raised-button color="primary" type="submit" class="run-btn"
                       [disabled]="simForm.invalid || isSimulating">
                 <span *ngIf="!isSimulating">Run Simulation</span>
-                <mat-spinner *ngIf="isSimulating" diameter="20" style="margin: 0 auto;"></mat-spinner>
+                <mat-spinner *ngIf="isSimulating" diameter="20" class="btn-spinner"></mat-spinner>
               </button>
             </form>
           </mat-card-content>
         </mat-card>
 
-        <!-- Loading State -->
-        <div *ngIf="isLoading" class="loading-container">
-          <mat-spinner diameter="50" color="accent"></mat-spinner>
+        <!-- Skeleton while loading initial data -->
+        <div *ngIf="isLoading">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card" style="height: 120px;"></div>
         </div>
 
-        <!-- Error State -->
-        <div *ngIf="errorMsg" class="error-container">
-          <p>{{ errorMsg }}</p>
-        </div>
-
-        <!-- Data Display State -->
+        <!-- Data display -->
         <ng-container *ngIf="!isLoading && simulationData">
-          
-          <!-- Chart Section -->
+
           <mat-card class="chart-card">
-            <mat-card-header>
-              <mat-card-title>Performance Metrics</mat-card-title>
-            </mat-card-header>
+            <mat-card-header><mat-card-title>Performance Metrics</mat-card-title></mat-card-header>
             <mat-card-content>
               <div class="chart-wrapper">
-                <canvas baseChart
-                        [data]="lineChartData"
-                        [options]="lineChartOptions"
-                        [legend]="lineChartLegend"
-                        type="line">
-                </canvas>
+                <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [legend]="lineChartLegend" type="line"></canvas>
               </div>
             </mat-card-content>
           </mat-card>
 
-          <!-- Metadata Section -->
-          <mat-card class="metadata-card" style="margin-top: 24px;">
-            <mat-card-header>
-              <mat-card-title>Simulation Metadata</mat-card-title>
-            </mat-card-header>
+          <mat-card class="metadata-card">
+            <mat-card-header><mat-card-title>Simulation Metadata</mat-card-title></mat-card-header>
             <mat-card-content>
-              <div class="metadata-content" style="display: flex; gap: 32px; padding: 16px 0; flex-wrap: wrap;">
+              <div style="display: flex; gap: 32px; padding: 8px 0; flex-wrap: wrap;">
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Modulation</span>
-                  <span class="value" style="font-size: 1.2em;">{{ simulationData.modulation }}</span>
+                  <span class="label">Modulation</span>
+                  <span class="value">{{ simulationData.modulation }}</span>
                 </div>
-                
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Code Rate</span>
-                  <span class="value" style="font-size: 1.2em;">{{ simulationData.code_rate | number:'1.2-2' }}</span>
+                  <span class="label">Code Rate</span>
+                  <span class="value">{{ simulationData.code_rate | number:'1.2-2' }}</span>
                 </div>
-
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Bits Simulated</span>
-                  <span class="value" style="font-size: 1.2em;">{{ simulationData.num_bits_simulated | number }}</span>
+                  <span class="label">Bits Simulated</span>
+                  <span class="value">{{ simulationData.num_bits_simulated | number }}</span>
                 </div>
-
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Compute Time</span>
-                  <span class="value" style="font-size: 1.2em;">{{ simulationData.simulation_time_ms }} ms</span>
+                  <span class="label">Compute Time</span>
+                  <span class="value">{{ simulationData.simulation_time_ms }} ms</span>
                 </div>
-                
               </div>
             </mat-card-content>
           </mat-card>
 
         </ng-container>
 
+        <!-- Empty state: user has no data yet -->
+        <div class="chart-placeholder" *ngIf="!isLoading && !simulationData && !loadError">
+          <mat-icon>show_chart</mat-icon>
+          <p>Run a simulation to see results</p>
+        </div>
+
       </div>
     </mat-tab>
 
-    <!-- Tab 2: Beam Pattern -->
+    <!-- ════════════════════════════════════════
+         Tab 2: Beam Pattern
+         ════════════════════════════════════════ -->
     <mat-tab label="Beam Pattern">
       <div style="padding-top: 24px;">
 
-        <!-- Beam Pattern Params -->
-        <mat-card class="form-card" style="margin-bottom: 24px;">
+        <mat-card class="form-card">
           <mat-card-header>
             <mat-card-title>Beam Pattern Parameters</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <form [formGroup]="beamForm" (ngSubmit)="runBeamSimulation()" class="sim-form">
-              <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
-                
-                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+              <div class="form-row">
+                <mat-form-field appearance="outline">
                   <mat-label>Number of Antennas</mat-label>
                   <mat-select formControlName="numAntennas">
                     <mat-option [value]="8">8 Elements</mat-option>
@@ -157,7 +163,7 @@
                   </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                <mat-form-field appearance="outline">
                   <mat-label>Frequency</mat-label>
                   <mat-select formControlName="frequencyGhz">
                     <mat-option [value]="28.0">28 GHz (n257)</mat-option>
@@ -166,190 +172,178 @@
                     <mat-option [value]="77.0">77 GHz</mat-option>
                   </mat-select>
                 </mat-form-field>
-
               </div>
-              
-              <div style="display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 24px; padding-left: 10px; padding-right: 10px;">
-                
-                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
-                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Steering Angle ({{ beamForm.get('steeringAngle')?.value }}°)</span>
+
+              <div class="slider-row">
+                <div class="slider-field">
+                  <span class="slider-label">Steering Angle ({{ beamForm.get('steeringAngle')?.value }}°)</span>
                   <mat-slider min="-90" max="90" step="5" discrete style="width: 100%;">
                     <input matSliderThumb formControlName="steeringAngle">
                   </mat-slider>
                 </div>
 
-                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
-                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Array Spacing ({{ beamForm.get('arraySpacing')?.value | number:'1.1-1' }} λ)</span>
+                <div class="slider-field">
+                  <span class="slider-label">Array Spacing ({{ beamForm.get('arraySpacing')?.value | number:'1.1-1' }} λ)</span>
                   <mat-slider min="0.3" max="1.0" step="0.1" discrete style="width: 100%;">
                     <input matSliderThumb formControlName="arraySpacing">
                   </mat-slider>
                 </div>
-                
               </div>
 
-              <button mat-raised-button color="primary" type="submit" 
-                      style="width: 100%; padding: 8px 0;" 
+              <button mat-raised-button color="primary" type="submit" class="run-btn"
                       [disabled]="beamForm.invalid || isBeamSimulating">
                 <span *ngIf="!isBeamSimulating">Run Beam Pattern</span>
-                <mat-spinner *ngIf="isBeamSimulating" diameter="20" style="margin: 0 auto;"></mat-spinner>
+                <mat-spinner *ngIf="isBeamSimulating" diameter="20" class="btn-spinner"></mat-spinner>
               </button>
             </form>
           </mat-card-content>
         </mat-card>
 
-        <!-- Error State -->
-        <div *ngIf="errorMsg" class="error-container">
-          <p>{{ errorMsg }}</p>
+        <div class="chart-placeholder" *ngIf="!beamData && !isBeamSimulating">
+          <mat-icon>antenna</mat-icon>
+          <p>Configure and run beam pattern simulation</p>
         </div>
 
-        <!-- Data Display State -->
         <ng-container *ngIf="beamData">
-          
-          <!-- Chart Section -->
           <mat-card class="chart-card">
-            <mat-card-header>
-              <mat-card-title>Radiation Pattern (Polar)</mat-card-title>
-            </mat-card-header>
+            <mat-card-header><mat-card-title>Radiation Pattern (Polar)</mat-card-title></mat-card-header>
             <mat-card-content>
-              <div class="chart-wrapper" style="position: relative; height: 450px; width: 100%; padding: 10px;">
-                <canvas baseChart
-                        [data]="radarChartData"
-                        [options]="radarChartOptions"
-                        type="radar">
-                </canvas>
+              <div class="chart-wrapper" style="height: 450px; padding: 10px;">
+                <canvas baseChart [data]="radarChartData" [options]="radarChartOptions" type="radar"></canvas>
               </div>
             </mat-card-content>
           </mat-card>
 
-          <!-- Metrics Section -->
-          <mat-card class="metadata-card" style="margin-top: 24px;">
-            <mat-card-header>
-              <mat-card-title>Antenna Metrics</mat-card-title>
-            </mat-card-header>
+          <mat-card class="metadata-card">
+            <mat-card-header><mat-card-title>Antenna Metrics</mat-card-title></mat-card-header>
             <mat-card-content>
-              <div class="metadata-content" style="display: flex; gap: 32px; padding: 16px 0; flex-wrap: wrap;">
+              <div style="display: flex; gap: 32px; padding: 8px 0; flex-wrap: wrap;">
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Main Lobe Width</span>
-                  <span class="value" style="font-size: 1.2em;">{{ beamData.main_lobe_width | number:'1.1-1' }}°</span>
+                  <span class="label">Main Lobe Width</span>
+                  <span class="value">{{ beamData.main_lobe_width | number:'1.1-1' }}°</span>
                 </div>
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Side Lobe Level</span>
-                  <span class="value" style="font-size: 1.2em;">{{ beamData.side_lobe_level | number:'1.2-2' }} dB</span>
+                  <span class="label">Side Lobe Level</span>
+                  <span class="value">{{ beamData.side_lobe_level | number:'1.2-2' }} dB</span>
                 </div>
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Array Gain</span>
-                  <span class="value" style="font-size: 1.2em;">{{ beamData.array_gain_db | number:'1.1-1' }} dB</span>
+                  <span class="label">Array Gain</span>
+                  <span class="value">{{ beamData.array_gain_db | number:'1.1-1' }} dB</span>
                 </div>
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Steering Angle</span>
-                  <span class="value" style="font-size: 1.2em;">{{ beamData.steering_angle }}°</span>
+                  <span class="label">Steering Angle</span>
+                  <span class="value">{{ beamData.steering_angle }}°</span>
                 </div>
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Frequency</span>
-                  <span class="value" style="font-size: 1.2em;">{{ beamData.frequency_ghz }} GHz</span>
+                  <span class="label">Frequency</span>
+                  <span class="value">{{ beamData.frequency_ghz }} GHz</span>
                 </div>
                 <div class="meta-item">
-                  <span class="label" style="color: #aaaaaa; display: block; font-size: 0.9em;">Antennas</span>
-                  <span class="value" style="font-size: 1.2em;">{{ beamData.num_antennas }} elements</span>
+                  <span class="label">Antennas</span>
+                  <span class="value">{{ beamData.num_antennas }}</span>
                 </div>
               </div>
             </mat-card-content>
           </mat-card>
-
         </ng-container>
 
       </div>
     </mat-tab>
-    <!-- Tab 3: Modulation Comparison -->
-    <mat-tab label="Modulation Comparison">
+
+    <!-- ════════════════════════════════════════
+         Tab 3: Modulation Comparison
+         ════════════════════════════════════════ -->
+    <mat-tab label="Mod. Compare">
       <div style="padding-top: 24px;">
 
-        <mat-card class="form-card" style="margin-bottom: 24px;">
+        <mat-card class="form-card">
           <mat-card-header>
             <mat-card-title>Comparison Parameters</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <form [formGroup]="modForm" (ngSubmit)="runModulationComparison()" class="sim-form">
-              <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
-                
-                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+              <div class="form-row">
+                <mat-form-field appearance="outline">
                   <mat-label>SNR Min (dB)</mat-label>
                   <input matInput type="number" formControlName="snrMin">
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                <mat-form-field appearance="outline">
                   <mat-label>SNR Max (dB)</mat-label>
                   <input matInput type="number" formControlName="snrMax">
                 </mat-form-field>
-
               </div>
-              
-              <div style="display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 24px; padding-left: 10px; padding-right: 10px;">
-                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
-                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Number of Points ({{ modForm.get('snrSteps')?.value }})</span>
+
+              <div class="validation-error" *ngIf="modForm.hasError('snrRangeInvalid')">
+                SNR Min must be less than SNR Max.
+              </div>
+
+              <div class="slider-row">
+                <div class="slider-field">
+                  <span class="slider-label">Number of Points ({{ modForm.get('snrSteps')?.value }})</span>
                   <mat-slider min="20" max="100" step="5" discrete style="width: 100%;">
                     <input matSliderThumb formControlName="snrSteps">
                   </mat-slider>
                 </div>
               </div>
 
-              <button mat-raised-button color="primary" type="submit" 
-                      style="width: 100%; padding: 8px 0;" 
+              <button mat-raised-button color="primary" type="submit" class="run-btn"
                       [disabled]="modForm.invalid || isModSimulating">
                 <span *ngIf="!isModSimulating">Compare All Modulations</span>
-                <mat-spinner *ngIf="isModSimulating" diameter="20" style="margin: 0 auto;"></mat-spinner>
+                <mat-spinner *ngIf="isModSimulating" diameter="20" class="btn-spinner"></mat-spinner>
               </button>
             </form>
           </mat-card-content>
         </mat-card>
 
-        <div *ngIf="errorMsg" class="error-container">
-          <p>{{ errorMsg }}</p>
+        <div class="chart-placeholder" *ngIf="!modData && !isModSimulating">
+          <mat-icon>compare_arrows</mat-icon>
+          <p>Run comparison to see BPSK / QPSK / 16QAM / 64QAM on one chart</p>
         </div>
 
         <ng-container *ngIf="modData">
-          
+
           <mat-card class="chart-card">
-            <mat-card-header>
-              <mat-card-title>Performance Metrics</mat-card-title>
-            </mat-card-header>
+            <mat-card-header><mat-card-title>BER vs SNR — All Modulations</mat-card-title></mat-card-header>
             <mat-card-content>
               <div class="chart-wrapper">
-                <canvas baseChart
-                        [data]="modChartData"
-                        [options]="modChartOptions"
-                        type="line">
-                </canvas>
+                <canvas baseChart [data]="modChartData" [options]="modChartOptions" type="line"></canvas>
               </div>
             </mat-card-content>
           </mat-card>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 24px;">
-            <mat-card class="metadata-card">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+            <mat-card class="insight-card">
               <mat-card-content>
-                <div style="font-size: 1.1em; color: #64ffda; margin-bottom: 8px;">BPSK & QPSK</div>
-                <div style="color: #aaaaaa;">Same BER performance. QPSK doubles the data rate.</div>
-              </mat-card-content>
-            </mat-card>
-            
-            <mat-card class="metadata-card">
-              <mat-card-content>
-                <div style="font-size: 1.1em; color: #f7b731; margin-bottom: 8px;">16QAM Advantage</div>
-                <div style="color: #aaaaaa;">16QAM needs ~{{ modData.crossover_points.qpsk_advantage_over_16qam_at_snr | number:'1.1-1' }} dB more SNR than QPSK for BER &lt; 0.001</div>
+                <div class="insight-title" style="color: #64ffda;">BPSK &amp; QPSK</div>
+                <div class="insight-body">Identical BER performance — QPSK doubles the spectral efficiency for free.</div>
               </mat-card-content>
             </mat-card>
 
-            <mat-card class="metadata-card">
+            <mat-card class="insight-card">
               <mat-card-content>
-                <div style="font-size: 1.1em; color: #ff6b6b; margin-bottom: 8px;">64QAM Advantage</div>
-                <div style="color: #aaaaaa;">64QAM needs ~{{ modData.crossover_points.qam16_advantage_over_64qam_at_snr | number:'1.1-1' }} dB more SNR than 16QAM for BER &lt; 0.001</div>
+                <div class="insight-title" style="color: #f7b731;">16QAM Tradeoff</div>
+                <div class="insight-body">
+                  Needs ~{{ modData.crossover_points.qpsk_advantage_over_16qam_at_snr | number:'1.1-1' }} dB
+                  more SNR than QPSK to reach BER &lt; 10<sup>-3</sup>.
+                </div>
               </mat-card-content>
             </mat-card>
 
-            <mat-card class="metadata-card">
+            <mat-card class="insight-card">
               <mat-card-content>
-                <div style="font-size: 1.1em; color: #eeeeee; margin-bottom: 8px;">Key Insight</div>
-                <div style="color: #aaaaaa;">Higher modulation = more data, more SNR required. This is the fundamental 6G spectral efficiency tradeoff.</div>
+                <div class="insight-title" style="color: #ff6b6b;">64QAM Tradeoff</div>
+                <div class="insight-body">
+                  Needs ~{{ modData.crossover_points.qam16_advantage_over_64qam_at_snr | number:'1.1-1' }} dB
+                  more SNR than 16QAM. 6 bits/symbol but demanding on channel quality.
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="insight-card">
+              <mat-card-content>
+                <div class="insight-title" style="color: #eeeeee;">Key Insight</div>
+                <div class="insight-body">Higher modulation = more data, more SNR required. This is the fundamental 6G spectral efficiency tradeoff.</div>
               </mat-card-content>
             </mat-card>
           </div>
@@ -357,5 +351,6 @@
         </ng-container>
       </div>
     </mat-tab>
+
   </mat-tab-group>
 </div>

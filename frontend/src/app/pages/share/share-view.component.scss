@@ -1,30 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 .share-page {
   min-height: 100vh;
-  background-color: #121212;
+  background-color: #0a0e1a;
   color: #eeeeee;
   display: flex;
   flex-direction: column;
+  font-family: 'Inter', sans-serif;
 }
 
 .public-banner {
-  background-color: #1a1a1a;
+  background-color: #0d1117;
   padding: 1rem 2rem;
-  border-bottom: 2px solid #00ff88;
+  border-bottom: 1px solid rgba(100, 255, 218, 0.15);
   display: flex;
   align-items: center;
   gap: 1rem;
-  cursor: pointer;
 
   h1 {
     margin: 0;
-    font-size: 1.5rem;
-    color: #00ff88;
-    font-weight: bold;
-    letter-spacing: 0.5px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #64ffda, #00bfff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .subtitle {
-    color: #aaaaaa;
+    color: rgba(255, 255, 255, 0.4);
     font-size: 0.9rem;
     margin-left: auto;
   }
@@ -33,12 +37,13 @@
 .content-body {
   flex: 1;
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 24px;
+  box-sizing: border-box;
 }
 
 .spinner-container {
@@ -47,92 +52,114 @@
   padding: 4rem;
 }
 
-.error-card {
-  background-color: #ffebee;
-  color: #c62828;
+/* ── 404 State ────────────────────────────────────────────────────────────── */
+.not-found-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 24px;
+  text-align: center;
 
-  mat-card-header {
-    mat-icon {
-      margin-right: 0.5rem;
-    }
-    mat-card-title {
-      color: #c62828;
-    }
+  mat-icon {
+    font-size: 64px;
+    height: 64px;
+    width: 64px;
+    color: rgba(100, 255, 218, 0.3);
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #eeeeee;
+    margin: 0;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.95rem;
+    margin: 0;
+    max-width: 400px;
   }
 
   button {
-    margin-top: 1rem;
+    margin-top: 8px;
+    padding: 10px 28px !important;
+    border-radius: 8px !important;
   }
 }
 
+/* ── Chart Box ─────────────────────────────────────────────────────────────── */
 .chart-box {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 1.5rem;
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(100, 255, 218, 0.1) !important;
+  border-radius: 12px !important;
+  transition: border-color 0.2s ease;
 
-  mat-card-title {
-    color: #00ff88;
-  }
-  
-  mat-card-subtitle {
-    color: #aaaaaa;
-  }
+  &:hover { border-color: rgba(100, 255, 218, 0.25) !important; }
+
+  mat-card-title { color: #eeeeee; font-size: 1rem; }
+  mat-card-subtitle { color: rgba(255,255,255,0.45); }
 
   .canvas-wrapper {
-    height: 400px;
-    margin-top: 1rem;
+    height: 380px;
+    margin-top: 16px;
   }
 }
 
+/* ── Specs Card ───────────────────────────────────────────────────────────── */
 .specs-card {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 1.5rem;
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(100, 255, 218, 0.1) !important;
+  border-radius: 12px !important;
 
-  mat-card-title {
-    color: #00ff88;
-    font-size: 1.2rem;
-  }
+  mat-card-title { color: #eeeeee; font-size: 1rem; }
 
   .meta-list {
-    list-style-type: none;
+    list-style: none;
     padding: 0;
-    margin: 1rem 0 0 0;
+    margin: 16px 0 0;
     display: flex;
-    gap: 2rem;
+    gap: 16px;
     flex-wrap: wrap;
 
     li {
-      background-color: #2a2a2a;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      color: #dddddd;
+      background-color: rgba(100, 255, 218, 0.05);
+      border: 1px solid rgba(100, 255, 218, 0.1);
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.9rem;
 
       strong {
-        color: #00ff88;
-        margin-right: 0.5rem;
+        color: #64ffda;
+        margin-right: 6px;
       }
     }
   }
 }
 
+/* ── CTA Banner ────────────────────────────────────────────────────────────── */
 .cta-banner {
-  background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
-  padding: 3rem;
+  background: linear-gradient(135deg, rgba(100,255,218,0.05) 0%, rgba(0,191,255,0.05) 100%);
+  padding: 48px;
   border-radius: 12px;
   text-align: center;
-  border: 1px solid #333333;
+  border: 1px solid rgba(100, 255, 218, 0.15);
 
   h2 {
     color: #ffffff;
     margin-top: 0;
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
+    margin-bottom: 24px;
+    font-size: 1.5rem;
+    font-weight: 600;
   }
 
   button {
-    font-size: 1.2rem;
-    padding: 0 2rem;
-    height: 54px;
+    font-size: 1rem !important;
+    padding: 12px 32px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
   }
 }

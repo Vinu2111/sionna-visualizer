@@ -2,3 +2,94 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Global Consistent Color Tokens & Theming
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --primary-color: #64ffda;
+  --error-color: #ff6b6b;
+  --warning-color: #f7b731;
+  --bg-color: #0a0e1a;
+  --card-bg-color: #0d1117;
+  --border-color: rgba(100, 255, 218, 0.1);
+  --border-hover-color: rgba(100, 255, 218, 0.3);
+  --text-main: #eeeeee;
+  --text-body: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+h1 { font-size: 24px; }
+h2 { font-size: 18px; font-weight: 500; }
+body { font-size: 14px; }
+
+/* All Cards styling */
+.mat-mdc-card {
+  background-color: var(--card-bg-color) !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--border-color) !important;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-hover-color) !important;
+  }
+}
+
+/* Button overrides for precise spec padding */
+.mat-mdc-button-base {
+  border-radius: 8px !important;
+}
+
+/* Page Transitions */
+router-outlet ~ * {
+  animation: fadeIn 200ms ease-in-out;
+  display: block;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Base form spacing for mobile */
+@media (max-width: 768px) {
+  .sim-form {
+    display: flex;
+    flex-direction: column;
+    
+    .mat-mdc-form-field {
+      width: 100% !important;
+    }
+  }
+
+  .mat-mdc-tab-labels {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
+}
+
+/* SnackBar Error styling */
+.error-snackbar {
+  background-color: var(--error-color) !important;
+  color: #fff !important;
+  
+  .mat-mdc-button .mdc-button__label { 
+    color: #fff !important;
+  }
+}

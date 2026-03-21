@@ -1,23 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 .dashboard-container {
   padding: 2rem;
   min-height: 100vh;
-  background-color: #121212;
+  background-color: #0a0e1a;
   color: #eeeeee;
-  
+  font-family: 'Inter', sans-serif;
+
   h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.2rem;
-    color: #00ff88;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, #64ffda, #00bfff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
-  
+
   h3 {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-    color: #aaaaaa;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.5);
     font-weight: 300;
   }
 }
 
+/* ── Loading Bar ─────────────────────────────────────────────────────────── */
+.loading-bar-container {
+  margin-bottom: 24px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+.skeleton-card {
+  background: linear-gradient(90deg, #0d1117 25%, #1a2232 50%, #0d1117 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 12px;
+  height: 200px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(100, 255, 218, 0.07) !important;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Loading / Error states ─────────────────────────────────────────────── */
 .loading-container {
   display: flex;
   justify-content: center;
@@ -25,19 +56,151 @@
   height: 300px;
 }
 
+.load-error-card {
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(255, 107, 107, 0.3) !important;
+  border-radius: 12px !important;
+  text-align: center;
+  padding: 32px !important;
+  margin-bottom: 24px;
+
+  mat-icon {
+    font-size: 48px;
+    height: 48px;
+    width: 48px;
+    color: #ff6b6b;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    color: #ff6b6b !important;
+    -webkit-text-fill-color: #ff6b6b !important;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ── Empty placeholder ───────────────────────────────────────────────────── */
+.chart-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  border: 1.5px dashed rgba(100, 255, 218, 0.2);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  gap: 12px;
+
+  mat-icon {
+    font-size: 48px;
+    height: 48px;
+    width: 48px;
+    color: rgba(100, 255, 218, 0.25);
+  }
+
+  p {
+    font-size: 0.95rem;
+    margin: 0;
+  }
+}
+
+/* ── Forms ───────────────────────────────────────────────────────────────── */
+.form-card {
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(100, 255, 218, 0.1) !important;
+  border-radius: 12px !important;
+  margin-bottom: 24px;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: rgba(100, 255, 218, 0.25) !important;
+  }
+}
+
+.sim-form {
+  .form-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    align-items: flex-start;
+  }
+
+  .form-row mat-form-field {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .slider-row {
+    display: flex;
+    gap: 48px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding: 0 10px;
+  }
+
+  .slider-field {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 250px;
+  }
+
+  .slider-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+}
+
+.run-btn {
+  width: 100%;
+  padding: 10px 0 !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+
+  &:not([disabled]):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(100, 255, 218, 0.2);
+  }
+
+  .btn-spinner {
+    margin: 0 auto;
+    --mdc-circular-progress-active-indicator-color: #64ffda;
+  }
+}
+
+.validation-error {
+  color: #ff6b6b;
+  font-size: 0.8rem;
+  margin: -16px 0 12px 4px;
+}
+
+/* ── Chart cards ─────────────────────────────────────────────────────────── */
 .chart-card, .metadata-card {
-  background-color: #1e1e1e;
-  border: 1px solid #333333;
-  margin-bottom: 2rem;
-  border-radius: 8px;
-  
-  mat-card-header {
-    margin-bottom: 1rem;
-    color: #eeeeee;
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(100, 255, 218, 0.1) !important;
+  border-radius: 12px !important;
+  margin-bottom: 24px;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: rgba(100, 255, 218, 0.25) !important;
   }
 
   mat-card-title {
     color: #eeeeee;
+    font-size: 1rem;
+    font-weight: 500;
   }
 }
 
@@ -47,26 +210,75 @@
   width: 100%;
 }
 
-.metadata-content {
+/* ── Metadata values ─────────────────────────────────────────────────────── */
+.meta-item {
   display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4px;
 
-  .meta-item {
-    display: flex;
+  .label {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .value {
+    font-size: 1.15rem;
+    color: #64ffda;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+  }
+}
+
+/* ── Insight cards ───────────────────────────────────────────────────────── */
+.insight-card {
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(100, 255, 218, 0.1) !important;
+  border-radius: 12px !important;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+  padding: 4px;
+
+  &:hover {
+    border-color: rgba(100, 255, 218, 0.3) !important;
+    transform: translateY(-2px);
+  }
+
+  .insight-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .insight-body {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+}
+
+/* ── Tab labels short on mobile ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+
+    h1 { font-size: 1.5rem; }
+  }
+
+  .chart-wrapper {
+    height: 300px;
+  }
+
+  .sim-form .slider-row {
+    gap: 24px;
+    padding: 0;
+  }
+
+  .sim-form .slider-field {
+    min-width: 100%;
+  }
+
+  .sim-form .form-row {
     flex-direction: column;
-    
-    .label {
-      font-size: 0.85rem;
-      color: #888888;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .value {
-      font-size: 1.1rem;
-      color: #00ff88;
-      font-family: monospace;
-    }
   }
 }

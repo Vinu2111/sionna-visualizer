@@ -7,27 +7,47 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatIconModule } from '@angular/material/icon';
 import { ChartConfiguration, ChartOptions, ChartData } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
-import { SimulationResult, SimulationRequest, BeamPatternResult, BeamPatternRequest, ModulationComparisonRequest, ModulationComparisonResult } from '../../models/simulation-result.model';
+import {
+  SimulationResult, SimulationRequest,
+  BeamPatternResult, BeamPatternRequest,
+  ModulationComparisonRequest, ModulationComparisonResult
+} from '../../models/simulation-result.model';
+
+/** Custom validator: SNR min must be less than SNR max */
+function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
+  const min = control.get('snrMin')?.value;
+  const max = control.get('snrMax')?.value;
+  if (min !== null && max !== null && min >= max) {
+    return { snrRangeInvalid: true };
+  }
+  return null;
+}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, 
-    NgChartsModule, 
-    MatCardModule, 
+    CommonModule,
+    NgChartsModule,
+    MatCardModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
     MatSliderModule,
     MatTabsModule,
+    MatSnackBarModule,
+    MatIconModule,
     ReactiveFormsModule
   ],
   templateUrl: './dashboard.component.html',
@@ -41,12 +61,15 @@ export class DashboardComponent implements OnInit {
   isSimulating = false;
   isBeamSimulating = false;
   isModSimulating = false;
-  errorMsg = '';
-  
+  loadError = false;
+
   simForm: FormGroup;
   beamForm: FormGroup;
   modForm: FormGroup;
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Radar (Beam)
+  // ─────────────────────────────────────────────────────────────────────────
   public radarChartOptions: ChartConfiguration<'radar'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
@@ -78,32 +101,23 @@ export class DashboardComponent implements OnInit {
     }]
   };
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Line (BER/SNR)
+  // ─────────────────────────────────────────────────────────────────────────
   public lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
       {
-        data: [],
-        label: 'Theoretical BER',
-        fill: false,
-        tension: 0.1,
-        borderDash: [5, 5],
-        borderColor: '#64ffda', // teal
-        pointBackgroundColor: '#64ffda',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(100,255,218,0.8)',
-        pointRadius: 0
+        data: [], label: 'Theoretical BER',
+        fill: false, tension: 0.1, borderDash: [5, 5],
+        borderColor: '#64ffda', pointBackgroundColor: '#64ffda',
+        pointBorderColor: '#fff', pointRadius: 0
       },
       {
-        data: [],
-        label: 'Simulated BER',
-        fill: false,
-        tension: 0.1,
-        borderColor: '#ff6b6b', // coral
-        pointBackgroundColor: '#ff6b6b',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(255,107,107,0.8)'
+        data: [], label: 'Simulated BER',
+        fill: false, tension: 0.1,
+        borderColor: '#ff6b6b', pointBackgroundColor: '#ff6b6b',
+        pointBorderColor: '#fff'
       }
     ]
   };
@@ -118,36 +132,26 @@ export class DashboardComponent implements OnInit {
     scales: {
       y: {
         type: 'logarithmic',
-        title: {
-          display: true,
-          text: 'Bit Error Rate (BER)',
-          color: '#aaaaaa'
-        },
-        ticks: {
-          color: '#aaaaaa',
-          callback: function(value: any) {
-             return Number(value).toExponential(0);
-          }
-        },
-        grid: { color: '#333333' }
+        title: { display: true, text: 'Bit Error Rate (BER)', color: '#aaaaaa' },
+        ticks: { color: '#aaaaaa', callback: (v: any) => Number(v).toExponential(0) },
+        grid: { color: '#1e2a3a' }
       },
       x: {
-        title: {
-          display: true,
-          text: 'SNR (dB)',
-          color: '#aaaaaa'
-        },
+        title: { display: true, text: 'SNR (dB)', color: '#aaaaaa' },
         ticks: { color: '#aaaaaa' },
-        grid: { color: '#333333' }
+        grid: { color: '#1e2a3a' }
       }
     }
   };
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Line (Mod Comparison)
+  // ─────────────────────────────────────────────────────────────────────────
   public modChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
-      { data: [], label: 'BPSK', fill: false, tension: 0.1, borderColor: '#ffffff', pointRadius: 0, borderWidth: 2 },
-      { data: [], label: 'QPSK', fill: false, tension: 0.1, borderColor: '#64ffda', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: 'BPSK',  fill: false, tension: 0.1, borderColor: '#ffffff', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: 'QPSK',  fill: false, tension: 0.1, borderColor: '#64ffda', pointRadius: 0, borderWidth: 2 },
       { data: [], label: '16QAM', fill: false, tension: 0.1, borderColor: '#f7b731', pointRadius: 0, borderWidth: 2 },
       { data: [], label: '64QAM', fill: false, tension: 0.1, borderColor: '#ff6b6b', pointRadius: 0, borderWidth: 2 }
     ]
@@ -164,13 +168,13 @@ export class DashboardComponent implements OnInit {
       y: {
         type: 'logarithmic',
         title: { display: true, text: 'Bit Error Rate (BER)', color: '#aaaaaa' },
-        ticks: { color: '#aaaaaa', callback: function(value: any) { return Number(value).toExponential(0); } },
-        grid: { color: '#333333' }
+        ticks: { color: '#aaaaaa', callback: (v: any) => Number(v).toExponential(0) },
+        grid: { color: '#1e2a3a' }
       },
       x: {
         title: { display: true, text: 'SNR (dB)', color: '#aaaaaa' },
         ticks: { color: '#aaaaaa' },
-        grid: { color: '#333333' }
+        grid: { color: '#1e2a3a' }
       }
     }
   };
@@ -179,7 +183,8 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private simulationService: SimulationService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private snackBar: MatSnackBar
   ) {
     this.simForm = this.fb.group({
       modulation: ['QPSK', Validators.required],
@@ -187,7 +192,7 @@ export class DashboardComponent implements OnInit {
       snrMax: [20, [Validators.required, Validators.min(10), Validators.max(40)]],
       codeRate: [0.5, [Validators.required, Validators.min(0.1), Validators.max(1.0)]],
       snrSteps: [25, [Validators.required, Validators.min(10), Validators.max(50)]]
-    });
+    }, { validators: snrRangeValidator });
 
     this.beamForm = this.fb.group({
       numAntennas: [16, Validators.required],
@@ -200,7 +205,7 @@ export class DashboardComponent implements OnInit {
       snrMin: [-5, [Validators.required, Validators.min(-15), Validators.max(10)]],
       snrMax: [25, [Validators.required, Validators.min(15), Validators.max(40)]],
       snrSteps: [50, [Validators.required, Validators.min(20), Validators.max(100)]]
-    });
+    }, { validators: snrRangeValidator });
   }
 
   ngOnInit(): void {
@@ -209,6 +214,7 @@ export class DashboardComponent implements OnInit {
 
   fetchSimulationData(): void {
     this.isLoading = true;
+    this.loadError = false;
     this.simulationService.getDemoSimulation().subscribe({
       next: (result) => {
         this.updateChartData(result);
@@ -216,26 +222,21 @@ export class DashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load simulation data', err);
-        this.errorMsg = 'Failed to load simulation results from the backend.';
+        this.loadError = true;
         this.isLoading = false;
       }
     });
   }
 
   runSimulation(): void {
-    if (this.simForm.invalid) {
-      return;
-    }
-    
+    if (this.simForm.invalid) return;
+
     this.isSimulating = true;
-    this.errorMsg = '';
-    
     const formVal = this.simForm.value;
-    
-    let modOrder = 4;
-    let bitsPerSym = 2;
-    if (formVal.modulation === 'BPSK') { modOrder = 2; bitsPerSym = 1; }
-    else if (formVal.modulation === 'QPSK') { modOrder = 4; bitsPerSym = 2; }
+
+    let modOrder = 4, bitsPerSym = 2;
+    if (formVal.modulation === 'BPSK')  { modOrder = 2;  bitsPerSym = 1; }
+    else if (formVal.modulation === 'QPSK')  { modOrder = 4;  bitsPerSym = 2; }
     else if (formVal.modulation === '16QAM') { modOrder = 16; bitsPerSym = 4; }
     else if (formVal.modulation === '64QAM') { modOrder = 64; bitsPerSym = 6; }
 
@@ -254,33 +255,32 @@ export class DashboardComponent implements OnInit {
         this.isSimulating = false;
       },
       error: (err) => {
-        console.error('Failed to run simulation', err);
-        this.errorMsg = 'Failed to run the Custom Simulation via the backend.';
+        console.error('Simulation failed', err);
         this.isSimulating = false;
+        this.showError('Simulation failed. Please try again.');
       }
     });
   }
 
   private updateChartData(result: SimulationResult): void {
     this.simulationData = result;
-    this.lineChartData.labels = result.snr_db;
-    this.lineChartData.datasets[0].data = result.ber_theoretical;
-    this.lineChartData.datasets[1].data = result.ber_simulated;
-    
-    // Dynamically update the chart title to include modulation format
+    this.lineChartData = {
+      ...this.lineChartData,
+      labels: result.snr_db,
+      datasets: [
+        { ...this.lineChartData.datasets[0], data: result.ber_theoretical },
+        { ...this.lineChartData.datasets[1], data: result.ber_simulated }
+      ]
+    };
     if (this.lineChartOptions?.plugins?.title) {
-        this.lineChartOptions.plugins.title.text = `BER vs SNR — ${result.modulation}`;
+      this.lineChartOptions.plugins.title.text = `BER vs SNR — ${result.modulation}`;
     }
-    
-    // Trigger chart update
-    this.lineChartData = { ...this.lineChartData };
   }
 
   runBeamSimulation(): void {
     if (this.beamForm.invalid) return;
     this.isBeamSimulating = true;
-    this.errorMsg = '';
-    
+
     const vals = this.beamForm.value;
     const req: BeamPatternRequest = {
       num_antennas: vals.numAntennas,
@@ -292,20 +292,20 @@ export class DashboardComponent implements OnInit {
     this.simulationService.runBeamPattern(req).subscribe({
       next: (res) => {
         this.beamData = res;
-        this.radarChartData.labels = res.angles.map(a => a + '°');
-        this.radarChartData.datasets[0].data = res.pattern_db;
-        
+        this.radarChartData = {
+          labels: res.angles.map(a => a + '°'),
+          datasets: [{ ...this.radarChartData.datasets[0], data: res.pattern_db }]
+        };
         if (this.radarChartOptions?.plugins?.title) {
-          this.radarChartOptions.plugins.title.text = `Antenna Beam Pattern — ${res.num_antennas} Element ULA at ${res.frequency_ghz} GHz`;
+          this.radarChartOptions.plugins.title.text = `Beam Pattern — ${res.num_antennas} Element ULA at ${res.frequency_ghz} GHz`;
         }
-        
         this.radarChartData = { ...this.radarChartData };
         this.isBeamSimulating = false;
       },
       error: (err) => {
         console.error(err);
-        this.errorMsg = 'Failed to generate beam pattern.';
         this.isBeamSimulating = false;
+        this.showError('Failed to generate beam pattern. Please try again.');
       }
     });
   }
@@ -313,27 +313,42 @@ export class DashboardComponent implements OnInit {
   runModulationComparison(): void {
     if (this.modForm.invalid) return;
     this.isModSimulating = true;
-    this.errorMsg = '';
 
-    const req: ModulationComparisonRequest = this.modForm.value;
+    const req: ModulationComparisonRequest = {
+      snr_min: this.modForm.value.snrMin,
+      snr_max: this.modForm.value.snrMax,
+      snr_steps: this.modForm.value.snrSteps
+    };
 
     this.simulationService.runModulationComparison(req).subscribe({
       next: (res) => {
         this.modData = res;
-        this.modChartData.labels = res.snr_db;
-        this.modChartData.datasets[0].data = res.bpsk;
-        this.modChartData.datasets[1].data = res.qpsk;
-        this.modChartData.datasets[2].data = res.qam16;
-        this.modChartData.datasets[3].data = res.qam64;
-        
-        this.modChartData = { ...this.modChartData };
+        this.modChartData = {
+          ...this.modChartData,
+          labels: res.snr_db,
+          datasets: [
+            { ...this.modChartData.datasets[0], data: res.bpsk },
+            { ...this.modChartData.datasets[1], data: res.qpsk },
+            { ...this.modChartData.datasets[2], data: res.qam16 },
+            { ...this.modChartData.datasets[3], data: res.qam64 }
+          ]
+        };
         this.isModSimulating = false;
       },
       error: (err) => {
         console.error(err);
-        this.errorMsg = 'Failed to run modulation comparison.';
         this.isModSimulating = false;
+        this.showError('Modulation comparison failed. Please try again.');
       }
+    });
+  }
+
+  private showError(msg: string): void {
+    this.snackBar.open(msg, 'Dismiss', {
+      duration: 5000,
+      panelClass: ['error-snackbar'],
+      verticalPosition: 'bottom',
+      horizontalPosition: 'center'
     });
   }
 }

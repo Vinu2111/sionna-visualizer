@@ -1,30 +1,60 @@
-<mat-toolbar color="primary" class="main-toolbar">
-  <!-- Brand / Logo -->
-  <span class="brand-text" routerLink="/">Sionna Visualizer</span>
+<mat-sidenav-container class="app-sidenav-container">
+  <mat-sidenav #drawer class="app-sidenav" fixedInViewport [mode]="'over'" position="start">
+    <mat-toolbar color="primary">Menu</mat-toolbar>
+    <div class="drawer-nav-links" *ngIf="authService.isLoggedIn()">
+      <button mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">dashboard</mat-icon> Dashboard
+      </button>
+      <button mat-button routerLink="/history" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">history</mat-icon> History
+      </button>
+      <button mat-button color="warn" (click)="logout(); drawer.close()">
+        <mat-icon style="margin-right: 8px;">logout</mat-icon> Logout
+      </button>
+    </div>
+    
+    <div class="drawer-nav-links" *ngIf="!authService.isLoggedIn()">
+      <button mat-button routerLink="/login" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">login</mat-icon> Login
+      </button>
+    </div>
+  </mat-sidenav>
 
-  <span class="spacer"></span>
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="main-toolbar">
+      <!-- Hamburger menu button (mobile only) -->
+      <button mat-icon-button class="mobile-menu-btn" (click)="drawer.toggle()" aria-label="Toggle menu">
+        <mat-icon>menu</mat-icon>
+      </button>
 
-  <!-- Navigation conditionally rendered solely if Identity verified securely -->
-  <div class="nav-links" *ngIf="authService.isLoggedIn()">
-    <button mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">
-      Dashboard
-    </button>
-    <button mat-button routerLink="/history" routerLinkActive="active-link">
-      History
-    </button>
-    <button mat-stroked-button color="warn" (click)="logout()" style="margin-left: 2rem;">
-      Logout
-    </button>
-  </div>
-  
-  <div class="nav-links" *ngIf="!authService.isLoggedIn()">
-    <button mat-button routerLink="/login" routerLinkActive="active-link">
-      Login
-    </button>
-  </div>
-</mat-toolbar>
+      <!-- Brand / Logo -->
+      <span class="brand-text" routerLink="/">Sionna Visualizer</span>
 
-<!-- Routed Component Body seamlessly loads here conditionally! -->
-<div class="main-content">
-  <router-outlet></router-outlet>
-</div>
+      <span class="spacer"></span>
+
+      <!-- Desktop Navigation conditionally rendered -->
+      <div class="nav-links desktop-only" *ngIf="authService.isLoggedIn()">
+        <button mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">
+          Dashboard
+        </button>
+        <button mat-button routerLink="/history" routerLinkActive="active-link">
+          History
+        </button>
+        <button mat-stroked-button color="warn" (click)="logout()" style="margin-left: 1rem;">
+          Logout
+        </button>
+      </div>
+      
+      <div class="nav-links desktop-only" *ngIf="!authService.isLoggedIn()">
+        <button mat-button routerLink="/login" routerLinkActive="active-link">
+          Login
+        </button>
+      </div>
+    </mat-toolbar>
+
+    <!-- Routed Component Body seamlessly loads here conditionally! -->
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

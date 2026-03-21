@@ -1,0 +1,172 @@
+<div class="api-docs-container">
+  <!-- SECTION 1 — Hero -->
+  <div class="hero" style="text-align: center; margin-bottom: 40px; padding: 40px 0;">
+    <h1>Sionna Visualizer API</h1>
+    <p class="subtitle" style="font-size: 1.2rem; color: #aaaaaa; max-width: 600px; margin: 0 auto 24px;">Integrate 6G simulations directly into your Python scripts and research workflows.</p>
+    <div class="hero-actions" style="display: flex; gap: 16px; justify-content: center;">
+      <button mat-raised-button color="primary" *ngIf="!authService.isLoggedIn()" routerLink="/register">Get API Key</button>
+      <button mat-raised-button color="primary" *ngIf="authService.isLoggedIn()" routerLink="/">Your API Keys</button>
+      <a mat-stroked-button color="accent" href="https://github.com/Vinu2111/sionna-visualizer" target="_blank">
+        <mat-icon style="margin-right: 8px;">code</mat-icon> View on GitHub
+      </a>
+    </div>
+  </div>
+
+  <!-- SECTION 2 — Quick Start -->
+  <mat-card class="section-card" style="margin-bottom: 32px;">
+    <mat-card-header><mat-card-title>Quick Start</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <pre class="code-block" style="background: #111; padding: 16px; border-radius: 8px; overflow-x: auto;"><code style="color: #64ffda;">import requests
+
+API_KEY = "your-api-key-here"
+BASE_URL = "https://sionna-visualizer-production-50ae.up.railway.app"
+
+# Run a BER vs SNR simulation
+response = requests.post(
+    f"&#123;BASE_URL&#125;/v1/api/simulate/ber-snr",
+    headers=&#123;"X-API-Key": API_KEY&#125;,
+    json=&#123;
+        "modulation_order": 4,
+        "code_rate": 0.5,
+        "snr_min": -5.0,
+        "snr_max": 20.0,
+        "snr_steps": 25
+    &#125;
+)
+
+result = response.json()
+print(f"Modulation: &#123;result['modulation']&#125;")
+print(f"Simulation time: &#123;result['simulation_time_ms']&#125;ms")
+
+# Plot the results
+import matplotlib.pyplot as plt
+plt.semilogy(result['snr_db'], result['ber_theoretical'],
+             label='Theoretical')
+plt.semilogy(result['snr_db'], result['ber_simulated'],
+             label='Simulated')
+plt.xlabel('SNR (dB)')
+plt.ylabel('BER')
+plt.legend()
+plt.show()</code></pre>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- SECTION 3 — Endpoints Reference -->
+  <h2 style="margin-bottom: 24px;">Endpoints Reference</h2>
+  <div class="endpoints-grid" style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 32px;">
+    
+    <mat-card class="endpoint-card">
+      <mat-card-header style="align-items: center; gap: 12px; margin-bottom: 12px;">
+        <div class="method-badge post" style="background: #2e7d32; padding: 4px 8px; border-radius: 4px; font-weight: bold;">POST</div>
+        <mat-card-title style="margin: 0; font-family: monospace;">/v1/api/simulate/ber-snr</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p style="color: #ccc; margin-bottom: 16px;">Run an AWGN BER-vs-SNR simulation retrieving theoretical and simulated paths.</p>
+        <table class="mat-table schema-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+          <tr class="mat-header-row" style="border-bottom: 1px solid #333;"><th class="mat-header-cell" style="padding: 8px;">Parameter</th><th class="mat-header-cell" style="padding: 8px;">Type</th><th class="mat-header-cell" style="padding: 8px;">Description</th></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">modulation_order</td><td class="mat-cell" style="padding: 8px;">Integer</td><td class="mat-cell" style="padding: 8px;">2 (BPSK), 4 (QPSK), 16 (16QAM), 64 (64QAM)</td></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">code_rate</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">LDPC code rate. E.g. 0.5</td></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">snr_min</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">Starting SNR in dB</td></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">snr_max</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">Ending SNR in dB</td></tr>
+          <tr class="mat-row"><td class="mat-cell" style="padding: 8px;">snr_steps</td><td class="mat-cell" style="padding: 8px;">Integer</td><td class="mat-cell" style="padding: 8px;">Number of points to plot</td></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="endpoint-card">
+      <mat-card-header style="align-items: center; gap: 12px; margin-bottom: 12px;">
+        <div class="method-badge post" style="background: #2e7d32; padding: 4px 8px; border-radius: 4px; font-weight: bold;">POST</div>
+        <mat-card-title style="margin: 0; font-family: monospace;">/v1/api/simulate/beam-pattern</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p style="color: #ccc; margin-bottom: 16px;">Generates a ULA beam pattern for a given configuration.</p>
+        <table class="mat-table schema-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+          <tr class="mat-header-row" style="border-bottom: 1px solid #333;"><th class="mat-header-cell" style="padding: 8px;">Parameter</th><th class="mat-header-cell" style="padding: 8px;">Type</th><th class="mat-header-cell" style="padding: 8px;">Description</th></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">num_antennas</td><td class="mat-cell" style="padding: 8px;">Integer</td><td class="mat-cell" style="padding: 8px;">Number of elements (e.g. 16)</td></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">steering_angle</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">Angle in degrees to steer</td></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">frequency_ghz</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">Operating frequency in GHz</td></tr>
+          <tr class="mat-row"><td class="mat-cell" style="padding: 8px;">array_spacing</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">Element spacing in wavelengths</td></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="endpoint-card">
+      <mat-card-header style="align-items: center; gap: 12px; margin-bottom: 12px;">
+        <div class="method-badge post" style="background: #2e7d32; padding: 4px 8px; border-radius: 4px; font-weight: bold;">POST</div>
+        <mat-card-title style="margin: 0; font-family: monospace;">/v1/api/simulate/modulation-comparison</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p style="color: #ccc; margin-bottom: 16px;">Compare theoretical BER across all standard modulations.</p>
+        <table class="mat-table schema-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+          <tr class="mat-header-row" style="border-bottom: 1px solid #333;"><th class="mat-header-cell" style="padding: 8px;">Parameter</th><th class="mat-header-cell" style="padding: 8px;">Type</th><th class="mat-header-cell" style="padding: 8px;">Description</th></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">snr_min</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">Starting SNR in dB</td></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">snr_max</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">Ending SNR in dB</td></tr>
+          <tr class="mat-row"><td class="mat-cell" style="padding: 8px;">snr_steps</td><td class="mat-cell" style="padding: 8px;">Integer</td><td class="mat-cell" style="padding: 8px;">Number of points to plot</td></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- SECTION 4 — Authentication -->
+  <mat-card class="section-card" style="margin-bottom: 32px;">
+    <mat-card-header><mat-card-title>Authentication</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <p>All API endpoints require an API key to be passed in the headers via <code style="background: #333; padding: 2px 4px; border-radius: 4px; color: #ffeb3b;">X-API-Key</code>.</p>
+      <ul>
+        <li>Generate an API key by registering and visiting the Dashboard -> API Keys tab.</li>
+        <li>Rate Limits: <b>100 requests per day</b> per API Key.</li>
+      </ul>
+      <pre class="code-block" style="background: #111; padding: 16px; border-radius: 8px; overflow-x: auto;"><code style="color: #64ffda;">curl -X POST \
+  https://sionna-visualizer-production-50ae.up.railway.app/v1/api/simulate/ber-snr \
+  -H "X-API-Key: YOUR_API_KEY_HERE" \
+  -H "Content-Type: application/json" \
+  -d '&#123;"modulation_order": 4, "code_rate": 0.5, "snr_min": -5.0, "snr_max": 20.0, "snr_steps": 25&#125;'</code></pre>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- SECTION 5 — API Key Management -->
+  <mat-card class="section-card auth-card" *ngIf="!authService.isLoggedIn()" style="margin-bottom: 64px;">
+    <mat-card-header>
+      <mat-card-title>Your API Keys</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="not-logged-in-msg" style="display: flex; flex-direction: column; align-items: center; padding: 40px; margin-top: 16px; border: 1px dashed #444; border-radius: 8px;">
+        <mat-icon style="font-size: 48px; width: 48px; height: 48px; color: #888; margin-bottom: 16px;">lock</mat-icon>
+        <p style="margin-bottom: 24px; color: #ccc;">Login to generate your API key.</p>
+        <button mat-raised-button color="primary" routerLink="/login">Login</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="section-card auth-card" *ngIf="authService.isLoggedIn()" style="margin-bottom: 64px;">
+    <mat-card-header>
+      <mat-card-title>Your API Keys</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form (ngSubmit)="generateApiKey()" style="display: flex; gap: 16px; align-items: baseline; margin-top: 16px;">
+        <mat-form-field appearance="outline" style="flex-grow: 1;">
+          <mat-label>Description (e.g. Python Research Script)</mat-label>
+          <input matInput [(ngModel)]="newKeyDescription" name="description" required>
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit" [disabled]="!newKeyDescription">Generate New Key</button>
+      </form>
+
+      <div *ngIf="apiKeys.length > 0" style="margin-top: 24px;">
+        <table class="mat-table" style="width: 100%; background: transparent; text-align: left;">
+          <tr class="mat-header-row" style="border-bottom: 1px solid #444;">
+            <th class="mat-header-cell" style="padding: 12px;">Key Prefix</th>
+            <th class="mat-header-cell" style="padding: 12px;">Usage</th>
+            <th class="mat-header-cell" style="padding: 12px;">Action</th>
+          </tr>
+          <tr class="mat-row" *ngFor="let key of apiKeys" style="border-bottom: 1px solid #222;">
+            <td class="mat-cell" style="padding: 12px; font-family: monospace; color: #64ffda;">{{ key.keyValue.substring(0, 15) }}...</td>
+            <td class="mat-cell" style="padding: 12px;">{{ key.requestCount }} / 100</td>
+            <td class="mat-cell" style="padding: 12px;">
+              <button mat-button color="warn" (click)="revokeApiKey(key.keyValue)" [disabled]="isRevoking">Revoke</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

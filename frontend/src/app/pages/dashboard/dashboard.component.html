@@ -352,5 +352,52 @@
       </div>
     </mat-tab>
 
+    <!-- ════════════════════════════════════════
+         Tab 4: API Keys
+         ════════════════════════════════════════ -->
+    <mat-tab label="API Keys">
+      <div style="padding-top: 24px;">
+        <mat-card class="form-card">
+          <mat-card-header>
+            <mat-card-title>API Keys</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p>Your API key gives programmatic access to all simulation endpoints. Keep it secret.</p>
+            <p><a routerLink="/api-docs" style="color: #64ffda;">View full API Documentation</a></p>
+            
+            <form (ngSubmit)="generateApiKey()" style="margin-top: 16px; display: flex; gap: 16px; align-items: baseline;">
+              <mat-form-field appearance="outline" style="flex-grow: 1;">
+                <mat-label>Description (e.g. Python Research Script)</mat-label>
+                <input matInput [(ngModel)]="newKeyDescription" name="description" required>
+              </mat-form-field>
+              <button mat-raised-button color="primary" type="submit" [disabled]="!newKeyDescription">Generate Key</button>
+            </form>
+
+            <div *ngIf="apiKeys.length > 0" style="margin-top: 24px;">
+              <h3>Your Keys</h3>
+              <table class="mat-table" style="width: 100%; background: transparent;">
+                <tr class="mat-header-row">
+                  <th class="mat-header-cell">Key Prefix</th>
+                  <th class="mat-header-cell">Created</th>
+                  <th class="mat-header-cell">Usage (requests)</th>
+                  <th class="mat-header-cell">Description</th>
+                  <th class="mat-header-cell">Actions</th>
+                </tr>
+                <tr class="mat-row" *ngFor="let key of apiKeys">
+                  <td class="mat-cell" style="font-family: monospace;">{{ key.keyValue.substring(0, 15) }}...</td>
+                  <td class="mat-cell">{{ key.createdAt | date:'short' }}</td>
+                  <td class="mat-cell">{{ key.requestCount }}</td>
+                  <td class="mat-cell">{{ key.description }}</td>
+                  <td class="mat-cell">
+                    <button mat-button color="warn" (click)="revokeApiKey(key.keyValue)" [disabled]="isRevoking">Revoke</button>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
   </mat-tab-group>
 </div>

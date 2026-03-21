@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,7 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { environment } from '../../../environments/environment';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -48,7 +51,9 @@ function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
     MatTabsModule,
     MatSnackBarModule,
     MatIconModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FormsModule,
+    RouterModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -62,6 +67,10 @@ export class DashboardComponent implements OnInit {
   isBeamSimulating = false;
   isModSimulating = false;
   loadError = false;
+
+  apiKeys: any[] = [];
+  newKeyDescription = '';
+  isRevoking = false;
 
   simForm: FormGroup;
   beamForm: FormGroup;
@@ -184,7 +193,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private simulationService: SimulationService,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private http: HttpClient
   ) {
     this.simForm = this.fb.group({
       modulation: ['QPSK', Validators.required],
@@ -210,6 +220,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchSimulationData();
+    this.loadApiKeys();
   }
 
   fetchSimulationData(): void {
@@ -349,6 +360,40 @@ export class DashboardComponent implements OnInit {
       panelClass: ['error-snackbar'],
       verticalPosition: 'bottom',
       horizontalPosition: 'center'
+    });
+  }
+
+  loadApiKeys() {
+    this.http.get<any[]>(`${environment.apiUrl}/api/keys/my-keys`).subscribe({
+      next: (keys) => this.apiKeys = keys,
+      error: (err) => console.error('Error loading API keys', err)
+    });
+  }
+
+  generateApiKey() {
+    if (!this.newKeyDescription) return;
+    this.http.post<any>(`${environment.apiUrl}/api/keys/generate`, { description: this.newKeyDescription }).subscribe({
+      next: (res) => {
+        this.snackBar.open('Generated new API key successfully.', 'Close', { duration: 3000 });
+        this.newKeyDescription = '';
+        this.loadApiKeys();
+      },
+      error: (err) => console.error('Error generating API key', err)
+    });
+  }
+
+  revokeApiKey(keyValue: string) {
+    this.isRevoking = true;
+    this.http.delete(`${environment.apiUrl}/api/keys/${keyValue}`).subscribe({
+      next: () => {
+        this.snackBar.open('API key revoked.', 'Close', { duration: 3000 });
+        this.loadApiKeys();
+        this.isRevoking = false;
+      },
+      error: (err) => {
+        console.error('Error revoking API key', err);
+        this.isRevoking = false;
+      }
     });
   }
 }

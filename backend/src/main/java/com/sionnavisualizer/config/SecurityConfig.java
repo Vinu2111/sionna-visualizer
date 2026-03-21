@@ -44,7 +44,7 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             // Permit /auth universally so users can register, and our demo natively locally without a token
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/simulate/demo", "/api/share/**", "/api/health").permitAll()
+                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/simulate/demo", "/api/share/**", "/api/health", "/v1/api/**").permitAll()
                 // All other endpoints natively require strict Authorization Bearer approval
                 .anyRequest().authenticated()
             )

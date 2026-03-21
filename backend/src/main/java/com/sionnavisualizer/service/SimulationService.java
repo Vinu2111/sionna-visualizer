@@ -7,6 +7,8 @@ import com.sionnavisualizer.dto.BeamPatternRequestDto;
 import com.sionnavisualizer.dto.BeamPatternResultDto;
 import com.sionnavisualizer.dto.ModulationComparisonRequestDto;
 import com.sionnavisualizer.dto.ModulationComparisonResultDto;
+import com.sionnavisualizer.dto.ComparisonResponseDto;
+import com.sionnavisualizer.dto.SimulationResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.repository.SimulationResultRepository;
 import org.springframework.stereotype.Service;
@@ -242,6 +244,31 @@ public class SimulationService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to deserialize simulation from DB: " + e.getMessage(), e);
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Comparison
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * GET /api/simulations/compare?id1=X&id2=Y
+     *
+     * Fetches both SimulationResult records by ID, converts to DTOs,
+     * and returns a ComparisonResponseDto with overlay metadata.
+     */
+    public ComparisonResponseDto compareSimulations(Long id1, Long id2) {
+        SimulationResult e1 = simulationResultRepository.findById(id1)
+                .orElseThrow(() -> new RuntimeException("Simulation not found: " + id1));
+
+        SimulationResult e2 = simulationResultRepository.findById(id2)
+                .orElseThrow(() -> new RuntimeException("Simulation not found: " + id2));
+
+        ComparisonResponseDto response = new ComparisonResponseDto();
+        response.setSimulation1(SimulationResultDto.from(e1));
+        response.setSimulation2(SimulationResultDto.from(e2));
+        response.setComparison_metadata(
+            new ComparisonResponseDto.ComparisonMetadata(e1.getSimulationType(), e2.getSimulationType()));
+        return response;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

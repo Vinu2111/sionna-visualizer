@@ -5,6 +5,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
@@ -12,17 +15,21 @@ import { SimulationHistoryItem } from '../../models/simulation-result.model';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ShareLinkDialogComponent } from '../../components/share-dialog/share-dialog.component';
 import { Router, RouterModule } from '@angular/router';
+
 @Component({
   selector: 'app-history',
   standalone: true,
   imports: [
-    CommonModule, 
-    NgChartsModule, 
-    MatCardModule, 
-    MatProgressSpinnerModule, 
-    MatButtonModule, 
+    CommonModule,
+    NgChartsModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    MatButtonModule,
     MatTableModule,
     MatIconModule,
+    MatCheckboxModule,
+    MatSnackBarModule,
+    MatTooltipModule,
     MatDialogModule,
     RouterModule
   ],
@@ -30,33 +37,32 @@ import { Router, RouterModule } from '@angular/router';
   styleUrl: './history.component.scss'
 })
 export class HistoryComponent implements OnInit {
-  // Contains the list of past simulations
   simulationHistory: SimulationHistoryItem[] = [];
-  
-  // The uniquely selected simulation to display a chart for
   selectedSimulation: SimulationHistoryItem | null = null;
-  
   isLoading = true;
   isGenerating = false;
   errorMsg = '';
 
-  // The columns to display in the Angular Material table
-  displayedColumns: string[] = ['index', 'type', 'createdAt', 'hardwareUsed', 'action'];
+  // Compare selection — max 2
+  compareSelection: SimulationHistoryItem[] = [];
 
-  // Chart.js Configuration
+  displayedColumns: string[] = ['compare', 'index', 'type', 'createdAt', 'hardwareUsed', 'action'];
+
+  // Chart config for history view
   public lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
       {
-        data: [],
-        label: 'Bit Error Rate',
-        fill: false,
-        tension: 0.1,
-        borderColor: '#00ff88', // Match the dashboard styling (Green line)
-        pointBackgroundColor: '#00ff88',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(148,159,177,0.8)'
+        data: [], label: 'Theoretical BER',
+        fill: false, tension: 0.1,
+        borderColor: '#64ffda', pointBackgroundColor: '#64ffda',
+        pointBorderColor: '#fff', pointRadius: 0
+      },
+      {
+        data: [], label: 'Simulated BER',
+        fill: false, tension: 0.1,
+        borderColor: '#ff6b6b', pointBackgroundColor: '#ff6b6b',
+        pointBorderColor: '#fff'
       }
     ]
   };
@@ -72,13 +78,13 @@ export class HistoryComponent implements OnInit {
       x: {
         title: { display: true, text: 'Signal-to-Noise Ratio (dB)', color: '#aaaaaa' },
         ticks: { color: '#aaaaaa' },
-        grid: { color: '#333333' }
+        grid: { color: '#1e2a3a' }
       },
       y: {
         type: 'logarithmic',
         title: { display: true, text: 'Bit Error Rate (BER)', color: '#aaaaaa' },
-        ticks: { color: '#aaaaaa' },
-        grid: { color: '#333333' }
+        ticks: { color: '#aaaaaa', callback: (v: any) => Number(v).toExponential(0) },
+        grid: { color: '#1e2a3a' }
       }
     }
   };
@@ -88,79 +94,54 @@ export class HistoryComponent implements OnInit {
   constructor(
     private simulationService: SimulationService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     this.fetchHistory();
   }
 
-  /**
-   * Fetches the complete list of simulations saved in PostgreSQL.
-   */
   fetchHistory(): void {
     this.isLoading = true;
     this.simulationService.getAllSimulations().subscribe({
       next: (history) => {
         this.simulationHistory = history;
         this.isLoading = false;
-        
-        // Clear selected simulation when refreshing the list
         this.selectedSimulation = null;
       },
-      error: (err) => {
-        console.error('Failed to load history', err);
-        this.errorMsg = 'Failed to load simulation history. Please ensure PostgreSQL and the backend are running.';
+      error: () => {
+        this.errorMsg = 'Failed to load simulation history.';
         this.isLoading = false;
       }
     });
   }
 
-  /**
-   * Generates a completely new simulation explicitly creatively creatively efficiently organically cleanly smoothly.
-   */
   runNewSimulation(): void {
     this.router.navigate(['/dashboard']);
   }
 
-  /**
-   * Attaches the selected simulation row to the local variable so the
-   * chart conditionally renders. Parses numeric array strings into JS arrays.
-   */
   selectSimulation(simulation: SimulationHistoryItem): void {
     this.selectedSimulation = simulation;
-    
+
     if (simulation.simulationType === 'BEAM_PATTERN' || simulation.simulationType === 'MOD_COMPARISON') {
-      // Mod comparison and beam pattern don't use the simple line chart, implement rendering later
       return;
     }
 
-    // Convert the database JSON strings back into numerical arrays
-    const snrDbArray: number[] = JSON.parse(simulation.snrDb);
-    const berTheoreticalArray: number[] = simulation.berTheoretical ? JSON.parse(simulation.berTheoretical) : [];
-    const berSimulatedArray: number[] = simulation.berSimulated ? JSON.parse(simulation.berSimulated) : [];
+    const snrDbArray: number[]     = JSON.parse(simulation.snrDb || '[]');
+    const berThArray: number[]     = simulation.berTheoretical ? JSON.parse(simulation.berTheoretical) : [];
+    const berSimArray: number[]    = simulation.berSimulated   ? JSON.parse(simulation.berSimulated)   : [];
 
-    // Assuming we update lineChartData to have two datasets for BER vs SNR
-    if (!this.lineChartData.datasets[1]) {
-        this.lineChartData.datasets.push({
-            data: [],
-            label: 'Simulated BER',
-            fill: false,
-            tension: 0.1,
-            borderColor: '#ff6b6b'
-        });
-        this.lineChartData.datasets[0].label = 'Theoretical BER';
-        this.lineChartData.datasets[0].borderColor = '#64ffda';
-    }
-
-    this.lineChartData.labels = snrDbArray;
-    this.lineChartData.datasets[0].data = berTheoreticalArray;
-    this.lineChartData.datasets[1].data = berSimulatedArray;
+    this.lineChartData = {
+      ...this.lineChartData,
+      labels: snrDbArray,
+      datasets: [
+        { ...this.lineChartData.datasets[0], data: berThArray },
+        { ...this.lineChartData.datasets[1], data: berSimArray }
+      ]
+    };
   }
 
-  /**
-   * Fires the share controller perfectly explicitly organically mapping precisely securely intrinsically.
-   */
   shareSimulation(id: number): void {
     this.simulationService.getShareLink(id).subscribe({
       next: (res) => {
@@ -169,7 +150,51 @@ export class HistoryComponent implements OnInit {
           data: { shareUrl: res.shareUrl }
         });
       },
-      error: (err) => console.error("Unconditionally completely utterly securely implicitly intrinsically effectively securely completely seamlessly failed extracting parameters explicitly optimally uniquely.", err)
+      error: (err) => console.error('Share link fetch failed', err)
     });
+  }
+
+  // ─── Compare selection logic ────────────────────────────────────────────
+
+  isInCompareSelection(sim: SimulationHistoryItem): boolean {
+    return this.compareSelection.some(s => s.id === sim.id);
+  }
+
+  compareSelectionIndex(sim: SimulationHistoryItem): number {
+    return this.compareSelection.findIndex(s => s.id === sim.id);
+  }
+
+  toggleCompareSelection(sim: SimulationHistoryItem): void {
+    const idx = this.compareSelectionIndex(sim);
+    if (idx >= 0) {
+      // Deselect
+      this.compareSelection.splice(idx, 1);
+    } else if (this.compareSelection.length >= 2) {
+      this.snackBar.open('You can only compare 2 simulations at a time.', 'OK', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+    } else {
+      this.compareSelection.push(sim);
+    }
+  }
+
+  compareSelected(): void {
+    if (this.compareSelection.length !== 2) return;
+    this.router.navigate(['/compare'], {
+      queryParams: { id1: this.compareSelection[0].id, id2: this.compareSelection[1].id }
+    });
+  }
+
+  /** Quick "compare this with" — mark A and navigate when B is already known */
+  quickCompare(sim: SimulationHistoryItem): void {
+    if (this.compareSelection.length === 0) {
+      this.compareSelection.push(sim);
+      this.snackBar.open('Simulation A selected. Now pick Simulation B.', 'OK', { duration: 3000 });
+    } else if (this.compareSelection.length === 1 && this.compareSelection[0].id !== sim.id) {
+      this.router.navigate(['/compare'], {
+        queryParams: { id1: this.compareSelection[0].id, id2: sim.id }
+      });
+    }
   }
 }

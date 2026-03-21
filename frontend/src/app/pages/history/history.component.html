@@ -4,26 +4,35 @@
       <h1>Simulation History</h1>
       <p class="subtitle">All past 6G simulation runs</p>
     </div>
-    
-    <button mat-raised-button color="primary" 
-            class="generate-btn" 
-            (click)="runNewSimulation()" 
-            [disabled]="isGenerating">
-      <span *ngIf="!isGenerating">Run New Simulation</span>
-      <mat-spinner *ngIf="isGenerating" diameter="20" class="btn-spinner"></mat-spinner>
-    </button>
+    <div class="header-actions">
+      <!-- Compare Selected button — purple, only enabled with 2 selected -->
+      <button mat-raised-button class="compare-selected-btn"
+              [disabled]="compareSelection.length !== 2"
+              (click)="compareSelected()"
+              matTooltip="Compare the 2 selected simulations">
+        <mat-icon>compare_arrows</mat-icon>
+        Compare Selected
+        <span class="selection-badge" *ngIf="compareSelection.length > 0">{{ compareSelection.length }}/2</span>
+      </button>
+
+      <button mat-raised-button color="primary"
+              class="generate-btn"
+              (click)="runNewSimulation()">
+        <span>Run New Simulation</span>
+      </button>
+    </div>
   </div>
 
-  <div *ngIf="errorMsg" class="error-container">
-    <p>{{ errorMsg }}</p>
+  <div *ngIf="errorMsg" class="error-msg">
+    <mat-icon>warning</mat-icon> {{ errorMsg }}
   </div>
 
-  <!-- Main Loading Spinner -->
+  <!-- Loading -->
   <div *ngIf="isLoading" class="loading-container">
     <mat-spinner diameter="50" color="accent"></mat-spinner>
   </div>
 
-  <!-- Empty State Message -->
+  <!-- Empty State -->
   <mat-card *ngIf="!isLoading && simulationHistory.length === 0" class="empty-card">
     <mat-card-content class="empty-content">
       <mat-icon>science</mat-icon>
@@ -35,15 +44,30 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- History Data Table -->
+  <!-- History Table -->
   <div class="table-card-wrapper" *ngIf="!isLoading && simulationHistory.length > 0">
     <mat-card class="table-card">
       <table mat-table [dataSource]="simulationHistory" class="dark-table">
-        
+
+        <!-- Checkbox Column -->
+        <ng-container matColumnDef="compare">
+          <th mat-header-cell *matHeaderCellDef style="width: 52px;"> Select </th>
+          <td mat-cell *matCellDef="let sim">
+            <mat-checkbox
+              [checked]="isInCompareSelection(sim)"
+              (change)="toggleCompareSelection(sim)"
+              [ngClass]="{
+                'check-a': compareSelectionIndex(sim) === 0,
+                'check-b': compareSelectionIndex(sim) === 1
+              }">
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
         <!-- Index Column -->
         <ng-container matColumnDef="index">
           <th mat-header-cell *matHeaderCellDef> # </th>
-          <td mat-cell *matCellDef="let sim; let i = index"> {{i + 1}} </td>
+          <td mat-cell *matCellDef="let sim; let i = index"> {{ i + 1 }} </td>
         </ng-container>
 
         <!-- Timestamp Column -->
@@ -56,7 +80,7 @@
         <ng-container matColumnDef="type">
           <th mat-header-cell *matHeaderCellDef> Type </th>
           <td mat-cell *matCellDef="let sim">
-            <span class="chip" 
+            <span class="chip"
                   [style.background-color]="sim.simulationType === 'BEAM_PATTERN' ? '#7b1fa2' : (sim.simulationType === 'MOD_COMPARISON' ? '#f39c12' : '#00796b')">
               {{ sim.simulationType === 'BEAM_PATTERN' ? 'Beam Pattern' : (sim.simulationType === 'MOD_COMPARISON' ? 'Mod. Compare' : 'BER/SNR') }}
             </span>
@@ -65,7 +89,7 @@
 
         <!-- Hardware Column -->
         <ng-container matColumnDef="hardwareUsed">
-          <th mat-header-cell *matHeaderCellDef> Hardware Used </th>
+          <th mat-header-cell *matHeaderCellDef> Hardware </th>
           <td mat-cell *matCellDef="let sim">
             <span class="chip">{{ sim.hardwareUsed }}</span>
           </td>
@@ -73,23 +97,28 @@
 
         <!-- Action Column -->
         <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef> Action </th>
-          <td mat-cell *matCellDef="let sim">
-            <button mat-stroked-button color="accent" (click)="selectSimulation(sim)">View Chart</button>
-            <button mat-stroked-button color="primary" (click)="shareSimulation(sim.id)" style="margin-left: 8px;">Share</button>
+          <th mat-header-cell *matHeaderCellDef> Actions </th>
+          <td mat-cell *matCellDef="let sim" class="action-cell">
+            <button mat-stroked-button color="accent" (click)="selectSimulation(sim)">View</button>
+            <button mat-stroked-button color="primary" (click)="shareSimulation(sim.id)" style="margin-left: 6px;">Share</button>
+            <button mat-icon-button (click)="quickCompare(sim)" style="margin-left: 4px;"
+                    matTooltip="Compare with another simulation" color="accent">
+              <mat-icon>compare_arrows</mat-icon>
+            </button>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <!-- Highlight dynamically if it's the selected simulation -->
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-            [class.selected-row]="selectedSimulation?.id === row.id">
+            [class.selected-row]="selectedSimulation?.id === row.id"
+            [class.compare-row-a]="compareSelectionIndex(row) === 0"
+            [class.compare-row-b]="compareSelectionIndex(row) === 1">
         </tr>
       </table>
     </mat-card>
   </div>
 
-  <!-- Chart View Area (Visible only when a valid log is selected) -->
+  <!-- Chart View Area -->
   <div class="chart-fade-in" *ngIf="selectedSimulation">
     <mat-card class="chart-card">
       <mat-card-header>

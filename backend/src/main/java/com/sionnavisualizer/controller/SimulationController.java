@@ -6,6 +6,7 @@ import com.sionnavisualizer.dto.BeamPatternRequestDto;
 import com.sionnavisualizer.dto.BeamPatternResultDto;
 import com.sionnavisualizer.dto.ModulationComparisonRequestDto;
 import com.sionnavisualizer.dto.ModulationComparisonResultDto;
+import com.sionnavisualizer.dto.ComparisonResponseDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
 import org.springframework.http.ResponseEntity;
@@ -156,5 +157,23 @@ public class SimulationController {
             }
         }
         return ResponseEntity.status(404).body("Simulation not found with id: " + id);
+    }
+
+    /**
+     * GET /api/simulations/compare?id1=X&id2=Y
+     *
+     * Returns both simulation records and overlay metadata.
+     * Used by the Angular compare page to build the overlay chart.
+     */
+    @GetMapping("/simulations/compare")
+    public ResponseEntity<?> compareSimulations(
+            @RequestParam Long id1,
+            @RequestParam Long id2) {
+        try {
+            ComparisonResponseDto result = simulationService.compareSimulations(id1, id2);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(404).body(ex.getMessage());
+        }
     }
 }

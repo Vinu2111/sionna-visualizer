@@ -8,6 +8,9 @@
       <button mat-button routerLink="/history" routerLinkActive="active-link" (click)="drawer.close()">
         <mat-icon style="margin-right: 8px;">history</mat-icon> History
       </button>
+      <button mat-button routerLink="/compare" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">compare_arrows</mat-icon> Compare
+      </button>
       <button mat-button color="warn" (click)="logout(); drawer.close()">
         <mat-icon style="margin-right: 8px;">logout</mat-icon> Logout
       </button>
@@ -39,6 +42,9 @@
         </button>
         <button mat-button routerLink="/history" routerLinkActive="active-link">
           History
+        </button>
+        <button mat-button routerLink="/compare" routerLinkActive="active-link">
+          Compare
         </button>
         <button mat-stroked-button color="warn" (click)="logout()" style="margin-left: 1rem;">
           Logout

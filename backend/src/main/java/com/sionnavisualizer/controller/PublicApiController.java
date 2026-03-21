@@ -6,6 +6,8 @@ import com.sionnavisualizer.dto.ModulationComparisonRequestDto;
 import com.sionnavisualizer.dto.ModulationComparisonResultDto;
 import com.sionnavisualizer.dto.SimulationDto;
 import com.sionnavisualizer.dto.SimulationRequestDto;
+import com.sionnavisualizer.dto.ChannelCapacityRequestDto;
+import com.sionnavisualizer.dto.ChannelCapacityResultDto;
 import com.sionnavisualizer.service.SimulationService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -55,12 +57,22 @@ public class PublicApiController {
         }
     }
 
+    @PostMapping("/simulate/channel-capacity")
+    public ResponseEntity<?> runChannelCapacity(@Valid @RequestBody ChannelCapacityRequestDto request) {
+        try {
+            ChannelCapacityResultDto result = simulationService.runChannelCapacity(request);
+            return ResponseEntity.ok(result);
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(Map.of("error", ex.getMessage()));
+        }
+    }
+
     @GetMapping("/health")
     public ResponseEntity<?> healthCheck() {
         return ResponseEntity.ok(Map.of(
             "status", "operational",
             "version", "1.0.0",
-            "simulations_available", List.of("ber-snr", "beam-pattern", "modulation-comparison"),
+            "simulations_available", List.of("ber-snr", "beam-pattern", "modulation-comparison", "channel-capacity"),
             "docs", "https://github.com/Vinu2111/sionna-visualizer"
         ));
     }

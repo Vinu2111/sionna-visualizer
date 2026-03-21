@@ -353,7 +353,126 @@
     </mat-tab>
 
     <!-- ════════════════════════════════════════
-         Tab 4: API Keys
+         Tab 4: Shannon Capacity
+         ════════════════════════════════════════ -->
+    <mat-tab label="Shannon Capacity">
+      <div style="padding-top: 24px;">
+
+        <mat-card class="form-card">
+          <mat-card-header>
+            <mat-card-title>Channel Parameters</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="capForm" (ngSubmit)="runChannelCapacity()" class="sim-form">
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>SNR Min (dB)</mat-label>
+                  <input matInput type="number" formControlName="snrMin">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>SNR Max (dB)</mat-label>
+                  <input matInput type="number" formControlName="snrMax">
+                </mat-form-field>
+              </div>
+
+              <div class="validation-error" *ngIf="capForm.hasError('snrRangeInvalid')">
+                SNR Min must be less than SNR Max.
+              </div>
+
+              <div class="slider-row" style="margin-top: 8px;">
+                <div class="slider-field">
+                  <span class="slider-label">Number of Points ({{ capForm.get('snrSteps')?.value }})</span>
+                  <mat-slider min="20" max="100" step="5" discrete style="width: 100%;">
+                    <input matSliderThumb formControlName="snrSteps">
+                  </mat-slider>
+                </div>
+              </div>
+
+              <div style="margin: 16px 0; display: flex; gap: 24px; flex-wrap: wrap; align-items: center;">
+                <span style="color: #aaaaaa; font-size: 14px; font-weight: 500;">Bandwidths:</span>
+                <mat-checkbox formControlName="bw10" color="primary">10 MHz</mat-checkbox>
+                <mat-checkbox formControlName="bw100" color="primary">100 MHz</mat-checkbox>
+                <mat-checkbox formControlName="bw400" color="primary">400 MHz (FR2)</mat-checkbox>
+                <mat-checkbox formControlName="bw1000" color="primary">1 GHz (6G)</mat-checkbox>
+              </div>
+
+              <button mat-raised-button color="primary" type="submit" class="run-btn"
+                      [disabled]="capForm.invalid || isCapSimulating">
+                <span *ngIf="!isCapSimulating">Compute Capacity</span>
+                <mat-spinner *ngIf="isCapSimulating" diameter="20" class="btn-spinner"></mat-spinner>
+              </button>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <div class="chart-placeholder" *ngIf="!capData && !isCapSimulating">
+          <mat-icon>insights</mat-icon>
+          <p>Compute Shannon capacity across different bandwidths</p>
+        </div>
+
+        <ng-container *ngIf="capData">
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+            <mat-card class="chart-card" style="margin-bottom: 0;">
+              <mat-card-header><mat-card-title>Capacity vs SNR</mat-card-title></mat-card-header>
+              <mat-card-content>
+                <div class="chart-wrapper">
+                  <canvas baseChart [data]="capChartData" [options]="capChartOptions" type="line"></canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="chart-card" style="margin-bottom: 0;">
+              <mat-card-header><mat-card-title>Spectral Efficiency</mat-card-title></mat-card-header>
+              <mat-card-content>
+                <div class="chart-wrapper">
+                  <canvas baseChart [data]="spectralChartData" [options]="spectralChartOptions" type="line"></canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 24px;">
+            <mat-card class="insight-card">
+              <mat-card-content>
+                <div class="insight-title" style="color: #64ffda;">1 Gbps (100 MHz)</div>
+                <div class="insight-body">requires ~{{ capData.insights.snr_for_1gbps_100mhz | number:'1.1-1' }} dB SNR</div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="insight-card">
+              <mat-card-content>
+                <div class="insight-title" style="color: #f7b731;">10 Gbps (1 GHz)</div>
+                <div class="insight-body">
+                  requires ~{{ capData.insights.snr_for_10gbps_1000mhz | number:'1.1-1' }} dB SNR
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="insight-card">
+              <mat-card-content>
+                <div class="insight-title" style="color: #ff6b6b;">Spectral Efficiency</div>
+                <div class="insight-body">
+                  At 20 dB SNR, theoretical limit is {{ capData.insights.spectral_efficiency_at_snr20 | number:'1.1-1' }} bits/s/Hz.
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="insight-card">
+              <mat-card-content>
+                <div class="insight-title" style="color: #eeeeee;">Bandwidth Scaling</div>
+                <div class="insight-body">A 10x increase in bandwidth nets a {{ capData.insights.capacity_gain_10x_bandwidth | number:'1.1-1' }}x increase in capacity.</div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+        </ng-container>
+      </div>
+    </mat-tab>
+
+    <!-- ════════════════════════════════════════
+         Tab 5: API Keys
          ════════════════════════════════════════ -->
     <mat-tab label="API Keys">
       <div style="padding-top: 24px;">

@@ -105,6 +105,37 @@ plt.show()</code></pre>
         </table>
       </mat-card-content>
     </mat-card>
+    <mat-card class="endpoint-card">
+      <mat-card-header style="align-items: center; gap: 12px; margin-bottom: 12px;">
+        <div class="method-badge post" style="background: #2e7d32; padding: 4px 8px; border-radius: 4px; font-weight: bold;">POST</div>
+        <mat-card-title style="margin: 0; font-family: monospace;">/v1/api/simulate/channel-capacity</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p style="color: #ccc; margin-bottom: 16px;">Compute Shannon channel capacity across multiple bandwidths based on SNR.</p>
+        <table class="mat-table schema-table" style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 16px;">
+          <tr class="mat-header-row" style="border-bottom: 1px solid #333;"><th class="mat-header-cell" style="padding: 8px;">Parameter</th><th class="mat-header-cell" style="padding: 8px;">Type</th><th class="mat-header-cell" style="padding: 8px;">Description</th></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">snr_min</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">Starting SNR in dB</td></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">snr_max</td><td class="mat-cell" style="padding: 8px;">Float</td><td class="mat-cell" style="padding: 8px;">Ending SNR in dB</td></tr>
+          <tr class="mat-row" style="border-bottom: 1px solid #333;"><td class="mat-cell" style="padding: 8px;">snr_steps</td><td class="mat-cell" style="padding: 8px;">Integer</td><td class="mat-cell" style="padding: 8px;">Number of points to evaluate</td></tr>
+          <tr class="mat-row"><td class="mat-cell" style="padding: 8px;">bandwidths_mhz</td><td class="mat-cell" style="padding: 8px;">List[Float]</td><td class="mat-cell" style="padding: 8px;">Array of bandwidths to evaluate (e.g. [10.0, 100.0, 400.0])</td></tr>
+        </table>
+        
+        <p style="color: #aaa; margin-bottom: 8px;">Python Example:</p>
+        <pre class="code-block" style="background: #111; padding: 12px; border-radius: 8px; overflow-x: auto; margin-top: 0;"><code style="color: #64ffda;">import requests
+response = requests.post(
+    "https://sionna-visualizer-production-50ae.up.railway.app/v1/api/simulate/channel-capacity",
+    headers=&#123;"X-API-Key": "YOUR_API_KEY"&#125;,
+    json=&#123;
+        "snr_min": -10.0,
+        "snr_max": 30.0,
+        "snr_steps": 50,
+        "bandwidths_mhz": [10.0, 100.0, 400.0, 1000.0]
+    &#125;
+)
+print(response.json()['insights'])</code></pre>
+      </mat-card-content>
+    </mat-card>
+
   </div>
 
   <!-- SECTION 4 — Authentication -->

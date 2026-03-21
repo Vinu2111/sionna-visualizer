@@ -9,6 +9,8 @@ import com.sionnavisualizer.dto.ModulationComparisonRequestDto;
 import com.sionnavisualizer.dto.ModulationComparisonResultDto;
 import com.sionnavisualizer.dto.ComparisonResponseDto;
 import com.sionnavisualizer.dto.SimulationResultDto;
+import com.sionnavisualizer.dto.ChannelCapacityRequestDto;
+import com.sionnavisualizer.dto.ChannelCapacityResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.repository.SimulationResultRepository;
 import org.springframework.stereotype.Service;
@@ -228,6 +230,55 @@ public class SimulationService {
             "Simulation engine is temporarily unavailable. Please try again in 30 seconds.");
     }
 
+    @io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker(name = "pythonBridge", fallbackMethod = "channelCapacityFallback")
+    @io.github.resilience4j.timelimiter.annotation.TimeLimiter(name = "pythonBridge")
+    public ChannelCapacityResultDto runChannelCapacity(ChannelCapacityRequestDto requestParams) {
+        try {
+            String url = buildSimulateUrl() + "/channel-capacity";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<ChannelCapacityRequestDto> httpRequest = new HttpEntity<>(requestParams, headers);
+
+            ChannelCapacityResultDto dto = restTemplate.postForObject(url, httpRequest, ChannelCapacityResultDto.class);
+
+            if (dto == null) {
+                throw new RuntimeException("Python bridge returned an empty response for channel capacity");
+            }
+
+            SimulationResult entity = new SimulationResult();
+            entity.setSimulationType("CHANNEL_CAPACITY");
+
+            entity.setSnrMin(BigDecimal.valueOf(dto.getSnr_min()));
+            entity.setSnrMax(BigDecimal.valueOf(dto.getSnr_max()));
+            entity.setSnrDb(objectMapper.writeValueAsString(dto.getSnr_db()));
+
+            entity.setCapacityCurvesJson(objectMapper.writeValueAsString(dto.getCapacity_curves()));
+            entity.setSpectralEfficiencyJson(objectMapper.writeValueAsString(dto.getSpectral_efficiency()));
+            entity.setInsightsJson(objectMapper.writeValueAsString(dto.getInsights()));
+
+            entity.setHardwareUsed("Mathematical Channel Capacity (Shannon)");
+            entity.setTimestamp(LocalDateTime.now());
+            entity.setShareToken(java.util.UUID.randomUUID().toString());
+            entity.setIsPublic(true);
+
+            simulationResultRepository.save(entity);
+
+            return dto;
+
+        } catch (RestClientException ex) {
+            throw new RuntimeException("Could not reach the Python bridge. Details: " + ex.getMessage());
+        } catch (Exception ex) {
+            throw new RuntimeException("Channel capacity generation failed: " + ex.getMessage(), ex);
+        }
+    }
+
+    public ChannelCapacityResultDto channelCapacityFallback(ChannelCapacityRequestDto requestParams, Throwable t) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+            "Simulation engine is temporarily unavailable. Please try again in 30 seconds.");
+    }
+
     /**
      * Retrieves all previously run simulations from PostgreSQL, newest first.
      */
@@ -248,9 +299,9 @@ public class SimulationService {
 
         SimulationDto dto = new SimulationDto();
         try {
-            dto.setSnr_db(objectMapper.readValue(entity.getSnrDb(), List.class));
-            dto.setBer_theoretical(objectMapper.readValue(entity.getBerTheoretical(), List.class));
-            dto.setBer_simulated(objectMapper.readValue(entity.getBerSimulated(), List.class));
+            dto.setSnr_db(objectMapper.readValue(entity.getSnrDb(), new com.fasterxml.jackson.core.type.TypeReference<List<Double>>() {}));
+            dto.setBer_theoretical(objectMapper.readValue(entity.getBerTheoretical(), new com.fasterxml.jackson.core.type.TypeReference<List<Double>>() {}));
+            dto.setBer_simulated(objectMapper.readValue(entity.getBerSimulated(), new com.fasterxml.jackson.core.type.TypeReference<List<Double>>() {}));
             dto.setModulation(entity.getModulationType());
             dto.setCode_rate(entity.getCodeRate() != null ? entity.getCodeRate().doubleValue() : null);
             dto.setSimulation_time_ms(entity.getSimulationTimeMs());
@@ -301,9 +352,9 @@ public class SimulationService {
         }
 
         // Remove old legacy path suffix if present in the config value
-        if (base.endsWith("/simulate/demo")) {
+        if (base != null && base.endsWith("/simulate/demo")) {
             base = base.substring(0, base.length() - "/simulate/demo".length());
-        } else if (base.endsWith("/simulate")) {
+        } else if (base != null && base.endsWith("/simulate")) {
             base = base.substring(0, base.length() - "/simulate".length());
         }
         

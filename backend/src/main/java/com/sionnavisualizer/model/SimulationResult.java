@@ -117,6 +117,17 @@ public class SimulationResult {
     /** Legacy field — OFDM symbols per slot (from the old mock simulation) */
     private Integer numOfdmSymbols;
 
+    // ─── Channel Capacity columns (Day 18) ───────────────────────────────────
+
+    @Column(columnDefinition = "TEXT")
+    private String capacityCurvesJson;
+
+    @Column(columnDefinition = "TEXT")
+    private String spectralEfficiencyJson;
+
+    @Column(columnDefinition = "TEXT")
+    private String insightsJson;
+
     /** Legacy field — FFT size from the old mock simulation */
     private Integer fftSize;
 
@@ -236,4 +247,13 @@ public class SimulationResult {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getCapacityCurvesJson() { return capacityCurvesJson; }
+    public void setCapacityCurvesJson(String capacityCurvesJson) { this.capacityCurvesJson = capacityCurvesJson; }
+
+    public String getSpectralEfficiencyJson() { return spectralEfficiencyJson; }
+    public void setSpectralEfficiencyJson(String spectralEfficiencyJson) { this.spectralEfficiencyJson = spectralEfficiencyJson; }
+
+    public String getInsightsJson() { return insightsJson; }
+    public void setInsightsJson(String insightsJson) { this.insightsJson = insightsJson; }
 }

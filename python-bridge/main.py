@@ -14,11 +14,13 @@ from fastapi import FastAPI, HTTPException
 from models import (
     SimulationRequest, SimulationResult, 
     BeamPatternRequest, BeamPatternResult,
-    ModulationComparisonRequest, ModulationComparisonResult
+    ModulationComparisonRequest, ModulationComparisonResult,
+    ChannelCapacityRequest, ChannelCapacityResult
 )
 from sionna_runner import run_awgn_simulation
 from beam_pattern import compute_ula_beam_pattern
 from modulation_comparison import compute_modulation_comparison
+from channel_capacity import compute_channel_capacity
 
 app = FastAPI(
     title="Sionna Visualizer Bridge",
@@ -151,6 +153,39 @@ async def simulate_modulation_comparison(request: ModulationComparisonRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Modulation comparison failed: {str(exc)}",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Channel Capacity endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/channel-capacity", response_model=ChannelCapacityResult)
+async def simulate_channel_capacity(request: ChannelCapacityRequest):
+    """
+    Compute Shannon channel capacity across standard 6G bandwidths.
+    """
+    try:
+        result = await asyncio.wait_for(
+            anyio.to_thread.run_sync(
+                compute_channel_capacity,
+                request.snr_min,
+                request.snr_max,
+                request.snr_steps,
+                request.bandwidths_mhz
+            ),
+            timeout=30.0
+        )
+        return ChannelCapacityResult(**result)
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=408,
+            detail="Simulation timed out. Try reducing the number of SNR steps."
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Channel capacity computation failed: {str(exc)}",
         )
 
 

@@ -82,3 +82,30 @@ class ModulationComparisonResult(BaseModel):
     snr_max: float
     snr_steps: int
     crossover_points: CrossoverPoints
+
+class ChannelCapacityRequest(BaseModel):
+    snr_min: float = -10.0
+    snr_max: float = 30.0
+    snr_steps: int = 50
+    bandwidths_mhz: list = [10.0, 100.0, 400.0, 1000.0]
+
+class ChannelCapacityCurve(BaseModel):
+    bandwidth_mhz: float
+    label: str
+    capacity_gbps: List[float]
+    peak_capacity_gbps: float
+    color_hint: str
+
+class ChannelCapacityInsights(BaseModel):
+    snr_for_1gbps_100mhz: float
+    snr_for_10gbps_1000mhz: float
+    spectral_efficiency_at_snr20: float
+    capacity_gain_10x_bandwidth: float
+
+class ChannelCapacityResult(BaseModel):
+    snr_db: List[float]
+    spectral_efficiency: List[float]
+    capacity_curves: List[ChannelCapacityCurve]
+    snr_min: float
+    snr_max: float
+    insights: ChannelCapacityInsights

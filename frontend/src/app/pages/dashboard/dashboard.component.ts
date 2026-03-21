@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
@@ -21,7 +22,8 @@ import { SimulationService } from '../../services/simulation.service';
 import {
   SimulationResult, SimulationRequest,
   BeamPatternResult, BeamPatternRequest,
-  ModulationComparisonRequest, ModulationComparisonResult
+  ModulationComparisonRequest, ModulationComparisonResult,
+  ChannelCapacityRequest, ChannelCapacityResult
 } from '../../models/simulation-result.model';
 
 /** Custom validator: SNR min must be less than SNR max */
@@ -48,6 +50,7 @@ function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
     MatSelectModule,
     MatButtonModule,
     MatSliderModule,
+    MatCheckboxModule,
     MatTabsModule,
     MatSnackBarModule,
     MatIconModule,
@@ -62,10 +65,12 @@ export class DashboardComponent implements OnInit {
   simulationData: SimulationResult | null = null;
   beamData: BeamPatternResult | null = null;
   modData: ModulationComparisonResult | null = null;
+  capData: ChannelCapacityResult | null = null;
   isLoading = true;
   isSimulating = false;
   isBeamSimulating = false;
   isModSimulating = false;
+  isCapSimulating = false;
   loadError = false;
 
   apiKeys: any[] = [];
@@ -75,6 +80,7 @@ export class DashboardComponent implements OnInit {
   simForm: FormGroup;
   beamForm: FormGroup;
   modForm: FormGroup;
+  capForm: FormGroup;
 
   // ─────────────────────────────────────────────────────────────────────────
   // Chart Config: Radar (Beam)
@@ -188,6 +194,64 @@ export class DashboardComponent implements OnInit {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Line (Channel Capacity)
+  // ─────────────────────────────────────────────────────────────────────────
+  public capChartData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: []
+  };
+
+  public capChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', align: 'end', labels: { color: '#eeeeee' } },
+      title: { display: true, text: 'Channel Capacity vs SNR', color: '#eeeeee' }
+    },
+    scales: {
+      y: {
+        title: { display: true, text: 'Capacity (Gbps)', color: '#aaaaaa' },
+        ticks: { color: '#aaaaaa' },
+        grid: { color: '#1e2a3a' }
+      },
+      x: {
+        title: { display: true, text: 'SNR (dB)', color: '#aaaaaa' },
+        ticks: { color: '#aaaaaa' },
+        grid: { color: '#1e2a3a' }
+      }
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Line (Spectral Efficiency)
+  // ─────────────────────────────────────────────────────────────────────────
+  public spectralChartData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: []
+  };
+
+  public spectralChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Spectral Efficiency vs SNR', color: '#eeeeee' }
+    },
+    scales: {
+      y: {
+        title: { display: true, text: 'Efficiency (bits/s/Hz)', color: '#aaaaaa' },
+        ticks: { color: '#aaaaaa' },
+        grid: { color: '#1e2a3a' }
+      },
+      x: {
+        title: { display: true, text: 'SNR (dB)', color: '#aaaaaa' },
+        ticks: { color: '#aaaaaa' },
+        grid: { color: '#1e2a3a' }
+      }
+    }
+  };
+
   public lineChartLegend = true;
 
   constructor(
@@ -215,6 +279,16 @@ export class DashboardComponent implements OnInit {
       snrMin: [-5, [Validators.required, Validators.min(-15), Validators.max(10)]],
       snrMax: [25, [Validators.required, Validators.min(15), Validators.max(40)]],
       snrSteps: [50, [Validators.required, Validators.min(20), Validators.max(100)]]
+    }, { validators: snrRangeValidator });
+
+    this.capForm = this.fb.group({
+      snrMin: [-10, [Validators.required, Validators.min(-20), Validators.max(10)]],
+      snrMax: [30, [Validators.required, Validators.min(15), Validators.max(50)]],
+      snrSteps: [50, [Validators.required, Validators.min(20), Validators.max(100)]],
+      bw10: [true],
+      bw100: [true],
+      bw400: [true],
+      bw1000: [true]
     }, { validators: snrRangeValidator });
   }
 
@@ -350,6 +424,67 @@ export class DashboardComponent implements OnInit {
         console.error(err);
         this.isModSimulating = false;
         this.showError('Modulation comparison failed. Please try again.');
+      }
+    });
+  }
+
+  runChannelCapacity(): void {
+    if (this.capForm.invalid) return;
+    this.isCapSimulating = true;
+
+    const bws: number[] = [];
+    if (this.capForm.value.bw10) bws.push(10);
+    if (this.capForm.value.bw100) bws.push(100);
+    if (this.capForm.value.bw400) bws.push(400);
+    if (this.capForm.value.bw1000) bws.push(1000);
+
+    const req: ChannelCapacityRequest = {
+      snr_min: this.capForm.value.snrMin,
+      snr_max: this.capForm.value.snrMax,
+      snr_steps: this.capForm.value.snrSteps,
+      bandwidths_mhz: bws
+    };
+
+    this.simulationService.runChannelCapacity(req).subscribe({
+      next: (res: ChannelCapacityResult) => {
+        this.capData = res;
+        
+        // build capacity datasets
+        const ds = res.capacity_curves.map(curve => ({
+          data: curve.capacity_gbps,
+          label: curve.label,
+          fill: false,
+          tension: 0.1,
+          borderColor: curve.color_hint,
+          pointRadius: 0,
+          borderWidth: 2
+        }));
+
+        this.capChartData = {
+          labels: res.snr_db,
+          datasets: ds
+        };
+
+        this.spectralChartData = {
+          labels: res.snr_db,
+          datasets: [{
+            data: res.spectral_efficiency,
+            label: 'Spectral Eff',
+            fill: true,
+            tension: 0.1,
+            backgroundColor: 'rgba(100, 255, 218, 0.1)',
+            borderColor: '#64ffda',
+            pointRadius: 0,
+            borderWidth: 2
+          }]
+        };
+
+        this.isCapSimulating = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.isCapSimulating = false;
+        this.showError('Channel capacity generation failed. Please try again.');
       }
     });
   }

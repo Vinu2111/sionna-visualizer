@@ -88,6 +88,13 @@ export class SimulationService {
   }
 
   /**
+   * Triggers a Shannon channel capacity simulation.
+   */
+  runChannelCapacity(request: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/api/simulations/channel-capacity`, request);
+  }
+
+  /**
    * Compares two saved simulations by their IDs.
    */
   compareSimulations(id1: number, id2: number): Observable<ComparisonResponse> {

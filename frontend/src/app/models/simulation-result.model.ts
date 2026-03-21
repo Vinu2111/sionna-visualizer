@@ -46,6 +46,11 @@ export interface SimulationHistoryItem {
   comparisonSnrMax: number;
   crossoverPoints: string;
   
+  // Channel Capacity fields
+  capacityCurvesJson: string;
+  spectralEfficiencyJson: string;
+  insightsJson: string;
+  
   modulationType: string;
   codeRate: number;
   snrMin: number;
@@ -101,4 +106,35 @@ export interface ModulationComparisonResult {
   snr_max: number;
   snr_steps: number;
   crossover_points: CrossoverPoints;
+}
+
+export interface ChannelCapacityCurve {
+  bandwidth_mhz: number;
+  label: string;
+  capacity_gbps: number[];
+  peak_capacity_gbps: number;
+  color_hint: string;
+}
+
+export interface ChannelCapacityInsights {
+  snr_for_1gbps_100mhz: number;
+  snr_for_10gbps_1000mhz: number;
+  spectral_efficiency_at_snr20: number;
+  capacity_gain_10x_bandwidth: number;
+}
+
+export interface ChannelCapacityRequest {
+  snr_min: number;
+  snr_max: number;
+  snr_steps: number;
+  bandwidths_mhz: number[];
+}
+
+export interface ChannelCapacityResult {
+  snr_db: number[];
+  spectral_efficiency: number[];
+  capacity_curves: ChannelCapacityCurve[];
+  snr_min: number;
+  snr_max: number;
+  insights: ChannelCapacityInsights;
 }

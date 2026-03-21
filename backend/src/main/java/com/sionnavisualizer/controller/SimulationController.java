@@ -7,6 +7,8 @@ import com.sionnavisualizer.dto.BeamPatternResultDto;
 import com.sionnavisualizer.dto.ModulationComparisonRequestDto;
 import com.sionnavisualizer.dto.ModulationComparisonResultDto;
 import com.sionnavisualizer.dto.ComparisonResponseDto;
+import com.sionnavisualizer.dto.ChannelCapacityRequestDto;
+import com.sionnavisualizer.dto.ChannelCapacityResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
 import org.springframework.http.ResponseEntity;
@@ -102,6 +104,21 @@ public class SimulationController {
     public ResponseEntity<?> runModulationComparison(@Valid @RequestBody ModulationComparisonRequestDto request) {
         try {
             ModulationComparisonResultDto result = simulationService.runModulationComparison(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
+    /**
+     * POST /api/simulations/channel-capacity
+     *
+     * Runs theoretical Shannon channel capacity.
+     */
+    @PostMapping("/simulations/channel-capacity")
+    public ResponseEntity<?> runChannelCapacity(@Valid @RequestBody ChannelCapacityRequestDto request) {
+        try {
+            ChannelCapacityResultDto result = simulationService.runChannelCapacity(request);
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
             return ResponseEntity.internalServerError().body(ex.getMessage());

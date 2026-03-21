@@ -1,16 +1,31 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
 /**
  * Request body sent from Java → Python bridge when triggering a new simulation.
  * Field names use snake_case to match the Pydantic model in the Python bridge exactly.
  */
 public class SimulationRequestDto {
 
+    @Min(2) @Max(64)
     private int modulation_order = 4;       // QPSK default
+    
+    @DecimalMin("0.1") @DecimalMax("1.0")
     private double code_rate = 0.5;
+    
     private int num_bits_per_symbol = 2;    // QPSK = 2 bits/symbol
+    
+    @DecimalMin("-20.0") @DecimalMax("0.0")
     private double snr_min = -5.0;
+    
+    @DecimalMin("0.0") @DecimalMax("40.0")
     private double snr_max = 20.0;
+    
+    @Min(10) @Max(100)
     private int snr_steps = 25;
 
     // ─── Constructors ────────────────────────────────────────────────────────

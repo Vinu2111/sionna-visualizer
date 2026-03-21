@@ -32,3 +32,28 @@ logging:
   level:
     com.sionnavisualizer: INFO
     org.springframework.web: INFO
+
+# Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      pythonBridge:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+  timelimiter:
+    instances:
+      pythonBridge:
+        timeoutDuration: 10s
+
+# Actuator Health Check
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never

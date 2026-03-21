@@ -62,14 +62,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Allow any Vercel deployment URL and local dev server
-        config.setAllowedOriginPatterns(List.of(
-            "https://*.vercel.app",
-            "http://localhost:4200",
-            "http://localhost"
+        // Allow specific frontend origins
+        config.setAllowedOrigins(List.of(
+            "https://sionna-visualizer.vercel.app",
+            "http://localhost:4200"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

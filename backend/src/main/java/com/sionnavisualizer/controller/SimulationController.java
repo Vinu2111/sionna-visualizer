@@ -11,6 +11,7 @@ import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class SimulationController {
      * Returns HTTP 500 with a plain error message if the Python bridge fails.
      */
     @PostMapping("/simulate")
-    public ResponseEntity<?> runSimulation(@RequestBody SimulationRequestDto request) {
+    public ResponseEntity<?> runSimulation(@Valid @RequestBody SimulationRequestDto request) {
         try {
             SimulationDto result = simulationService.runSimulation(request);
             return ResponseEntity.ok(result);
@@ -83,7 +84,7 @@ public class SimulationController {
      * Runs a ULA beam pattern simulation.
      */
     @PostMapping("/simulations/beam-pattern")
-    public ResponseEntity<?> runBeamPattern(@RequestBody BeamPatternRequestDto request) {
+    public ResponseEntity<?> runBeamPattern(@Valid @RequestBody BeamPatternRequestDto request) {
         try {
             BeamPatternResultDto result = simulationService.runBeamPattern(request);
             return ResponseEntity.ok(result);
@@ -98,7 +99,7 @@ public class SimulationController {
      * Runs theoretical comparison for BPSK, QPSK, 16QAM, 64QAM.
      */
     @PostMapping("/simulations/modulation-comparison")
-    public ResponseEntity<?> runModulationComparison(@RequestBody ModulationComparisonRequestDto request) {
+    public ResponseEntity<?> runModulationComparison(@Valid @RequestBody ModulationComparisonRequestDto request) {
         try {
             ModulationComparisonResultDto result = simulationService.runModulationComparison(request);
             return ResponseEntity.ok(result);

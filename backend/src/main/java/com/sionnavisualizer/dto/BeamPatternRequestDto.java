@@ -1,9 +1,22 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
 public class BeamPatternRequestDto {
+    
+    @Min(2) @Max(128)
     private int num_antennas = 16;
+    
+    @DecimalMin("-90.0") @DecimalMax("90.0")
     private double steering_angle = 0.0;
+    
+    @DecimalMin("1.0") @DecimalMax("100.0")
     private double frequency_ghz = 28.0;
+    
+    @DecimalMin("0.1") @DecimalMax("2.0")
     private double array_spacing = 0.5;
 
     public BeamPatternRequestDto() {

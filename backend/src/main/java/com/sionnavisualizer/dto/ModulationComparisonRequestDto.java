@@ -1,8 +1,19 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
 public class ModulationComparisonRequestDto {
+    
+    @DecimalMin("-20.0") @DecimalMax("0.0")
     private double snr_min = -5.0;
+    
+    @DecimalMin("0.0") @DecimalMax("40.0")
     private double snr_max = 25.0;
+    
+    @Min(10) @Max(100)
     private int snr_steps = 50;
 
     public ModulationComparisonRequestDto() {}

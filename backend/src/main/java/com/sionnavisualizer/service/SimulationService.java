@@ -54,22 +54,20 @@ public class SimulationService {
     // Public API
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Run a simulation with default QPSK rate-1/2 parameters.
-     * Used by the GET /api/simulate/demo endpoint for quick dashboard loads.
-     */
+    @io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker(name = "pythonBridge", fallbackMethod = "simulationFallback")
+    @io.github.resilience4j.timelimiter.annotation.TimeLimiter(name = "pythonBridge")
     public SimulationDto runDemoSimulation() {
         return runSimulation(new SimulationRequestDto());
     }
 
-    /**
-     * Run a simulation with the supplied parameters and persist the result.
-     *
-     * Flow:  Java → POST Python /simulate → parse JSON → save PostgreSQL → return DTO
-     *
-     * @param requestParams the simulation parameters chosen by the user (or defaults)
-     * @return the full SimulationDto with both BER curves
-     */
+    public SimulationDto simulationFallback(Throwable t) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+            "Simulation engine is temporarily unavailable. Please try again in 30 seconds.");
+    }
+
+    @io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker(name = "pythonBridge", fallbackMethod = "simulationFallback")
+    @io.github.resilience4j.timelimiter.annotation.TimeLimiter(name = "pythonBridge")
     public SimulationDto runSimulation(SimulationRequestDto requestParams) {
         try {
             // ── Step 1: Build POST request to Python bridge ───────────────────
@@ -121,9 +119,14 @@ public class SimulationService {
         }
     }
 
-    /**
-     * Run a beam pattern simulation via Python bridge and persist the result.
-     */
+    public SimulationDto simulationFallback(SimulationRequestDto requestParams, Throwable t) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+            "Simulation engine is temporarily unavailable. Please try again in 30 seconds.");
+    }
+
+    @io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker(name = "pythonBridge", fallbackMethod = "beamPatternFallback")
+    @io.github.resilience4j.timelimiter.annotation.TimeLimiter(name = "pythonBridge")
     public BeamPatternResultDto runBeamPattern(BeamPatternRequestDto requestParams) {
         try {
             String url = buildSimulateUrl() + "/beam-pattern";
@@ -167,9 +170,14 @@ public class SimulationService {
         }
     }
 
-    /**
-     * Run a modulation comparison across 4 different QAM states simultaneously via Python.
-     */
+    public BeamPatternResultDto beamPatternFallback(BeamPatternRequestDto requestParams, Throwable t) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+            "Simulation engine is temporarily unavailable. Please try again in 30 seconds.");
+    }
+
+    @io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker(name = "pythonBridge", fallbackMethod = "modulationComparisonFallback")
+    @io.github.resilience4j.timelimiter.annotation.TimeLimiter(name = "pythonBridge")
     public ModulationComparisonResultDto runModulationComparison(ModulationComparisonRequestDto requestParams) {
         try {
             String url = buildSimulateUrl() + "/modulation-comparison";
@@ -212,6 +220,12 @@ public class SimulationService {
         } catch (Exception ex) {
             throw new RuntimeException("Modulation comparison failed: " + ex.getMessage(), ex);
         }
+    }
+
+    public ModulationComparisonResultDto modulationComparisonFallback(ModulationComparisonRequestDto requestParams, Throwable t) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+            "Simulation engine is temporarily unavailable. Please try again in 30 seconds.");
     }
 
     /**

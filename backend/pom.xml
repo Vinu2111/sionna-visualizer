@@ -72,6 +72,37 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Rate Limiting (Bucket4j) -->
+		<dependency>
+			<groupId>com.bucket4j</groupId>
+			<artifactId>bucket4j-core</artifactId>
+			<version>8.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.giffing.bucket4j.spring.boot.starter</groupId>
+			<artifactId>bucket4j-spring-boot-starter</artifactId>
+			<version>8.7.0</version>
+		</dependency>
+
+		<!-- Input Validation -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<!-- Circuit Breaker (Resilience4j) -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot3</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+
+		<!-- Health Checks (Actuator) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

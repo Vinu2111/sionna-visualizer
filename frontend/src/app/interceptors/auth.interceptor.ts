@@ -37,6 +37,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           });
           router.navigate(['/login']);
         }
+      } else if (error.status === 429) {
+        snackBar.open("Too many simulations. Please wait 1 minute.", "Close", { duration: 5000 });
+      } else if (error.status === 503) {
+        snackBar.open("Simulation engine is temporarily unavailable. Please try again in 30 seconds.", "Close", { duration: 5000 });
+      } else if (error.status === 408) {
+        snackBar.open("Simulation timed out. Try fewer SNR points.", "Close", { duration: 5000 });
+      } else if (error.status === 400) {
+        let errorMsg = "Invalid input.";
+        if (error.error && typeof error.error === 'object') {
+          // Format dictionary of errors returned by backend @Valid into a single string
+          errorMsg = Object.entries(error.error)
+            .map(([field, msg]) => `${field}: ${msg}`)
+            .join(' | ');
+        }
+        snackBar.open(errorMsg, "Close", { duration: 7000 });
       }
       return throwError(() => error);
     })

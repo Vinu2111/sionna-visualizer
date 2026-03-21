@@ -8,6 +8,8 @@ Exposes:
 """
 
 import datetime
+import asyncio
+import anyio
 from fastapi import FastAPI, HTTPException
 from models import (
     SimulationRequest, SimulationResult, 
@@ -35,7 +37,7 @@ def health_check():
     Returns 200 OK to signal the service is up.
     Used by Railway health checks and the Java backend's connectivity test.
     """
-    return {"status": "ok", "service": "sionna-bridge", "version": "2.0.0"}
+    return {"status": "healthy", "service": "sionna-python-bridge", "version": "1.0.0"}
 
 
 # ---------------------------------------------------------------------------
@@ -43,25 +45,29 @@ def health_check():
 # ---------------------------------------------------------------------------
 
 @app.post("/simulate", response_model=SimulationResult)
-def simulate(request: SimulationRequest):
+async def simulate(request: SimulationRequest):
     """
     Run an AWGN BER-vs-SNR simulation with the supplied parameters.
-
-    Returns both a theoretical BER curve (closed-form) and a Monte-Carlo
-    simulated BER curve.  Raises HTTP 500 on any internal error so callers
-    always get a structured failure message instead of a silent empty body.
     """
     try:
-        result = run_awgn_simulation(
-            modulation_order=request.modulation_order,
-            code_rate=request.code_rate,
-            num_bits_per_symbol=request.num_bits_per_symbol,
-            snr_min=request.snr_min,
-            snr_max=request.snr_max,
-            snr_steps=request.snr_steps,
+        result = await asyncio.wait_for(
+            anyio.to_thread.run_sync(
+                run_awgn_simulation,
+                request.modulation_order,
+                request.code_rate,
+                request.num_bits_per_symbol,
+                request.snr_min,
+                request.snr_max,
+                request.snr_steps,
+            ),
+            timeout=30.0
         )
         return SimulationResult(**result)
-
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=408,
+            detail="Simulation timed out. Try reducing the number of SNR steps."
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -74,14 +80,14 @@ def simulate(request: SimulationRequest):
 # ---------------------------------------------------------------------------
 
 @app.post("/simulate/demo", response_model=SimulationResult)
-def simulate_demo(request: SimulationRequest = None):
+async def simulate_demo(request: SimulationRequest = None):
     """
     Runs a simulation with default QPSK rate-1/2 params.
     If a body is provided, it uses those params.
     """
     if request is None:
         request = SimulationRequest()
-    return simulate(request)
+    return await simulate(request)
 
 
 # ---------------------------------------------------------------------------
@@ -89,19 +95,27 @@ def simulate_demo(request: SimulationRequest = None):
 # ---------------------------------------------------------------------------
 
 @app.post("/simulate/beam-pattern", response_model=BeamPatternResult)
-def simulate_beam_pattern(request: BeamPatternRequest):
+async def simulate_beam_pattern(request: BeamPatternRequest):
     """
     Run a ULA beam pattern generation with the supplied parameters.
     """
     try:
-        result = compute_ula_beam_pattern(
-            num_antennas=request.num_antennas,
-            steering_angle=request.steering_angle,
-            frequency_ghz=request.frequency_ghz,
-            array_spacing=request.array_spacing,
+        result = await asyncio.wait_for(
+            anyio.to_thread.run_sync(
+                compute_ula_beam_pattern,
+                request.num_antennas,
+                request.steering_angle,
+                request.frequency_ghz,
+                request.array_spacing,
+            ),
+            timeout=30.0
         )
         return BeamPatternResult(**result)
-
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=408,
+            detail="Simulation timed out. Try reducing the number of SNR steps."
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -113,17 +127,26 @@ def simulate_beam_pattern(request: BeamPatternRequest):
 # ---------------------------------------------------------------------------
 
 @app.post("/simulate/modulation-comparison", response_model=ModulationComparisonResult)
-def simulate_modulation_comparison(request: ModulationComparisonRequest):
+async def simulate_modulation_comparison(request: ModulationComparisonRequest):
     """
     Run theoretical generation across BPSK, QPSK, 16QAM, 64QAM.
     """
     try:
-        result = compute_modulation_comparison(
-            snr_min=request.snr_min,
-            snr_max=request.snr_max,
-            snr_steps=request.snr_steps
+        result = await asyncio.wait_for(
+            anyio.to_thread.run_sync(
+                compute_modulation_comparison,
+                request.snr_min,
+                request.snr_max,
+                request.snr_steps,
+            ),
+            timeout=30.0
         )
         return ModulationComparisonResult(**result)
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=408,
+            detail="Simulation timed out. Try reducing the number of SNR steps."
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -137,6 +160,6 @@ def simulate_modulation_comparison(request: ModulationComparisonRequest):
 # ---------------------------------------------------------------------------
 
 @app.get("/simulate/demo", response_model=SimulationResult)
-def simulate_demo_get():
+async def simulate_demo_get():
     """Legacy GET alias — kept for backward compatibility."""
-    return simulate(SimulationRequest())
+    return await simulate(SimulationRequest())

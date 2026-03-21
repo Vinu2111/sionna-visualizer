@@ -12,7 +12,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ChartConfiguration, ChartOptions, ChartData } from 'chart.js';
 import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
-import { SimulationResult, SimulationRequest, BeamPatternResult, BeamPatternRequest } from '../../models/simulation-result.model';
+import { SimulationResult, SimulationRequest, BeamPatternResult, BeamPatternRequest, ModulationComparisonRequest, ModulationComparisonResult } from '../../models/simulation-result.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,13 +36,16 @@ import { SimulationResult, SimulationRequest, BeamPatternResult, BeamPatternRequ
 export class DashboardComponent implements OnInit {
   simulationData: SimulationResult | null = null;
   beamData: BeamPatternResult | null = null;
+  modData: ModulationComparisonResult | null = null;
   isLoading = true;
   isSimulating = false;
   isBeamSimulating = false;
+  isModSimulating = false;
   errorMsg = '';
   
   simForm: FormGroup;
   beamForm: FormGroup;
+  modForm: FormGroup;
 
   public radarChartOptions: ChartConfiguration<'radar'>['options'] = {
     responsive: true,
@@ -140,6 +143,38 @@ export class DashboardComponent implements OnInit {
     }
   };
 
+  public modChartData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: [
+      { data: [], label: 'BPSK', fill: false, tension: 0.1, borderColor: '#ffffff', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: 'QPSK', fill: false, tension: 0.1, borderColor: '#64ffda', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: '16QAM', fill: false, tension: 0.1, borderColor: '#f7b731', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: '64QAM', fill: false, tension: 0.1, borderColor: '#ff6b6b', pointRadius: 0, borderWidth: 2 }
+    ]
+  };
+
+  public modChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', align: 'end', labels: { color: '#eeeeee' } },
+      title: { display: true, text: 'Modulation Comparison — Theoretical BER', color: '#eeeeee' }
+    },
+    scales: {
+      y: {
+        type: 'logarithmic',
+        title: { display: true, text: 'Bit Error Rate (BER)', color: '#aaaaaa' },
+        ticks: { color: '#aaaaaa', callback: function(value: any) { return Number(value).toExponential(0); } },
+        grid: { color: '#333333' }
+      },
+      x: {
+        title: { display: true, text: 'SNR (dB)', color: '#aaaaaa' },
+        ticks: { color: '#aaaaaa' },
+        grid: { color: '#333333' }
+      }
+    }
+  };
+
   public lineChartLegend = true;
 
   constructor(
@@ -159,6 +194,12 @@ export class DashboardComponent implements OnInit {
       steeringAngle: [0, [Validators.required, Validators.min(-90), Validators.max(90)]],
       frequencyGhz: [28.0, Validators.required],
       arraySpacing: [0.5, [Validators.required, Validators.min(0.3), Validators.max(1.0)]]
+    });
+
+    this.modForm = this.fb.group({
+      snrMin: [-5, [Validators.required, Validators.min(-15), Validators.max(10)]],
+      snrMax: [25, [Validators.required, Validators.min(15), Validators.max(40)]],
+      snrSteps: [50, [Validators.required, Validators.min(20), Validators.max(100)]]
     });
   }
 
@@ -265,6 +306,33 @@ export class DashboardComponent implements OnInit {
         console.error(err);
         this.errorMsg = 'Failed to generate beam pattern.';
         this.isBeamSimulating = false;
+      }
+    });
+  }
+
+  runModulationComparison(): void {
+    if (this.modForm.invalid) return;
+    this.isModSimulating = true;
+    this.errorMsg = '';
+
+    const req: ModulationComparisonRequest = this.modForm.value;
+
+    this.simulationService.runModulationComparison(req).subscribe({
+      next: (res) => {
+        this.modData = res;
+        this.modChartData.labels = res.snr_db;
+        this.modChartData.datasets[0].data = res.bpsk;
+        this.modChartData.datasets[1].data = res.qpsk;
+        this.modChartData.datasets[2].data = res.qam16;
+        this.modChartData.datasets[3].data = res.qam64;
+        
+        this.modChartData = { ...this.modChartData };
+        this.isModSimulating = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.errorMsg = 'Failed to run modulation comparison.';
+        this.isModSimulating = false;
       }
     });
   }

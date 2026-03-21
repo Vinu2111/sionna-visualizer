@@ -53,8 +53,9 @@
         <ng-container matColumnDef="type">
           <th mat-header-cell *matHeaderCellDef> Type </th>
           <td mat-cell *matCellDef="let sim">
-            <span class="chip" [style.background-color]="sim.simulationType === 'BEAM_PATTERN' ? '#7b1fa2' : '#00796b'">
-              {{ sim.simulationType === 'BEAM_PATTERN' ? 'Beam Pattern' : 'BER/SNR' }}
+            <span class="chip" 
+                  [style.background-color]="sim.simulationType === 'BEAM_PATTERN' ? '#7b1fa2' : (sim.simulationType === 'MOD_COMPARISON' ? '#f39c12' : '#00796b')">
+              {{ sim.simulationType === 'BEAM_PATTERN' ? 'Beam Pattern' : (sim.simulationType === 'MOD_COMPARISON' ? 'Mod. Compare' : 'BER/SNR') }}
             </span>
           </td>
         </ng-container>

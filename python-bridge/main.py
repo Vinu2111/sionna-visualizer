@@ -9,9 +9,14 @@ Exposes:
 
 import datetime
 from fastapi import FastAPI, HTTPException
-from models import SimulationRequest, SimulationResult, BeamPatternRequest, BeamPatternResult
+from models import (
+    SimulationRequest, SimulationResult, 
+    BeamPatternRequest, BeamPatternResult,
+    ModulationComparisonRequest, ModulationComparisonResult
+)
 from sionna_runner import run_awgn_simulation
 from beam_pattern import compute_ula_beam_pattern
+from modulation_comparison import compute_modulation_comparison
 
 app = FastAPI(
     title="Sionna Visualizer Bridge",
@@ -101,6 +106,28 @@ def simulate_beam_pattern(request: BeamPatternRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Beam pattern computation failed: {str(exc)}",
+        )
+
+# ---------------------------------------------------------------------------
+# Modulation Comparison endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/modulation-comparison", response_model=ModulationComparisonResult)
+def simulate_modulation_comparison(request: ModulationComparisonRequest):
+    """
+    Run theoretical generation across BPSK, QPSK, 16QAM, 64QAM.
+    """
+    try:
+        result = compute_modulation_comparison(
+            snr_min=request.snr_min,
+            snr_max=request.snr_max,
+            snr_steps=request.snr_steps
+        )
+        return ModulationComparisonResult(**result)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Modulation comparison failed: {str(exc)}",
         )
 
 

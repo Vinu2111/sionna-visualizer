@@ -5,6 +5,8 @@ import com.sionnavisualizer.dto.SimulationDto;
 import com.sionnavisualizer.dto.SimulationRequestDto;
 import com.sionnavisualizer.dto.BeamPatternRequestDto;
 import com.sionnavisualizer.dto.BeamPatternResultDto;
+import com.sionnavisualizer.dto.ModulationComparisonRequestDto;
+import com.sionnavisualizer.dto.ModulationComparisonResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.repository.SimulationResultRepository;
 import org.springframework.stereotype.Service;
@@ -160,6 +162,53 @@ public class SimulationService {
             throw new RuntimeException("Could not reach the Python bridge. Details: " + ex.getMessage());
         } catch (Exception ex) {
             throw new RuntimeException("Beam pattern generation failed: " + ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Run a modulation comparison across 4 different QAM states simultaneously via Python.
+     */
+    public ModulationComparisonResultDto runModulationComparison(ModulationComparisonRequestDto requestParams) {
+        try {
+            String url = buildSimulateUrl() + "/modulation-comparison";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<ModulationComparisonRequestDto> httpRequest = new HttpEntity<>(requestParams, headers);
+
+            ModulationComparisonResultDto dto = restTemplate.postForObject(url, httpRequest, ModulationComparisonResultDto.class);
+
+            if (dto == null) {
+                throw new RuntimeException("Python bridge returned an empty response for modulation comparison");
+            }
+
+            SimulationResult entity = new SimulationResult();
+            entity.setSimulationType("MOD_COMPARISON");
+            
+            entity.setComparisonSnrMin(BigDecimal.valueOf(dto.getSnr_min()));
+            entity.setComparisonSnrMax(BigDecimal.valueOf(dto.getSnr_max()));
+
+            // Store JSON string lists
+            entity.setSnrDb(objectMapper.writeValueAsString(dto.getSnr_db()));
+            entity.setBpskBer(objectMapper.writeValueAsString(dto.getBpsk()));
+            entity.setQpskBer(objectMapper.writeValueAsString(dto.getQpsk()));
+            entity.setQam16Ber(objectMapper.writeValueAsString(dto.getQam16()));
+            entity.setQam64Ber(objectMapper.writeValueAsString(dto.getQam64()));
+            entity.setCrossoverPoints(objectMapper.writeValueAsString(dto.getCrossover_points()));
+            
+            entity.setHardwareUsed("Mathematical comparison (scipy.special)");
+            entity.setTimestamp(LocalDateTime.now());
+            entity.setShareToken(java.util.UUID.randomUUID().toString());
+            entity.setIsPublic(true);
+
+            simulationResultRepository.save(entity);
+
+            return dto;
+
+        } catch (RestClientException ex) {
+            throw new RuntimeException("Could not reach the Python bridge. Details: " + ex.getMessage());
+        } catch (Exception ex) {
+            throw new RuntimeException("Modulation comparison failed: " + ex.getMessage(), ex);
         }
     }
 

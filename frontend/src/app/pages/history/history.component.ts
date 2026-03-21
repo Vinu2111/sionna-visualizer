@@ -130,8 +130,8 @@ export class HistoryComponent implements OnInit {
   selectSimulation(simulation: SimulationHistoryItem): void {
     this.selectedSimulation = simulation;
     
-    if (simulation.simulationType === 'BEAM_PATTERN') {
-      // Beam pattern doesn't use the line chart, could implement radar chart viewing later
+    if (simulation.simulationType === 'BEAM_PATTERN' || simulation.simulationType === 'MOD_COMPARISON') {
+      // Mod comparison and beam pattern don't use the simple line chart, implement rendering later
       return;
     }
 

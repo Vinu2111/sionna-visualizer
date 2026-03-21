@@ -61,3 +61,24 @@ class BeamPatternResult(BaseModel):
     main_lobe_width: float
     side_lobe_level: float
     array_gain_db: float
+
+class ModulationComparisonRequest(BaseModel):
+    snr_min: float = -5.0
+    snr_max: float = 25.0
+    snr_steps: int = 50
+
+class CrossoverPoints(BaseModel):
+    bpsk_qpsk_same: bool
+    qpsk_advantage_over_16qam_at_snr: float
+    qam16_advantage_over_64qam_at_snr: float
+
+class ModulationComparisonResult(BaseModel):
+    snr_db: List[float]
+    bpsk: List[float]
+    qpsk: List[float]
+    qam16: List[float]
+    qam64: List[float]
+    snr_min: float
+    snr_max: float
+    snr_steps: int
+    crossover_points: CrossoverPoints

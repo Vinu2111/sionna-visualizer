@@ -89,6 +89,29 @@ public class SimulationResult {
     @Column(precision = 6, scale = 2)
     private BigDecimal sideLobeLevel;
 
+    // ─── Modulation Comparison columns (Day 13) ──────────────────────────────
+
+    @Column(columnDefinition = "TEXT")
+    private String bpskBer;
+
+    @Column(columnDefinition = "TEXT")
+    private String qpskBer;
+
+    @Column(columnDefinition = "TEXT")
+    private String qam16Ber;
+
+    @Column(columnDefinition = "TEXT")
+    private String qam64Ber;
+
+    @Column(precision = 6, scale = 2)
+    private BigDecimal comparisonSnrMin;
+
+    @Column(precision = 6, scale = 2)
+    private BigDecimal comparisonSnrMax;
+
+    @Column(columnDefinition = "TEXT")
+    private String crossoverPoints;
+
     // ─── Legacy columns kept for backward compatibility ──────────────────────
 
     /** Legacy field — OFDM symbols per slot (from the old mock simulation) */
@@ -171,6 +194,27 @@ public class SimulationResult {
 
     public BigDecimal getSideLobeLevel() { return sideLobeLevel; }
     public void setSideLobeLevel(BigDecimal sideLobeLevel) { this.sideLobeLevel = sideLobeLevel; }
+
+    public String getBpskBer() { return bpskBer; }
+    public void setBpskBer(String bpskBer) { this.bpskBer = bpskBer; }
+
+    public String getQpskBer() { return qpskBer; }
+    public void setQpskBer(String qpskBer) { this.qpskBer = qpskBer; }
+
+    public String getQam16Ber() { return qam16Ber; }
+    public void setQam16Ber(String qam16Ber) { this.qam16Ber = qam16Ber; }
+
+    public String getQam64Ber() { return qam64Ber; }
+    public void setQam64Ber(String qam64Ber) { this.qam64Ber = qam64Ber; }
+
+    public BigDecimal getComparisonSnrMin() { return comparisonSnrMin; }
+    public void setComparisonSnrMin(BigDecimal comparisonSnrMin) { this.comparisonSnrMin = comparisonSnrMin; }
+
+    public BigDecimal getComparisonSnrMax() { return comparisonSnrMax; }
+    public void setComparisonSnrMax(BigDecimal comparisonSnrMax) { this.comparisonSnrMax = comparisonSnrMax; }
+
+    public String getCrossoverPoints() { return crossoverPoints; }
+    public void setCrossoverPoints(String crossoverPoints) { this.crossoverPoints = crossoverPoints; }
 
     public Integer getNumOfdmSymbols() { return numOfdmSymbols; }
     public void setNumOfdmSymbols(Integer numOfdmSymbols) { this.numOfdmSymbols = numOfdmSymbols; }

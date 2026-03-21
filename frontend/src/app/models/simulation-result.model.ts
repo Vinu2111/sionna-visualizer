@@ -36,6 +36,16 @@ export interface SimulationHistoryItem {
   berSimulated: string;    // JSON array string stored in DB
   beamAngles: string;      // JSON array string stored in DB
   beamPatternDb: string;   // JSON array string stored in DB
+  
+  // Modulation Comparison fields
+  bpskBer: string;
+  qpskBer: string;
+  qam16Ber: string;
+  qam64Ber: string;
+  comparisonSnrMin: number;
+  comparisonSnrMax: number;
+  crossoverPoints: string;
+  
   modulationType: string;
   codeRate: number;
   snrMin: number;
@@ -67,4 +77,28 @@ export interface BeamPatternResult {
   main_lobe_width: number;
   side_lobe_level: number;
   array_gain_db: number;
+}
+
+export interface CrossoverPoints {
+  bpsk_qpsk_same: boolean;
+  qpsk_advantage_over_16qam_at_snr: number;
+  qam16_advantage_over_64qam_at_snr: number;
+}
+
+export interface ModulationComparisonRequest {
+  snr_min: number;
+  snr_max: number;
+  snr_steps: number;
+}
+
+export interface ModulationComparisonResult {
+  snr_db: number[];
+  bpsk: number[];
+  qpsk: number[];
+  qam16: number[];
+  qam64: number[];
+  snr_min: number;
+  snr_max: number;
+  snr_steps: number;
+  crossover_points: CrossoverPoints;
 }

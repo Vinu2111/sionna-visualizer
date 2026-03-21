@@ -260,5 +260,102 @@
 
       </div>
     </mat-tab>
+    <!-- Tab 3: Modulation Comparison -->
+    <mat-tab label="Modulation Comparison">
+      <div style="padding-top: 24px;">
+
+        <mat-card class="form-card" style="margin-bottom: 24px;">
+          <mat-card-header>
+            <mat-card-title>Comparison Parameters</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="modForm" (ngSubmit)="runModulationComparison()" class="sim-form">
+              <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
+                
+                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                  <mat-label>SNR Min (dB)</mat-label>
+                  <input matInput type="number" formControlName="snrMin">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" style="flex: 1; min-width: 150px;">
+                  <mat-label>SNR Max (dB)</mat-label>
+                  <input matInput type="number" formControlName="snrMax">
+                </mat-form-field>
+
+              </div>
+              
+              <div style="display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 24px; padding-left: 10px; padding-right: 10px;">
+                <div style="display: flex; flex-direction: column; flex: 1; min-width: 250px;">
+                  <span style="color: #aaaaaa; font-size: 0.9em; margin-bottom: 8px;">Number of Points ({{ modForm.get('snrSteps')?.value }})</span>
+                  <mat-slider min="20" max="100" step="5" discrete style="width: 100%;">
+                    <input matSliderThumb formControlName="snrSteps">
+                  </mat-slider>
+                </div>
+              </div>
+
+              <button mat-raised-button color="primary" type="submit" 
+                      style="width: 100%; padding: 8px 0;" 
+                      [disabled]="modForm.invalid || isModSimulating">
+                <span *ngIf="!isModSimulating">Compare All Modulations</span>
+                <mat-spinner *ngIf="isModSimulating" diameter="20" style="margin: 0 auto;"></mat-spinner>
+              </button>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <div *ngIf="errorMsg" class="error-container">
+          <p>{{ errorMsg }}</p>
+        </div>
+
+        <ng-container *ngIf="modData">
+          
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Performance Metrics</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas baseChart
+                        [data]="modChartData"
+                        [options]="modChartOptions"
+                        type="line">
+                </canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 24px;">
+            <mat-card class="metadata-card">
+              <mat-card-content>
+                <div style="font-size: 1.1em; color: #64ffda; margin-bottom: 8px;">BPSK & QPSK</div>
+                <div style="color: #aaaaaa;">Same BER performance. QPSK doubles the data rate.</div>
+              </mat-card-content>
+            </mat-card>
+            
+            <mat-card class="metadata-card">
+              <mat-card-content>
+                <div style="font-size: 1.1em; color: #f7b731; margin-bottom: 8px;">16QAM Advantage</div>
+                <div style="color: #aaaaaa;">16QAM needs ~{{ modData.crossover_points.qpsk_advantage_over_16qam_at_snr | number:'1.1-1' }} dB more SNR than QPSK for BER &lt; 0.001</div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="metadata-card">
+              <mat-card-content>
+                <div style="font-size: 1.1em; color: #ff6b6b; margin-bottom: 8px;">64QAM Advantage</div>
+                <div style="color: #aaaaaa;">64QAM needs ~{{ modData.crossover_points.qam16_advantage_over_64qam_at_snr | number:'1.1-1' }} dB more SNR than 16QAM for BER &lt; 0.001</div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="metadata-card">
+              <mat-card-content>
+                <div style="font-size: 1.1em; color: #eeeeee; margin-bottom: 8px;">Key Insight</div>
+                <div style="color: #aaaaaa;">Higher modulation = more data, more SNR required. This is the fundamental 6G spectral efficiency tradeoff.</div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+        </ng-container>
+      </div>
+    </mat-tab>
   </mat-tab-group>
 </div>

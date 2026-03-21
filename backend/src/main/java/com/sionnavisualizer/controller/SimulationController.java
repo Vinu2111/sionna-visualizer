@@ -4,6 +4,8 @@ import com.sionnavisualizer.dto.SimulationDto;
 import com.sionnavisualizer.dto.SimulationRequestDto;
 import com.sionnavisualizer.dto.BeamPatternRequestDto;
 import com.sionnavisualizer.dto.BeamPatternResultDto;
+import com.sionnavisualizer.dto.ModulationComparisonRequestDto;
+import com.sionnavisualizer.dto.ModulationComparisonResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
 import org.springframework.http.ResponseEntity;
@@ -83,6 +85,21 @@ public class SimulationController {
     public ResponseEntity<?> runBeamPattern(@RequestBody BeamPatternRequestDto request) {
         try {
             BeamPatternResultDto result = simulationService.runBeamPattern(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
+    /**
+     * POST /api/simulations/modulation-comparison
+     *
+     * Runs theoretical comparison for BPSK, QPSK, 16QAM, 64QAM.
+     */
+    @PostMapping("/simulations/modulation-comparison")
+    public ResponseEntity<?> runModulationComparison(@RequestBody ModulationComparisonRequestDto request) {
+        try {
+            ModulationComparisonResultDto result = simulationService.runModulationComparison(request);
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
             return ResponseEntity.internalServerError().body(ex.getMessage());

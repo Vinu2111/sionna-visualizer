@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { SimulationResult, SimulationHistoryItem, SimulationRequest, BeamPatternRequest, BeamPatternResult } from '../models/simulation-result.model';
+import { SimulationResult, SimulationHistoryItem, SimulationRequest, BeamPatternRequest, BeamPatternResult, ModulationComparisonRequest, ModulationComparisonResult } from '../models/simulation-result.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -12,6 +12,7 @@ export class SimulationService {
   private demoUrl = `${environment.apiUrl}/api/simulate/demo`;
   private simulateUrl = `${environment.apiUrl}/api/simulate`;
   private beamPatternUrl = `${environment.apiUrl}/api/simulations/beam-pattern`;
+  private modComparisonUrl = `${environment.apiUrl}/api/simulations/modulation-comparison`;
   private historyUrl = `${environment.apiUrl}/api/simulations`;
 
   constructor(private http: HttpClient) { }
@@ -35,6 +36,13 @@ export class SimulationService {
    */
   runBeamPattern(request: BeamPatternRequest): Observable<BeamPatternResult> {
     return this.http.post<BeamPatternResult>(this.beamPatternUrl, request);
+  }
+
+  /**
+   * Triggers a new modulation comparison simulation.
+   */
+  runModulationComparison(request: ModulationComparisonRequest): Observable<ModulationComparisonResult> {
+    return this.http.post<ModulationComparisonResult>(this.modComparisonUrl, request);
   }
 
   /**

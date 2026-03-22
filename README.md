@@ -1,110 +1,236 @@
 # Sionna Visualizer
 
-> A full-stack web dashboard that makes NVIDIA Sionna 6G simulation 
-> results visual, interactive, and shareable for researchers and 
-> developers worldwide.
+**Make NVIDIA Sionna 6G simulation results visual, interactive, and shareable.**
 
-![Java 17](https://img.shields.io/badge/Java-17-blue)
-![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3-green)
-![Angular 17](https://img.shields.io/badge/Angular-17-red)
-![Python 3.10](https://img.shields.io/badge/Python-3.10-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-teal)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue)
-![License](https://img.shields.io/badge/License-MIT-blue)
-![NVIDIA Sionna](https://img.shields.io/badge/NVIDIA-Sionna-76B900)
+A full-stack research dashboard that turns raw Sionna output into publication-ready charts — with one click.
 
-## What Is This?
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://your-vercel-url.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Public-181717?style=for-the-badge&logo=github)](https://github.com/Vinu2111/sionna-visualizer)
+[![NVIDIA Sionna](https://img.shields.io/badge/NVIDIA-Sionna%206G-76B900?style=for-the-badge&logo=nvidia)](https://github.com/NVlabs/sionna)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
+[![Angular](https://img.shields.io/badge/Angular-17-DD0031?style=for-the-badge&logo=angular)](https://angular.io)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.10-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Managed-4169E1?style=for-the-badge&logo=postgresql)](https://www.postgresql.org)
+[![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?style=for-the-badge&logo=railway)](https://railway.app)
+[![AWS CCP](https://img.shields.io/badge/AWS-Cloud%20Practitioner-FF9900?style=for-the-badge&logo=amazonaws)](https://aws.amazon.com/certification/)
+[![NVIDIA Aerial](https://img.shields.io/badge/NVIDIA-AI%20Aerial%206G%20Program-76B900?style=for-the-badge&logo=nvidia)](https://developer.nvidia.com/aerial-sdk)
 
-NVIDIA Sionna is the world's most downloaded 6G research library. It outputs raw Python data. This dashboard makes those results visual, interactive, and shareable.
+---
+
+## Live Demo
+
+| Layer | URL |
+|---|---|
+| **Frontend** | [your-vercel-url.vercel.app](https://your-vercel-url.vercel.app) |
+| **Backend API** | [your-railway-url.railway.app/api](https://your-railway-url.railway.app/api) |
+| **API Docs** | [your-railway-url.railway.app/api-docs](https://your-railway-url.railway.app/api-docs) |
+| **Health Check** | [your-railway-url.railway.app/actuator/health](https://your-railway-url.railway.app/actuator/health) |
+
+---
+
+## What Is This
+
+Sionna Visualizer is a web dashboard that wraps NVIDIA Sionna — the open-source 6G simulation library — in a browser interface that any researcher can use without writing code. Run AWGN, beam pattern, path loss, and channel capacity simulations, see results as interactive charts, export to PNG/CSV/JSON, and share results via a public URL. Every simulation is saved permanently with full performance metadata so your work is always reproducible.
+
+---
+
+## Screenshots
+
+### Dashboard — BER vs SNR Simulation
+![Dashboard BER Simulation](screenshots/dashboard-ber.png)
+
+### Beam Pattern Visualization
+![Beam Pattern](screenshots/beam-pattern.png)
+
+### Path Loss Breakdown — 3 Charts
+![Path Loss](screenshots/path-loss.png)
+
+### Channel capacity — Shannon Theorem
+![Channel Capacity](screenshots/channel-capacity.png)
+
+### Simulation History
+![History](screenshots/history.png)
+
+### Shareable Link — Public View
+![Share View](screenshots/share-view.png)
+
+### Custom Colormap Selector
+![Colormap Selector](screenshots/colormap-selector.png)
+
+---
 
 ## Features
 
-- BER vs SNR interactive chart from real Sionna simulations
-- JWT authentication — secure login and registration
-- Simulation history — every run saved to PostgreSQL
-- Shareable links — share any simulation result via public URL
-- Three-tier architecture — Angular + Java + Python + PostgreSQL
+### Simulations
+| Feature | Description |
+|---|---|
+| **AWGN BER Simulation** | BPSK / QPSK / 16QAM / 64QAM — theoretical + Monte Carlo curves |
+| **Beam Pattern Visualization** | ULA antenna polar chart — 8/16/32/64 antennas, 28/39/60/77 GHz |
+| **Modulation Comparison** | All 4 modulations on one chart with crossover points |
+| **Channel Capacity** | Shannon theorem C = B × log₂(1 + SNR), 4 bandwidth curves |
+| **Path Loss Breakdown** | Per-ray FSPL — bar chart + scatter + delay chart + data table |
+| **Simulation Comparison Tool** | Select 2 saved runs, overlay charts, compute winner |
+| **Time Estimate Before Running** | Complexity label (Fast/Medium/Slow/Heavy) + actionable tips |
+| **Custom Colormaps** | 7 palettes including Viridis, Grayscale, and colorblind-safe Publication |
+
+### Platform
+| Feature | Description |
+|---|---|
+| **JWT Authentication** | Login + register + protected routes via Spring Security |
+| **Simulation History** | All past runs searchable, viewable, re-shareable |
+| **Shareable Public Links** | One URL per simulation — no login needed for recipient |
+| **Performance Metadata** | Duration (ms), memory (MB), CPU/GPU, Sionna version per run |
+| **Public REST API** | 7 endpoints, API key system, 100 req/day per key |
+| **PNG / CSV / JSON Export** | Export any chart or dataset in 3 formats |
+| **Bulk Export** | Export all simulations from history in one action |
+| **API Docs Page** | `/api-docs` with curl + Python examples |
+
+### Infrastructure
+| Feature | Description |
+|---|---|
+| **Railway + Vercel Deployment** | Auto-deploys on every GitHub push |
+| **Docker** | `docker-compose up` starts all 4 services locally |
+| **Simulation Caching** | ConcurrentHashMap cache — same parameters return instantly |
+| **Railway Warmup** | `/warmup` endpoint keeps Python bridge alive, no cold starts |
+| **Rate Limiting** | 10 simulations/min per IP |
+| **Circuit Breaker** | Python bridge failure handled gracefully |
+| **Security Headers** | CORS locked, input validation on all endpoints |
+| **Health Endpoints** | Spring Actuator with `python-bridge: warm/cold` indicator |
+
+---
 
 ## Architecture
 
-```text
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   Angular 17    │────▶│  Java Spring Boot │────▶│  Python FastAPI  │
-│   Frontend      │◀────│  REST API :8080   │◀────│  Sionna :8001   │
-└─────────────────┘     └──────────────────┘     └─────────────────┘
-                                │
-                         ┌──────▼──────┐
-                         │ PostgreSQL  │
-                         │  Database   │
-                         └─────────────┘
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Browser                              │
+│              Angular 17 + Angular Material                  │
+│         Chart.js · D3.js · ng2-charts · JWT Auth            │
+└─────────────────────┬───────────────────────────────────────┘
+                      │ HTTP/REST
+┌─────────────────────▼───────────────────────────────────────┐
+│                   Java Spring Boot 3                        │
+│         REST API · Spring Security · JWT · JPA              │
+│    SimulationService · Cache · Circuit Breaker · Actuator   │
+└──────────┬──────────────────────────┬────────────────────────┘
+           │ JPA/Hibernate            │ HTTP
+┌──────────▼──────────┐   ┌──────────▼──────────────────────┐
+│     PostgreSQL      │   │     Python 3.10 + FastAPI        │
+│  Simulation Results │   │   NVIDIA Sionna SDK Bridge       │
+│  Performance Data   │   │   AWGN · Beam · PathLoss · FSPL  │
+│  API Keys · Users   │   │   tracemalloc · ColormapService  │
+└─────────────────────┘   └──────────────────────────────────┘
 ```
 
-## Quick Start (Local)
+---
 
-1. Clone the repo
-2. Copy `.env.example` to `.env` and fill in values
-3. Run: `docker-compose up`
-4. Open: `http://localhost:4200`
+## Tech Stack
 
-## Manual Setup (Without Docker)
+| Layer | Technology |
+|---|---|
+| **Frontend** | Angular 17, Angular Material, Chart.js, D3.js, ng2-charts |
+| **Backend** | Java 17, Spring Boot 3, Spring Security, JWT, Hibernate |
+| **Bridge** | Python 3.10, FastAPI, NVIDIA Sionna SDK, tracemalloc |
+| **Database** | PostgreSQL (managed on Railway) |
+| **Deployment** | Railway (backend + Python + DB), Vercel (frontend) |
+| **DevOps** | Docker, docker-compose, GitHub Actions auto-deploy |
 
-### Prerequisites
+---
 
-- Java 17
-- Python 3.10
-- Node.js 20+
-- PostgreSQL database running locally
+## Quick Start
 
-### Backend
+**Option 1 — Docker (recommended)**
 
 ```bash
-cd backend
-mvn spring-boot:run
+git clone https://github.com/Vinu2111/sionna-visualizer.git
+cd sionna-visualizer
+docker-compose up
 ```
 
-### Python Bridge
+Open `http://localhost:4200`. All 4 services start automatically.
+
+**Option 2 — Manual**
 
 ```bash
-cd python-bridge
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8001
+# Terminal 1 — Python bridge
+cd python-bridge && pip install -r requirements.txt && uvicorn main:app --port 8001
+
+# Terminal 2 — Java backend
+cd backend && ./mvnw spring-boot:run
+
+# Terminal 3 — Angular frontend
+cd frontend && npm install && ng serve
 ```
 
-### Frontend
+---
 
+## Public REST API
+
+No login needed. Get an API key from the dashboard → Settings → API Keys.
+
+**Run an AWGN simulation**
 ```bash
-cd frontend
-npm install
-ng serve
+curl -X POST https://your-railway-url.railway.app/api/public/simulate \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{"modulationType": "QPSK", "snrMin": 0, "snrMax": 20, "snrSteps": 21}'
 ```
 
-## Environment Variables
-
-```env
-# ─── Java Spring Boot Backend ───────────────────────
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/sionna_visualizer
-SPRING_DATASOURCE_USERNAME=your_db_username
-SPRING_DATASOURCE_PASSWORD=your_db_password
-JWT_SECRET=your_jwt_secret_minimum_32_characters_long
-JWT_EXPIRATION=86400000
-PYTHON_BRIDGE_URL=http://localhost:8001/simulate/demo
-
-# ─── Python FastAPI Bridge ───────────────────────────
-PORT=8001
-
-# ─── Frontend ────────────────────────────────────────
-# Set this in frontend/src/environments/environment.prod.ts
-# apiUrl: '/api'  ← for same-domain deployment
-# apiUrl: 'https://your-backend-url.railway.app'  ← for Railway
+**Get simulation estimate (no API key needed)**
+```bash
+curl -X POST https://your-railway-url.railway.app/api/simulations/estimate \
+  -H "Content-Type: application/json" \
+  -d '{"simulation_type": "AWGN", "parameters": {"modulation": "QPSK", "snr_steps": 21}}'
 ```
+
+**List available colormaps (no API key needed)**
+```bash
+curl https://your-railway-url.railway.app/api/simulations/colormaps
+```
+
+Full documentation with Python examples: `/api-docs`
+
+---
+
+## Project Status
+
+| Phase | Status | Days | Features |
+|---|---|---|---|
+| Phase 1 — Foundation | ✅ Complete | Days 1–10 | Landing, Auth, Dashboard, DB, Deploy |
+| Phase 2 Sprint 1 — Research Features | ✅ Complete | Days 11–15 | Real Sionna math, Beam, Comparison |
+| Phase 2 Sprint 2 — Platform | ✅ Complete | Days 16–19 | API, Export, Capacity, Hardening |
+| Phase 2A — Forum Features | ✅ Complete | Days 20–24 | Metadata, PathLoss, Estimate, Colormap |
+| Phase 2B — Advanced | 🔄 In Progress | Days 25+ | Ray direction, Coverage map, UE trajectory |
+
+**47 features built · 24 days · 2 hours/day**
+
+---
 
 ## Built By
 
-Vinayak — Java Backend Developer, Pune, India
-NVIDIA AI Aerial / 6G Developer Program Member
-Hashnode: vinayak6g.hashnode.dev
-Twitter: @gote_vinayak
+**Vinayak Gote** — Java Backend Developer, Wipro, Pune, India
 
-## License
+Computer Engineering, SPPU 2024 · CGPA 8.56 · 2nd Rank in B.E.
 
-MIT License — free to use, modify, and distribute.
+NVIDIA AI Aerial / 6G Developer Program member · AWS Certified Cloud Practitioner
+
+Building in public — daily Hashnode articles + Twitter updates.
+
+| | |
+|---|---|
+| 🌐 **Blog** | [vinayak6g.hashnode.dev](https://vinayak6g.hashnode.dev) |
+| 🐦 **Twitter** | [@gote_vinayak](https://twitter.com/gote_vinayak) |
+| 💼 **LinkedIn** | [linkedin.com/in/vinayakgote](https://linkedin.com/in/vinayakgote) |
+| 🐙 **GitHub** | [github.com/Vinu2111](https://github.com/Vinu2111) |
+
+---
+
+## Community
+
+- 📋 [NVIDIA Aerial Forums post](https://forums.developer.nvidia.com/aerial) — live
+- 💬 [Sionna GitHub Show and Tell](https://github.com/NVlabs/sionna/discussions) — live
+- 📝 [19+ Hashnode articles](https://vinayak6g.hashnode.dev) — build-in-public series
+
+---
+
+*Built with NVIDIA Sionna · Deployed on Railway + Vercel · 2026*

@@ -2,9 +2,10 @@
 
 **Make NVIDIA Sionna 6G simulation results visual, interactive, and shareable.**
 
-A full-stack research dashboard that turns raw Sionna output into publication-ready charts — with one click.
+A full-stack research dashboard that turns raw Sionna output into 
+publication-ready charts — with one click.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://your-vercel-url.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://sionna-visualizer.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-Public-181717?style=for-the-badge&logo=github)](https://github.com/Vinu2111/sionna-visualizer)
 [![NVIDIA Sionna](https://img.shields.io/badge/NVIDIA-Sionna%206G-76B900?style=for-the-badge&logo=nvidia)](https://github.com/NVlabs/sionna)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
@@ -21,41 +22,48 @@ A full-stack research dashboard that turns raw Sionna output into publication-re
 
 | Layer | URL |
 |---|---|
-| **Frontend** | [your-vercel-url.vercel.app](https://your-vercel-url.vercel.app) |
-| **Backend API** | [your-railway-url.railway.app/api](https://your-railway-url.railway.app/api) |
-| **API Docs** | [your-railway-url.railway.app/api-docs](https://your-railway-url.railway.app/api-docs) |
-| **Health Check** | [your-railway-url.railway.app/actuator/health](https://your-railway-url.railway.app/actuator/health) |
+| **Frontend** | [sionna-visualizer.vercel.app](https://sionna-visualizer.vercel.app) |
+| **Backend API** | [sionna-visualizer-production-50ae.up.railway.app/api](https://sionna-visualizer-production-50ae.up.railway.app/api) |
+| **API Docs** | [sionna-visualizer-production-50ae.up.railway.app/api-docs](https://sionna-visualizer-production-50ae.up.railway.app/api-docs) |
+| **Health Check** | [sionna-visualizer-production-50ae.up.railway.app/actuator/health](https://sionna-visualizer-production-50ae.up.railway.app/actuator/health) |
 
 ---
 
 ## What Is This
 
-Sionna Visualizer is a web dashboard that wraps NVIDIA Sionna — the open-source 6G simulation library — in a browser interface that any researcher can use without writing code. Run AWGN, beam pattern, path loss, and channel capacity simulations, see results as interactive charts, export to PNG/CSV/JSON, and share results via a public URL. Every simulation is saved permanently with full performance metadata so your work is always reproducible.
+Sionna Visualizer is a web dashboard that wraps NVIDIA Sionna — 
+the open-source 6G simulation library with 200,000+ downloads — 
+in a browser interface that any researcher can use without writing 
+code. Run AWGN, beam pattern, path loss, and channel capacity 
+simulations, see results as interactive charts, export to 
+PNG/CSV/JSON, and share results via a public URL. Every simulation 
+is saved permanently with full performance metadata so your work 
+is always reproducible.
 
 ---
 
 ## Screenshots
 
 ### Dashboard — BER vs SNR Simulation
-![Dashboard BER Simulation](screenshots/dashboard-ber.png)
+![Dashboard BER Simulation](docs/screenshots/dashboard-ber.png)
 
 ### Beam Pattern Visualization
-![Beam Pattern](screenshots/beam-pattern.png)
+![Beam Pattern](docs/screenshots/beam-pattern.png)
 
 ### Path Loss Breakdown — 3 Charts
-![Path Loss](screenshots/path-loss.png)
+![Path Loss](docs/screenshots/path-loss.png)
 
-### Channel capacity — Shannon Theorem
-![Channel Capacity](screenshots/channel-capacity.png)
+### Channel Capacity — Shannon Theorem
+![Channel Capacity](docs/screenshots/channel-capacity.png)
 
 ### Simulation History
-![History](screenshots/history.png)
+![History](docs/screenshots/history.png)
 
 ### Shareable Link — Public View
-![Share View](screenshots/share-view.png)
+![Share View](docs/screenshots/share-view.png)
 
 ### Custom Colormap Selector
-![Colormap Selector](screenshots/colormap-selector.png)
+![Colormap Selector](docs/screenshots/colormap-selector.png)
 
 ---
 
@@ -71,7 +79,7 @@ Sionna Visualizer is a web dashboard that wraps NVIDIA Sionna — the open-sourc
 | **Path Loss Breakdown** | Per-ray FSPL — bar chart + scatter + delay chart + data table |
 | **Simulation Comparison Tool** | Select 2 saved runs, overlay charts, compute winner |
 | **Time Estimate Before Running** | Complexity label (Fast/Medium/Slow/Heavy) + actionable tips |
-| **Custom Colormaps** | 7 palettes including Viridis, Grayscale, and colorblind-safe Publication |
+| **Custom Colormaps** | 7 palettes — Viridis, Grayscale, colorblind-safe Publication |
 
 ### Platform
 | Feature | Description |
@@ -100,7 +108,6 @@ Sionna Visualizer is a web dashboard that wraps NVIDIA Sionna — the open-sourc
 ---
 
 ## Architecture
-
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Browser                              │
@@ -140,37 +147,43 @@ Sionna Visualizer is a web dashboard that wraps NVIDIA Sionna — the open-sourc
 ## Quick Start
 
 **Option 1 — Docker (recommended)**
-
 ```bash
 git clone https://github.com/Vinu2111/sionna-visualizer.git
 cd sionna-visualizer
+cp .env.example .env
+# Fill in your values in .env
 docker-compose up
 ```
 
 Open `http://localhost:4200`. All 4 services start automatically.
 
 **Option 2 — Manual**
-
 ```bash
 # Terminal 1 — Python bridge
-cd python-bridge && pip install -r requirements.txt && uvicorn main:app --port 8001
+cd python-bridge
+pip install -r requirements.txt
+uvicorn main:app --port 8001
 
 # Terminal 2 — Java backend
-cd backend && ./mvnw spring-boot:run
+cd backend
+./mvnw spring-boot:run
 
 # Terminal 3 — Angular frontend
-cd frontend && npm install && ng serve
+cd frontend
+npm install
+ng serve
 ```
 
 ---
 
 ## Public REST API
 
-No login needed. Get an API key from the dashboard → Settings → API Keys.
+No login needed. Get an API key from the dashboard → 
+Settings → API Keys.
 
 **Run an AWGN simulation**
 ```bash
-curl -X POST https://your-railway-url.railway.app/api/public/simulate \
+curl -X POST https://sionna-visualizer-production-50ae.up.railway.app/api/public/simulate \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{"modulationType": "QPSK", "snrMin": 0, "snrMax": 20, "snrSteps": 21}'
@@ -178,17 +191,17 @@ curl -X POST https://your-railway-url.railway.app/api/public/simulate \
 
 **Get simulation estimate (no API key needed)**
 ```bash
-curl -X POST https://your-railway-url.railway.app/api/simulations/estimate \
+curl -X POST https://sionna-visualizer-production-50ae.up.railway.app/api/simulations/estimate \
   -H "Content-Type: application/json" \
   -d '{"simulation_type": "AWGN", "parameters": {"modulation": "QPSK", "snr_steps": 21}}'
 ```
 
 **List available colormaps (no API key needed)**
 ```bash
-curl https://your-railway-url.railway.app/api/simulations/colormaps
+curl https://sionna-visualizer-production-50ae.up.railway.app/api/simulations/colormaps
 ```
 
-Full documentation with Python examples: `/api-docs`
+Full documentation with Python examples available at `/api-docs`
 
 ---
 
@@ -212,7 +225,8 @@ Full documentation with Python examples: `/api-docs`
 
 Computer Engineering, SPPU 2024 · CGPA 8.56 · 2nd Rank in B.E.
 
-NVIDIA AI Aerial / 6G Developer Program member · AWS Certified Cloud Practitioner
+NVIDIA AI Aerial / 6G Developer Program member · 
+AWS Certified Cloud Practitioner
 
 Building in public — daily Hashnode articles + Twitter updates.
 
@@ -227,7 +241,7 @@ Building in public — daily Hashnode articles + Twitter updates.
 
 ## Community
 
-- 📋 [NVIDIA Aerial Forums post](https://forums.developer.nvidia.com/aerial) — live
+- 📋 [NVIDIA Aerial Forums post](https://forums.developer.nvidia.com/c/wireless/aerial/375) — live
 - 💬 [Sionna GitHub Show and Tell](https://github.com/NVlabs/sionna/discussions) — live
 - 📝 [19+ Hashnode articles](https://vinayak6g.hashnode.dev) — build-in-public series
 

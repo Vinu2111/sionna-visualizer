@@ -43,7 +43,7 @@ export class ShareViewComponent implements OnInit {
   public lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [{
-      data: [], label: 'BER natively computed securely',
+      data: [], label: 'BER',
       fill: false, tension: 0.1, borderColor: '#00ff88', pointBackgroundColor: '#00ff88', pointBorderColor: '#fff'
     }]
   };
@@ -70,7 +70,7 @@ export class ShareViewComponent implements OnInit {
       if (shareToken) {
         this.fetchSharedSimulation(shareToken);
       } else {
-        this.errorMessage = 'Mismatched fundamentally malformed token URL correctly cleanly completely directly dynamically detected.';
+        this.errorMessage = 'Invalid or missing share token.';
         this.isLoading = false;
       }
     });
@@ -80,9 +80,12 @@ export class ShareViewComponent implements OnInit {
     this.simulationService.getSimulationByShareToken(token).subscribe({
       next: (res: any) => {
         this.simulationData = res;
-        this.lineChartData.labels = res.snr_db; // Native list format from Server DTO
-        this.lineChartData.datasets[0].data = res.ber; // Native list format from Server DTO
+        this.lineChartData.labels = res.snr_db;
+        this.lineChartData.datasets[0].data = res.ber;
+        this.lineChartData.datasets[0].borderColor = res.colors?.[0] || '#00ff88';
+        this.lineChartData.datasets[0].pointBackgroundColor = res.colors?.[0] || '#00ff88';
         this.isLoading = false;
+        this.chart?.update();
       },
       error: (err) => {
         this.errorMessage = 'Simulation result unavailable.';

@@ -48,7 +48,7 @@ export class HistoryComponent implements OnInit {
   // Compare selection — max 2
   compareSelection: SimulationHistoryItem[] = [];
 
-  displayedColumns: string[] = ['compare', 'index', 'type', 'createdAt', 'hardwareUsed', 'action'];
+  displayedColumns: string[] = ['compare', 'index', 'type', 'createdAt', 'colormapUsed', 'hardwareUsed', 'action'];
 
   // Chart config for history view
   public lineChartData: ChartConfiguration<'line'>['data'] = {

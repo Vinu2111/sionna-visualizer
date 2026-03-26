@@ -13,6 +13,7 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, A
 import { RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,8 +28,13 @@ import {
   SimulationResult, SimulationRequest,
   BeamPatternResult, BeamPatternRequest,
   ModulationComparisonRequest, ModulationComparisonResult,
-  ChannelCapacityRequest, ChannelCapacityResult
+  ChannelCapacityRequest, ChannelCapacityResult,
+  PathLossRequest, PathLossResult, PathDto,
+  SimulationEstimateRequest, SimulationEstimateResult,
+  RayDirectionRequest, RayDirectionResult, RayDirectionPath, RayDirectionSummary
 } from '../../models/simulation-result.model';
+import { ColormapSelectorComponent } from '../../components/colormap-selector/colormap-selector.component';
+import { UeTrajectoryComponent } from '../../components/ue-trajectory/ue-trajectory.component';
 
 /** Custom validator: SNR min must be less than SNR max */
 function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
@@ -54,14 +60,18 @@ function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
     MatSelectModule,
     MatButtonModule,
     MatSliderModule,
+    MatSliderModule,
     MatCheckboxModule,
     MatTabsModule,
+    MatTableModule,
     MatSnackBarModule,
     MatIconModule,
     MatTooltipModule,
     ReactiveFormsModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    ColormapSelectorComponent,
+    UeTrajectoryComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -71,11 +81,15 @@ export class DashboardComponent implements OnInit {
   beamData: BeamPatternResult | null = null;
   modData: ModulationComparisonResult | null = null;
   capData: ChannelCapacityResult | null = null;
+  pathLossData: PathLossResult | null = null;
+  rayData: RayDirectionResult | null = null;
   isLoading = true;
   isSimulating = false;
   isBeamSimulating = false;
   isModSimulating = false;
   isCapSimulating = false;
+  isPathLossSimulating = false;
+  isRaySimulating = false;
   loadError = false;
 
   @ViewChild('berChart') berChart?: BaseChartDirective;
@@ -83,6 +97,11 @@ export class DashboardComponent implements OnInit {
   @ViewChild('modChart') modChart?: BaseChartDirective;
   @ViewChild('capChart') capChart?: BaseChartDirective;
   @ViewChild('spectralChart') spectralChart?: BaseChartDirective;
+  @ViewChild('plBarChart') plBarChart?: BaseChartDirective;
+  @ViewChild('plScatterChart') plScatterChart?: BaseChartDirective;
+  @ViewChild('plDelayChart') plDelayChart?: BaseChartDirective;
+  @ViewChild('rayDepChart') rayDepChart?: BaseChartDirective;
+  @ViewChild('rayArrChart') rayArrChart?: BaseChartDirective;
 
   apiKeys: any[] = [];
   newKeyDescription = '';
@@ -92,6 +111,13 @@ export class DashboardComponent implements OnInit {
   beamForm: FormGroup;
   modForm: FormGroup;
   capForm: FormGroup;
+  pathLossForm: FormGroup;
+  rayForm: FormGroup;
+
+  // ─── Estimate state shared across all tabs ──────────────────────────────
+  estimate: SimulationEstimateResult | null = null;
+  isEstimating = false;
+  estimateTab: string | null = null;  // tracks which tab owns the current estimate
 
   // ─────────────────────────────────────────────────────────────────────────
   // Chart Config: Radar (Beam)
@@ -263,6 +289,94 @@ export class DashboardComponent implements OnInit {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Path Loss (Bar - per Ray)
+  // ─────────────────────────────────────────────────────────────────────────
+  public plBarChartData: ChartConfiguration<'bar'>['data'] = {
+    labels: [],
+    datasets: [{ data: [], label: 'Path Loss (dB)', backgroundColor: [] }]
+  };
+
+  public plBarChartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Path Loss per Ray', color: '#eeeeee' }
+    },
+    scales: {
+      y: { title: { display: true, text: 'Path Loss (dB)', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { color: '#1e2a3a' } },
+      x: { title: { display: true, text: 'Path ID', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { display: false } }
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Path Loss (Scatter vs Distance)
+  // ─────────────────────────────────────────────────────────────────────────
+  public plScatterChartData: ChartConfiguration<'scatter'>['data'] = {
+    datasets: []
+  };
+
+  public plScatterChartOptions: ChartOptions<'scatter'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#eeeeee' } },
+      title: { display: true, text: 'Path Loss vs. Distance', color: '#eeeeee' }
+    },
+    scales: {
+      y: { title: { display: true, text: 'Path Loss (dB)', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { color: '#1e2a3a' } },
+      x: { title: { display: true, text: 'Distance (m)', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { color: '#1e2a3a' } }
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Path Loss (Delay)
+  // ─────────────────────────────────────────────────────────────────────────
+  public plDelayChartData: ChartConfiguration<'bar'>['data'] = {
+    labels: [],
+    datasets: [{ data: [], label: 'Delay (ns)', backgroundColor: [] }]
+  };
+
+  public plDelayChartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Propagation Delay per Path', color: '#eeeeee' }
+    },
+    scales: {
+      y: { title: { display: true, text: 'Delay (ns)', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { color: '#1e2a3a' } },
+      x: { title: { display: true, text: 'Path ID', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { display: false } }
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Polar Area (Ray Departure)
+  // ─────────────────────────────────────────────────────────────────────────
+  public rayDepChartData: ChartConfiguration<'polarArea'>['data'] = {
+    labels: [],
+    datasets: [{ data: [], backgroundColor: [], borderWidth: 1 }]
+  };
+  public rayDepChartOptions: ChartOptions<'polarArea'> = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Departure Angles from TX', color: '#eeeeee' } },
+    scales: { r: { grid: { color: '#1e2a3a' }, ticks: { display: false }, angleLines: { color: '#1e2a3a' } } }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Polar Area (Ray Arrival)
+  // ─────────────────────────────────────────────────────────────────────────
+  public rayArrChartData: ChartConfiguration<'polarArea'>['data'] = {
+    labels: [],
+    datasets: [{ data: [], backgroundColor: [], borderWidth: 1 }]
+  };
+  public rayArrChartOptions: ChartOptions<'polarArea'> = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Arrival Angles at RX', color: '#eeeeee' } },
+    scales: { r: { grid: { color: '#1e2a3a' }, ticks: { display: false }, angleLines: { color: '#1e2a3a' } } }
+  };
+
   public lineChartLegend = true;
 
   constructor(
@@ -277,20 +391,23 @@ export class DashboardComponent implements OnInit {
       snrMin: [-5, [Validators.required, Validators.min(-15), Validators.max(10)]],
       snrMax: [20, [Validators.required, Validators.min(10), Validators.max(40)]],
       codeRate: [0.5, [Validators.required, Validators.min(0.1), Validators.max(1.0)]],
-      snrSteps: [25, [Validators.required, Validators.min(10), Validators.max(50)]]
+      snrSteps: [25, [Validators.required, Validators.min(10), Validators.max(50)]],
+      colormap: ['default']
     }, { validators: snrRangeValidator });
 
     this.beamForm = this.fb.group({
       numAntennas: [16, Validators.required],
       steeringAngle: [0, [Validators.required, Validators.min(-90), Validators.max(90)]],
       frequencyGhz: [28.0, Validators.required],
-      arraySpacing: [0.5, [Validators.required, Validators.min(0.3), Validators.max(1.0)]]
+      arraySpacing: [0.5, [Validators.required, Validators.min(0.3), Validators.max(1.0)]],
+      colormap: ['default']
     });
 
     this.modForm = this.fb.group({
       snrMin: [-5, [Validators.required, Validators.min(-15), Validators.max(10)]],
       snrMax: [25, [Validators.required, Validators.min(15), Validators.max(40)]],
-      snrSteps: [50, [Validators.required, Validators.min(20), Validators.max(100)]]
+      snrSteps: [50, [Validators.required, Validators.min(20), Validators.max(100)]],
+      colormap: ['default']
     }, { validators: snrRangeValidator });
 
     this.capForm = this.fb.group({
@@ -300,8 +417,29 @@ export class DashboardComponent implements OnInit {
       bw10: [true],
       bw100: [true],
       bw400: [true],
-      bw1000: [true]
+      bw1000: [true],
+      colormap: ['default']
     }, { validators: snrRangeValidator });
+
+    this.pathLossForm = this.fb.group({
+      num_paths: [8, Validators.required],
+      frequency_ghz: [28, [Validators.required, Validators.min(1), Validators.max(100)]],
+      environment: ['urban', Validators.required],
+      colormap: ['default']
+    });
+
+    this.rayForm = this.fb.group({
+      num_paths: [8, Validators.required],
+      frequency_ghz: [28, [Validators.required, Validators.min(1), Validators.max(100)]],
+      environment: ['urban', Validators.required],
+      tx_x: [0, Validators.required],
+      tx_y: [0, Validators.required],
+      tx_h: [10, Validators.required],
+      rx_x: [100, Validators.required],
+      rx_y: [50, Validators.required],
+      rx_h: [1.5, Validators.required],
+      colormap: ['default']
+    });
   }
 
   ngOnInit(): void {
@@ -343,7 +481,8 @@ export class DashboardComponent implements OnInit {
       num_bits_per_symbol: bitsPerSym,
       snr_min: formVal.snrMin,
       snr_max: formVal.snrMax,
-      snr_steps: formVal.snrSteps
+      snr_steps: formVal.snrSteps,
+      colormap: formVal.colormap
     };
 
     this.simulationService.runNewSimulation(request).subscribe({
@@ -365,8 +504,18 @@ export class DashboardComponent implements OnInit {
       ...this.lineChartData,
       labels: result.snr_db,
       datasets: [
-        { ...this.lineChartData.datasets[0], data: result.ber_theoretical },
-        { ...this.lineChartData.datasets[1], data: result.ber_simulated }
+        { 
+          ...this.lineChartData.datasets[0], 
+          data: result.ber_theoretical,
+          borderColor: result.colors?.[0] || '#64ffda',
+          pointBackgroundColor: result.colors?.[0] || '#64ffda'
+        },
+        { 
+          ...this.lineChartData.datasets[1], 
+          data: result.ber_simulated,
+          borderColor: result.colors?.[1] || '#ff6b6b',
+          pointBackgroundColor: result.colors?.[1] || '#ff6b6b'
+        }
       ]
     };
     if (this.lineChartOptions?.plugins?.title) {
@@ -383,7 +532,8 @@ export class DashboardComponent implements OnInit {
       num_antennas: vals.numAntennas,
       steering_angle: vals.steeringAngle,
       frequency_ghz: vals.frequencyGhz,
-      array_spacing: vals.arraySpacing
+      array_spacing: vals.arraySpacing,
+      colormap: vals.colormap
     };
 
     this.simulationService.runBeamPattern(req).subscribe({
@@ -391,7 +541,12 @@ export class DashboardComponent implements OnInit {
         this.beamData = res;
         this.radarChartData = {
           labels: res.angles.map(a => a + '°'),
-          datasets: [{ ...this.radarChartData.datasets[0], data: res.pattern_db }]
+          datasets: [{ 
+            ...this.radarChartData.datasets[0], 
+            data: res.pattern_db,
+            borderColor: res.colors?.[0] || '#64ffda',
+            backgroundColor: res.colors?.[0] ? `${res.colors[0]}1a` : 'rgba(100, 255, 218, 0.1)'
+          }]
         };
         if (this.radarChartOptions?.plugins?.title) {
           this.radarChartOptions.plugins.title.text = `Beam Pattern — ${res.num_antennas} Element ULA at ${res.frequency_ghz} GHz`;
@@ -414,7 +569,8 @@ export class DashboardComponent implements OnInit {
     const req: ModulationComparisonRequest = {
       snr_min: this.modForm.value.snrMin,
       snr_max: this.modForm.value.snrMax,
-      snr_steps: this.modForm.value.snrSteps
+      snr_steps: this.modForm.value.snrSteps,
+      colormap: this.modForm.value.colormap
     };
 
     this.simulationService.runModulationComparison(req).subscribe({
@@ -424,10 +580,10 @@ export class DashboardComponent implements OnInit {
           ...this.modChartData,
           labels: res.snr_db,
           datasets: [
-            { ...this.modChartData.datasets[0], data: res.bpsk },
-            { ...this.modChartData.datasets[1], data: res.qpsk },
-            { ...this.modChartData.datasets[2], data: res.qam16 },
-            { ...this.modChartData.datasets[3], data: res.qam64 }
+            { ...this.modChartData.datasets[0], data: res.bpsk, borderColor: res.colors?.[0] || '#ffffff' },
+            { ...this.modChartData.datasets[1], data: res.qpsk, borderColor: res.colors?.[1] || '#64ffda' },
+            { ...this.modChartData.datasets[2], data: res.qam16, borderColor: res.colors?.[2] || '#f7b731' },
+            { ...this.modChartData.datasets[3], data: res.qam64, borderColor: res.colors?.[3] || '#ff6b6b' }
           ]
         };
         this.isModSimulating = false;
@@ -454,7 +610,8 @@ export class DashboardComponent implements OnInit {
       snr_min: this.capForm.value.snrMin,
       snr_max: this.capForm.value.snrMax,
       snr_steps: this.capForm.value.snrSteps,
-      bandwidths_mhz: bws
+      bandwidths_mhz: bws,
+      colormap: this.capForm.value.colormap
     };
 
     this.simulationService.runChannelCapacity(req).subscribe({
@@ -462,12 +619,12 @@ export class DashboardComponent implements OnInit {
         this.capData = res;
         
         // build capacity datasets
-        const ds = res.capacity_curves.map(curve => ({
+        const ds = res.capacity_curves.map((curve, i) => ({
           data: curve.capacity_gbps,
           label: curve.label,
           fill: false,
           tension: 0.1,
-          borderColor: curve.color_hint,
+          borderColor: res.colors?.[i] || curve.color_hint,
           pointRadius: 0,
           borderWidth: 2
         }));
@@ -485,7 +642,7 @@ export class DashboardComponent implements OnInit {
             fill: true,
             tension: 0.1,
             backgroundColor: 'rgba(100, 255, 218, 0.1)',
-            borderColor: '#64ffda',
+            borderColor: res.colors?.[res.colors.length - 1] || '#64ffda',
             pointRadius: 0,
             borderWidth: 2
           }]
@@ -544,11 +701,237 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  showSuccess(msg: string): void {
+    this.snackBar.open(msg, 'Close', { duration: 3000, panelClass: ['success-snackbar'] });
+  }
+
+  dismissEstimate(): void {
+    this.estimate = null;
+    this.estimateTab = null;
+  }
+
+  runEstimateFor(tab: string, params: Record<string, any>): void {
+    this.isEstimating = true;
+    this.estimateTab = tab;
+    this.estimate = null;
+
+    const req: SimulationEstimateRequest = {
+      simulation_type: tab.toUpperCase(),
+      parameters: params
+    };
+
+    this.simulationService.runEstimate(req).subscribe({
+      next: (res) => {
+        this.estimate = res;
+        this.isEstimating = false;
+      },
+      error: (err) => {
+        console.error('Estimate failed', err);
+        this.showError('Could not fetch estimate. Please try again.');
+        this.isEstimating = false;
+      }
+    });
+  }
+
+  /** Builds params for each tab and delegates to runEstimateFor() */
+  estimateAwgn(): void {
+    const v = this.simForm.value;
+    const modMap: Record<number, string> = { 2: 'BPSK', 4: 'QPSK', 16: '16QAM', 64: '64QAM' };
+    this.runEstimateFor('AWGN', {
+      modulation: modMap[v.modulationOrder] ?? 'QPSK',
+      snr_steps: v.snrSteps
+    });
+  }
+
+  estimateBeam(): void {
+    const v = this.beamForm.value;
+    this.runEstimateFor('BEAM_PATTERN', {
+      num_antennas: v.numAntennas,
+      frequency_ghz: v.frequencyGhz
+    });
+  }
+
+  estimateMod(): void {
+    const v = this.modForm.value;
+    this.runEstimateFor('MODULATION_COMPARISON', { snr_steps: v.snrSteps });
+  }
+
+  estimateCap(): void {
+    const v = this.capForm.value;
+    this.runEstimateFor('CHANNEL_CAPACITY', { snr_steps: v.snrSteps });
+  }
+
+  estimatePathLoss(): void {
+    const v = this.pathLossForm.value;
+    this.runEstimateFor('PATH_LOSS', { num_paths: v.num_paths });
+  }
+
+  estimateRay(): void {
+    const v = this.rayForm.value;
+    this.runEstimateFor('RAY_DIRECTIONS', { num_paths: v.num_paths });
+  }
+
+  /** Map complexity_color string to a CSS hex color */
+  complexityColor(color: string): string {
+    const map: Record<string, string> = {
+      green: '#4caf50',
+      yellow: '#ffeb3b',
+      orange: '#ff9800',
+      red: '#f44336'
+    };
+    return map[color] ?? '#ffffff';
+  }
+
+  runPathLoss(): void {
+    if (this.pathLossForm.invalid) return;
+
+    this.isPathLossSimulating = true;
+    const vals = this.pathLossForm.value;
+
+    const req: PathLossRequest = {
+      num_paths: Number(vals.num_paths),
+      frequency_ghz: Number(vals.frequency_ghz),
+      environment: vals.environment,
+      colormap: vals.colormap
+    };
+
+    this.simulationService.runPathLoss(req).subscribe({
+      next: (res) => {
+        this.pathLossData = res;
+        
+        // Update Bar Chart (Path Loss per Ray)
+        this.plBarChartData.labels = res.paths.map(p => `Path ${p.path_id}`);
+        this.plBarChartData.datasets[0].data = res.paths.map(p => p.path_loss_db);
+        this.plBarChartData.datasets[0].backgroundColor = res.colors || res.paths.map(p => 
+          p.path_type === 'LOS' ? 'rgba(100, 255, 218, 0.8)' : 'rgba(255, 107, 107, 0.8)'
+        );
+        this.plBarChart?.update();
+
+        // Update Scatter Chart (Path Loss vs Distance)
+        this.plScatterChartData.datasets = [
+          {
+            label: 'LOS Paths',
+            data: res.paths.filter(p => p.path_type === 'LOS').map(p => ({ x: p.distance_m, y: p.path_loss_db })),
+            backgroundColor: res.colors?.[0] || '#64ffda',
+            pointRadius: 6
+          },
+          {
+            label: 'NLOS Paths',
+            data: res.paths.filter(p => p.path_type === 'NLOS').map(p => ({ x: p.distance_m, y: p.path_loss_db })),
+            backgroundColor: res.colors?.[1] || '#ff6b6b',
+            pointRadius: 6
+          }
+        ];
+        this.plScatterChart?.update();
+
+        // Update Delay Chart (Delay per Path)
+        this.plDelayChartData.labels = res.paths.map(p => `Path ${p.path_id}`);
+        this.plDelayChartData.datasets[0].data = res.paths.map(p => p.delay_ns);
+        this.plDelayChartData.datasets[0].backgroundColor = res.colors || '#f7b731';
+        this.plDelayChart?.update();
+
+        this.isPathLossSimulating = false;
+        this.showSuccess('Path Loss simulation completed');
+      },
+      error: (err) => {
+        console.error(err);
+        this.showError('Path Loss simulation failed');
+        this.isPathLossSimulating = false;
+      }
+    });
+  }
+
+  runRayDirections(): void {
+    if (this.rayForm.invalid) return;
+
+    this.isRaySimulating = true;
+    const vals = this.rayForm.value;
+
+    const req: RayDirectionRequest = {
+      num_paths: Number(vals.num_paths),
+      frequency_ghz: Number(vals.frequency_ghz),
+      environment: vals.environment,
+      tx_position: [Number(vals.tx_x), Number(vals.tx_y), Number(vals.tx_h)],
+      rx_position: [Number(vals.rx_x), Number(vals.rx_y), Number(vals.rx_h)],
+      colormap: vals.colormap
+    };
+
+    this.simulationService.runRayDirections(req).subscribe({
+      next: (res: RayDirectionResult) => {
+        this.rayData = res;
+        
+        // Departure Polar Chart
+        this.rayDepChartData.labels = res.paths.map((p: RayDirectionPath) => `Path ${p.path_id} (Dep Az: ${p.departure_azimuth_deg.toFixed(1)}°)`);
+        this.rayDepChartData.datasets[0].data = res.paths.map((p: RayDirectionPath) => 100 / Math.max(1, p.path_loss_db)); // Inverse of path loss for spoke length
+        this.rayDepChartData.datasets[0].backgroundColor = res.colors || res.paths.map((p: RayDirectionPath) => 
+          p.path_type === 'LOS' ? 'rgba(100, 255, 218, 0.6)' : 'rgba(255, 107, 107, 0.4)'
+        );
+        this.rayDepChart?.update();
+
+        // Arrival Polar Chart
+        this.rayArrChartData.labels = res.paths.map((p: RayDirectionPath) => `Path ${p.path_id} (Arr Az: ${p.arrival_azimuth_deg.toFixed(1)}°)`);
+        this.rayArrChartData.datasets[0].data = res.paths.map((p: RayDirectionPath) => 100 / Math.max(1, p.path_loss_db)); // Same length logic
+        this.rayArrChartData.datasets[0].backgroundColor = res.colors || res.paths.map((p: RayDirectionPath) => 
+          p.path_type === 'LOS' ? 'rgba(100, 255, 218, 0.6)' : 'rgba(255, 107, 107, 0.4)'
+        );
+        this.rayArrChart?.update();
+
+        this.updateSvgSceneArgs(res);
+
+        this.isRaySimulating = false;
+        this.showSuccess('Ray Directions simulation completed');
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.showError('Ray Directions simulation failed');
+        this.isRaySimulating = false;
+      }
+    });
+  }
+
+  sceneViewBox = '0 0 100 100';
+  scenePaths: any[] = [];
+  sceneTx = { x: 0, y: 0 };
+  sceneRx = { x: 100, y: 50 };
+
+  private updateSvgSceneArgs(res: RayDirectionResult) {
+    const tx = res.tx_position;
+    const rx = res.rx_position;
+    this.sceneTx = { x: tx[0], y: tx[1] };
+    this.sceneRx = { x: rx[0], y: rx[1] };
+
+    const padding = Math.max(20, res.los_distance_m * 0.2);
+    const min_x = Math.min(tx[0], rx[0]) - padding;
+    const max_x = Math.max(tx[0], rx[0]) + padding;
+    const min_y = Math.min(tx[1], rx[1]) - padding;
+    const max_y = Math.max(tx[1], rx[1]) + padding;
+
+    this.sceneViewBox = `${min_x} ${min_y} ${max_x - min_x} ${max_y - min_y}`;
+
+    // Generate arcs
+    this.scenePaths = res.paths.map((p, i) => {
+      let isLOS = p.path_type === 'LOS';
+      let offset = isLOS ? 0 : (p.path_id % 2 === 0 ? 1 : -1) * (10 + (p.path_id * 2));
+      let midX = (tx[0] + rx[0]) / 2 + offset;
+      let midY = (tx[1] + rx[1]) / 2 - offset;
+      let d = `M ${tx[0]},${tx[1]} Q ${midX},${midY} ${rx[0]},${rx[1]}`;
+      return {
+        path_id: p.path_id,
+        path_loss_db: p.path_loss_db,
+        delay_ns: p.delay_ns,
+        path_type: p.path_type,
+        d: d,
+        color: res.colors?.[i] || (isLOS ? '#64ffda' : '#ff6b6b'),
+        isLOS: isLOS
+      };
+    });
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // EXPORT METHODS
   // ─────────────────────────────────────────────────────────────────────────
 
-  downloadPng(chartType: 'ber' | 'beam' | 'mod' | 'cap' | 'spectral'): void {
+  downloadPng(chartType: 'ber' | 'beam' | 'mod' | 'cap' | 'spectral' | 'path-loss-bar' | 'path-loss-scatter' | 'path-loss-delay' | 'ray-dep' | 'ray-arr'): void {
     let chart: BaseChartDirective | undefined;
     let filename = '';
 
@@ -573,6 +956,26 @@ export class DashboardComponent implements OnInit {
         chart = this.spectralChart;
         filename = `sionna-spectral-efficiency-${new Date().toISOString().slice(0, 10)}.png`;
         break;
+      case 'path-loss-bar':
+        chart = this.plBarChart;
+        filename = `sionna-pathloss-bar-${new Date().toISOString().slice(0, 10)}.png`;
+        break;
+      case 'path-loss-scatter':
+        chart = this.plScatterChart;
+        filename = `sionna-pathloss-scatter-${new Date().toISOString().slice(0, 10)}.png`;
+        break;
+      case 'path-loss-delay':
+        chart = this.plDelayChart;
+        filename = `sionna-pathloss-delay-${new Date().toISOString().slice(0, 10)}.png`;
+        break;
+      case 'ray-dep':
+        chart = this.rayDepChart;
+        filename = `sionna-ray-departure-${new Date().toISOString().slice(0, 10)}.png`;
+        break;
+      case 'ray-arr':
+        chart = this.rayArrChart;
+        filename = `sionna-ray-arrival-${new Date().toISOString().slice(0, 10)}.png`;
+        break;
     }
 
     if (chart?.chart) {
@@ -580,7 +983,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  downloadCsv(type: 'ber' | 'beam' | 'mod' | 'cap'): void {
+  downloadCsv(type: 'ber' | 'beam' | 'mod' | 'cap' | 'path-loss' | 'ray-dir'): void {
     let csv = '';
     let filename = '';
 
@@ -601,11 +1004,19 @@ export class DashboardComponent implements OnInit {
         csv = this.exportService.generateCapacityCsv(this.capData);
         filename = this.exportService.capFilename('csv');
         break;
+      case 'path-loss':
+        csv = this.exportService.generatePathLossCsv(this.pathLossData);
+        filename = `sionna_pathloss_${new Date().toISOString().slice(0, 10)}.csv`;
+        break;
+      case 'ray-dir':
+        csv = this.exportService.generateRayDirectionsCsv(this.rayData);
+        filename = `sionna_ray_directions_${new Date().toISOString().slice(0, 10)}.csv`;
+        break;
     }
     this.exportService.downloadCSV(filename, csv);
   }
 
-  downloadJson(type: 'ber' | 'beam' | 'mod' | 'cap'): void {
+  downloadJson(type: 'ber' | 'beam' | 'mod' | 'cap' | 'path-loss' | 'ray-dir'): void {
     let data: any;
     let filename = '';
     let simType = '';
@@ -631,12 +1042,22 @@ export class DashboardComponent implements OnInit {
         filename = this.exportService.capFilename('json');
         simType = 'CHANNEL_CAPACITY';
         break;
+      case 'path-loss':
+        data = this.pathLossData;
+        filename = `sionna_pathloss_${new Date().toISOString().slice(0, 10)}.json`;
+        simType = 'PATH_LOSS';
+        break;
+      case 'ray-dir':
+        data = this.rayData;
+        filename = `sionna_raydirections_${new Date().toISOString().slice(0, 10)}.json`;
+        simType = 'RAY_DIRECTIONS';
+        break;
     }
     const wrapped = this.exportService.wrapWithMetadata(simType, data);
     this.exportService.downloadJSON(filename, wrapped);
   }
 
-  copyJson(type: 'ber' | 'beam' | 'mod' | 'cap'): void {
+  copyJson(type: 'ber' | 'beam' | 'mod' | 'cap' | 'path-loss' | 'ray-dir'): void {
     let data: any;
     let simType = '';
 
@@ -645,6 +1066,8 @@ export class DashboardComponent implements OnInit {
       case 'beam': data = this.beamData; simType = 'BEAM_PATTERN'; break;
       case 'mod': data = this.modData; simType = 'MOD_COMPARISON'; break;
       case 'cap': data = this.capData; simType = 'CHANNEL_CAPACITY'; break;
+      case 'path-loss': data = this.pathLossData; simType = 'PATH_LOSS'; break;
+      case 'ray-dir': data = this.rayData; simType = 'RAY_DIRECTIONS'; break;
     }
 
     const wrapped = this.exportService.wrapWithMetadata(simType, data);

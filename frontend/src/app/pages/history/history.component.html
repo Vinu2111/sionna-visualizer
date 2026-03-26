@@ -111,6 +111,14 @@
           </td>
         </ng-container>
 
+        <!-- Colormap Column -->
+        <ng-container matColumnDef="colormapUsed">
+          <th mat-header-cell *matHeaderCellDef> Colormap </th>
+          <td mat-cell *matCellDef="let sim">
+            <span class="chip" [style.background-color]="'rgba(255,255,255,0.05)'">{{ sim.colormapUsed || 'default' }}</span>
+          </td>
+        </ng-container>
+
         <!-- Action Column -->
         <ng-container matColumnDef="action">
           <th mat-header-cell *matHeaderCellDef> Actions </th>

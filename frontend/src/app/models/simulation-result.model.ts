@@ -2,6 +2,13 @@
  * Represents the simulation result returned from the Java backend,
  * which mirrors the Python bridge's AWGN BER-vs-SNR response structure.
  */
+export interface PerformanceMetadata {
+  duration_ms: number;
+  compute_type: string;
+  memory_mb: number;
+  sionna_version: string;
+}
+
 export interface SimulationResult {
   snr_db: number[];
   ber_theoretical: number[];
@@ -10,6 +17,15 @@ export interface SimulationResult {
   code_rate: number;
   simulation_time_ms: number;
   num_bits_simulated: number;
+  performance?: PerformanceMetadata;
+  colors?: string[];
+  colormap_used?: string;
+}
+
+export interface ColormapOption {
+  id: string;
+  label: string;
+  preview: string[];
 }
 
 /**
@@ -22,6 +38,7 @@ export interface SimulationRequest {
   snr_min: number;
   snr_max: number;
   snr_steps: number;
+  colormap?: string;
 }
 
 /**
@@ -64,6 +81,7 @@ export interface SimulationHistoryItem {
   hardwareUsed: string;
   timestamp: string;
   createdAt: string;
+  colormapUsed?: string;
 }
 
 export interface BeamPatternRequest {
@@ -71,6 +89,7 @@ export interface BeamPatternRequest {
   steering_angle: number;
   frequency_ghz: number;
   array_spacing: number;
+  colormap?: string;
 }
 
 export interface BeamPatternResult {
@@ -82,6 +101,9 @@ export interface BeamPatternResult {
   main_lobe_width: number;
   side_lobe_level: number;
   array_gain_db: number;
+  performance?: PerformanceMetadata;
+  colors?: string[];
+  colormap_used?: string;
 }
 
 export interface CrossoverPoints {
@@ -94,6 +116,7 @@ export interface ModulationComparisonRequest {
   snr_min: number;
   snr_max: number;
   snr_steps: number;
+  colormap?: string;
 }
 
 export interface ModulationComparisonResult {
@@ -106,6 +129,9 @@ export interface ModulationComparisonResult {
   snr_max: number;
   snr_steps: number;
   crossover_points: CrossoverPoints;
+  performance?: PerformanceMetadata;
+  colors?: string[];
+  colormap_used?: string;
 }
 
 export interface ChannelCapacityCurve {
@@ -128,6 +154,7 @@ export interface ChannelCapacityRequest {
   snr_max: number;
   snr_steps: number;
   bandwidths_mhz: number[];
+  colormap?: string;
 }
 
 export interface ChannelCapacityResult {
@@ -137,4 +164,134 @@ export interface ChannelCapacityResult {
   snr_min: number;
   snr_max: number;
   insights: ChannelCapacityInsights;
+  performance?: PerformanceMetadata;
+  colors?: string[];
+  colormap_used?: string;
+}
+
+export interface PathLossRequest {
+  num_paths: number;
+  frequency_ghz: number;
+  environment: string;
+  colormap?: string;
+}
+
+export interface PathDto {
+  path_id: number;
+  distance_m: number;
+  path_loss_db: number;
+  path_type: string;
+  delay_ns: number;
+}
+
+export interface PathLossSummaryDto {
+  los_path_loss_db: number;
+  max_path_loss_db: number;
+  path_loss_spread_db: number;
+  mean_delay_ns: number;
+}
+
+export interface PathLossResult {
+  paths: PathDto[];
+  summary: PathLossSummaryDto;
+  performance?: PerformanceMetadata;
+  colors?: string[];
+  colormap_used?: string;
+}
+
+export interface EstimateRange {
+  min_ms: number;
+  max_ms: number;
+}
+
+export interface SimulationEstimateResult {
+  simulation_type: string;
+  estimated_ms: number;
+  estimated_range: EstimateRange;
+  complexity_label: string;  // Fast | Medium | Slow | Heavy
+  complexity_color: string;  // green | yellow | orange | red
+  tips: string[];
+  parameters_received: Record<string, any>;
+}
+
+export interface SimulationEstimateRequest {
+  simulation_type: string;
+  parameters: Record<string, any>;
+}
+
+export interface RayDirectionRequest {
+  num_paths: number;
+  frequency_ghz: number;
+  environment: string;
+  tx_position: number[];
+  rx_position: number[];
+  colormap?: string;
+}
+
+export interface RayDirectionPath {
+  path_id: number;
+  departure_azimuth_deg: number;
+  departure_elevation_deg: number;
+  arrival_azimuth_deg: number;
+  arrival_elevation_deg: number;
+  path_loss_db: number;
+  delay_ns: number;
+  path_type: string;
+}
+
+export interface RayDirectionSummary {
+  angular_spread_deg: number;
+  mean_departure_azimuth: number;
+  mean_arrival_azimuth: number;
+  num_los_paths: number;
+  num_nlos_paths: number;
+}
+
+export interface RayDirectionResult {
+  paths: RayDirectionPath[];
+  tx_position: number[];
+  rx_position: number[];
+  los_distance_m: number;
+  summary: RayDirectionSummary;
+  performance?: PerformanceMetadata;
+  colors?: string[];
+  colormap_used?: string;
+}
+
+export interface UeTrajectoryRequest {
+  num_waypoints: number;
+  frequency_ghz: number;
+  environment: string;
+  tx_position: number[];
+  speed_kmh: number;
+  trajectory_type: string;
+  colormap?: string;
+}
+
+export interface UeWaypoint {
+  position: number[];
+  distance_m: number;
+  signal_dbm: number;
+  handover_required: boolean;
+  time_s: number;
+  velocity_vector: number[];
+}
+
+export interface UeTrajectorySummary {
+  total_distance_m: number;
+  total_time_s: number;
+  min_signal_dbm: number;
+  max_signal_dbm: number;
+  handover_count: number;
+  coverage_percent: number;
+}
+
+export interface UeTrajectoryResult {
+  waypoints: UeWaypoint[];
+  tx_position: number[];
+  trajectory_type: string;
+  summary: UeTrajectorySummary;
+  performance?: PerformanceMetadata;
+  colors?: string[];
+  colormap_used?: string;
 }

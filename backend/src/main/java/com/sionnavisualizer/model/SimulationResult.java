@@ -137,6 +137,20 @@ public class SimulationResult {
     /** The timestamp returned by the Python bridge */
     private LocalDateTime timestamp;
 
+    // ─── Performance Tracking (Day 22) ───────────────────────────────────────
+
+    @Column
+    private Long durationMs;
+
+    @Column
+    private String computeType;
+
+    @Column
+    private Double memoryMb;
+
+    @Column
+    private String sionnaVersion;
+
     // ─── Sharing / access control ────────────────────────────────────────────
 
     @Column(unique = true)
@@ -148,6 +162,9 @@ public class SimulationResult {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(length = 50)
+    private String colormapUsed;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
@@ -157,6 +174,9 @@ public class SimulationResult {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public String getColormapUsed() { return colormapUsed; }
+    public void setColormapUsed(String colormapUsed) { this.colormapUsed = colormapUsed; }
 
     public String getSnrDb() { return snrDb; }
     public void setSnrDb(String snrDb) { this.snrDb = snrDb; }
@@ -256,4 +276,16 @@ public class SimulationResult {
 
     public String getInsightsJson() { return insightsJson; }
     public void setInsightsJson(String insightsJson) { this.insightsJson = insightsJson; }
+
+    public Long getDurationMs() { return durationMs; }
+    public void setDurationMs(Long durationMs) { this.durationMs = durationMs; }
+
+    public String getComputeType() { return computeType; }
+    public void setComputeType(String computeType) { this.computeType = computeType; }
+
+    public Double getMemoryMb() { return memoryMb; }
+    public void setMemoryMb(Double memoryMb) { this.memoryMb = memoryMb; }
+
+    public String getSionnaVersion() { return sionnaVersion; }
+    public void setSionnaVersion(String sionnaVersion) { this.sionnaVersion = sionnaVersion; }
 }

@@ -35,6 +35,10 @@ public class SimulationDto {
     /** Total number of bits processed in the Monte-Carlo run */
     private Integer num_bits_simulated;
 
+    private PerformanceDto performance;
+    private List<String> colors;
+    private String colormap_used;
+
     // ─── Getters & Setters ──────────────────────────────────────────────────
 
     public List<Double> getSnr_db() { return snr_db; }
@@ -57,4 +61,13 @@ public class SimulationDto {
 
     public Integer getNum_bits_simulated() { return num_bits_simulated; }
     public void setNum_bits_simulated(Integer num_bits_simulated) { this.num_bits_simulated = num_bits_simulated; }
+
+    public PerformanceDto getPerformance() { return performance; }
+    public void setPerformance(PerformanceDto performance) { this.performance = performance; }
+
+    public List<String> getColors() { return colors; }
+    public void setColors(List<String> colors) { this.colors = colors; }
+
+    public String getColormap_used() { return colormap_used; }
+    public void setColormap_used(String colormap_used) { this.colormap_used = colormap_used; }
 }

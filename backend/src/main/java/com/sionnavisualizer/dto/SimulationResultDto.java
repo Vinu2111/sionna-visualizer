@@ -41,6 +41,12 @@ public class SimulationResultDto {
     private Boolean isPublic;
     private LocalDateTime createdAt;
 
+    // Performance fields
+    private Long durationMs;
+    private String computeType;
+    private Double memoryMb;
+    private String sionnaVersion;
+
     // ─── Getters & Setters ──────────────────────────────────────────────────
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -120,6 +126,18 @@ public class SimulationResultDto {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
+    public Long getDurationMs() { return durationMs; }
+    public void setDurationMs(Long durationMs) { this.durationMs = durationMs; }
+
+    public String getComputeType() { return computeType; }
+    public void setComputeType(String computeType) { this.computeType = computeType; }
+
+    public Double getMemoryMb() { return memoryMb; }
+    public void setMemoryMb(Double memoryMb) { this.memoryMb = memoryMb; }
+
+    public String getSionnaVersion() { return sionnaVersion; }
+    public void setSionnaVersion(String sionnaVersion) { this.sionnaVersion = sionnaVersion; }
+
     /** Factory method — maps from JPA entity to DTO */
     public static SimulationResultDto from(com.sionnavisualizer.model.SimulationResult e) {
         SimulationResultDto d = new SimulationResultDto();
@@ -149,6 +167,12 @@ public class SimulationResultDto {
         d.setShareToken(e.getShareToken());
         d.setIsPublic(e.getIsPublic());
         d.setCreatedAt(e.getCreatedAt());
+
+        d.setDurationMs(e.getDurationMs());
+        d.setComputeType(e.getComputeType());
+        d.setMemoryMb(e.getMemoryMb());
+        d.setSionnaVersion(e.getSionnaVersion());
+
         return d;
     }
 }

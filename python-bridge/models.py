@@ -1,6 +1,29 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional, Dict, Any
 
+class EstimateRange(BaseModel):
+    min_ms: int
+    max_ms: int
+
+class SimulationEstimateResult(BaseModel):
+    simulation_type: str
+    estimated_ms: int
+    estimated_range: EstimateRange
+    complexity_label: str
+    complexity_color: str
+    tips: List[str]
+    parameters_received: Dict[str, Any]
+
+class SimulationEstimateRequest(BaseModel):
+    simulation_type: str
+    parameters: Dict[str, Any]
+
+
+class PerformanceMetadata(BaseModel):
+    duration_ms: int
+    compute_type: str
+    memory_mb: float
+    sionna_version: str
 
 class SimulationRequest(BaseModel):
     """
@@ -31,6 +54,7 @@ class SimulationRequest(BaseModel):
         default=25,
         description="Number of SNR points on the BER curve"
     )
+    colormap: str = Field(default="default", description="Colormap for chart rendering")
 
 
 class SimulationResult(BaseModel):
@@ -45,12 +69,16 @@ class SimulationResult(BaseModel):
     code_rate: float = Field(description="Code rate used in this run")
     simulation_time_ms: int = Field(description="Wall-clock time for the simulation in milliseconds")
     num_bits_simulated: int = Field(description="Total bits processed in the Monte-Carlo run")
+    performance: Optional[PerformanceMetadata] = None
+    colors: Optional[List[str]] = None
+    colormap_used: Optional[str] = None
 
 class BeamPatternRequest(BaseModel):
     num_antennas: int = 16
     steering_angle: float = 0.0
     frequency_ghz: float = 28.0
     array_spacing: float = 0.5
+    colormap: str = "default"
 
 class BeamPatternResult(BaseModel):
     angles: List[float]
@@ -61,11 +89,15 @@ class BeamPatternResult(BaseModel):
     main_lobe_width: float
     side_lobe_level: float
     array_gain_db: float
+    performance: Optional[PerformanceMetadata] = None
+    colors: Optional[List[str]] = None
+    colormap_used: Optional[str] = None
 
 class ModulationComparisonRequest(BaseModel):
     snr_min: float = -5.0
     snr_max: float = 25.0
     snr_steps: int = 50
+    colormap: str = "default"
 
 class CrossoverPoints(BaseModel):
     bpsk_qpsk_same: bool
@@ -82,12 +114,16 @@ class ModulationComparisonResult(BaseModel):
     snr_max: float
     snr_steps: int
     crossover_points: CrossoverPoints
+    performance: Optional[PerformanceMetadata] = None
+    colors: Optional[List[str]] = None
+    colormap_used: Optional[str] = None
 
 class ChannelCapacityRequest(BaseModel):
     snr_min: float = -10.0
     snr_max: float = 30.0
     snr_steps: int = 50
     bandwidths_mhz: list = [10.0, 100.0, 400.0, 1000.0]
+    colormap: str = "default"
 
 class ChannelCapacityCurve(BaseModel):
     bandwidth_mhz: float
@@ -109,3 +145,101 @@ class ChannelCapacityResult(BaseModel):
     snr_min: float
     snr_max: float
     insights: ChannelCapacityInsights
+    performance: Optional[PerformanceMetadata] = None
+    colors: Optional[List[str]] = None
+    colormap_used: Optional[str] = None
+
+class PathLossRequest(BaseModel):
+    num_paths: int
+    frequency_ghz: float
+    environment: str
+    colormap: str = "default"
+
+class PathDto(BaseModel):
+    path_id: int
+    distance_m: float
+    path_loss_db: float
+    path_type: str
+    delay_ns: float
+
+class PathLossSummary(BaseModel):
+    los_path_loss_db: float
+    max_path_loss_db: float
+    path_loss_spread_db: float
+    mean_delay_ns: float
+
+class PathLossResult(BaseModel):
+    paths: list[PathDto]
+    summary: PathLossSummary
+    performance: Optional[PerformanceMetadata] = None
+    colors: Optional[List[str]] = None
+    colormap_used: Optional[str] = None
+
+class RayDirectionRequest(BaseModel):
+    num_paths: int = 8
+    frequency_ghz: float = 28.0
+    environment: str = "urban"
+    tx_position: List[float] = [0.0, 0.0, 10.0]
+    rx_position: List[float] = [100.0, 50.0, 1.5]
+    colormap: str = "default"
+
+class RayDirectionPath(BaseModel):
+    path_id: int
+    departure_azimuth_deg: float
+    departure_elevation_deg: float
+    arrival_azimuth_deg: float
+    arrival_elevation_deg: float
+    path_loss_db: float
+    delay_ns: float
+    path_type: str
+
+class RayDirectionSummary(BaseModel):
+    angular_spread_deg: float
+    mean_departure_azimuth: float
+    mean_arrival_azimuth: float
+    num_los_paths: int
+    num_nlos_paths: int
+
+class RayDirectionResult(BaseModel):
+    paths: List[RayDirectionPath]
+    tx_position: List[float]
+    rx_position: List[float]
+    los_distance_m: float
+    summary: RayDirectionSummary
+    performance: Optional[PerformanceMetadata] = None
+    colors: Optional[List[str]] = None
+    colormap_used: Optional[str] = None
+
+class UeTrajectoryRequest(BaseModel):
+    num_waypoints: int = 6
+    frequency_ghz: float = 28.0
+    environment: str = "urban"
+    tx_position: List[float] = [0.0, 0.0, 25.0]
+    speed_kmh: float = 30.0
+    trajectory_type: str = "random"
+    colormap: str = "default"
+
+class Waypoint(BaseModel):
+    position: List[float]
+    distance_m: float
+    signal_dbm: float
+    handover_required: bool
+    time_s: float
+    velocity_vector: List[float]
+
+class UeTrajectorySummary(BaseModel):
+    total_distance_m: float
+    total_time_s: float
+    min_signal_dbm: float
+    max_signal_dbm: float
+    handover_count: int
+    coverage_percent: float
+
+class UeTrajectoryResult(BaseModel):
+    waypoints: List[Waypoint]
+    tx_position: List[float]
+    trajectory_type: str
+    summary: UeTrajectorySummary
+    performance: Optional[PerformanceMetadata] = None
+    colors: Optional[List[str]] = None
+    colormap_used: Optional[str] = None

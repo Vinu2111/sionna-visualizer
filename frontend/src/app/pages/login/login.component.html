@@ -10,21 +10,24 @@
       <div *ngIf="errorMessage" class="alert error">{{ errorMessage }}</div>
       <div *ngIf="successMessage" class="alert success">{{ successMessage }}</div>
 
-      <!-- Utilizing native Angular Reactive Form Models smoothly! -->
+      <!-- Utilizing native Angular Reactive Form Models -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Username</mat-label>
-          <input matInput formControlName="username" type="text" placeholder="Enter strictly unique username" />
+          <input matInput formControlName="username" type="text" placeholder="Enter username" />
           <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
-            Username natively required smoothly.
+            Username is required
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
-          <input matInput formControlName="password" type="password" placeholder="Min 6 characters strictly" />
+          <input matInput formControlName="password" type="password" placeholder="Min 6 characters" />
           <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-            A precise password securely remains fundamentally required.
+            Password is required
+          </mat-error>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
+            Password must be at least 6 characters
           </mat-error>
         </mat-form-field>
 
@@ -37,9 +40,9 @@
 
     <mat-card-footer>
       <div class="toggle-mode">
-        <span>{{ isRegistering ? 'Already mathematically securely registered?' : 'Don\'t have an account?' }}</span>
+        <span>{{ isRegistering ? 'Already registered?' : 'Don\'t have an account?' }}</span>
         <button mat-button color="accent" (click)="toggleMode()">
-          {{ isRegistering ? 'Sign In firmly' : 'Create account' }}
+          {{ isRegistering ? 'Sign In' : 'Create account' }}
         </button>
       </div>
     </mat-card-footer>

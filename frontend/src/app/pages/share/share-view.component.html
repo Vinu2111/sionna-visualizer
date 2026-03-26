@@ -63,6 +63,30 @@
             <li><strong>OFDM Symbols:</strong> {{ simulationData.metadata.num_ofdm_symbols }}</li>
             <li><strong>FFT Size:</strong> {{ simulationData.metadata.fft_size }}</li>
             <li><strong>Hardware:</strong> {{ simulationData.metadata.hardware_used }}</li>
+            <li>
+              <strong>Colormap:</strong> 
+              <span *ngIf="simulationData.colormap_used" style="display:inline-flex; align-items:center; gap:8px;">
+                {{ simulationData.colormap_used }}
+                <div style="width: 40px; height: 12px; border-radius: 2px;"
+                     [style.background]="'linear-gradient(to right, ' + (simulationData.colors?.join(',') || '#00ff88') + ')'"></div>
+              </span>
+              <span *ngIf="!simulationData.colormap_used">Default</span>
+            </li>
+          </ul>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="specs-card" *ngIf="simulationData?.performance"
+                [ngStyle]="{'border-left': simulationData.performance.compute_type === 'GPU' ? '4px solid #64ffda' : 'none', 'margin-top': '16px'}">
+        <mat-card-header>
+          <mat-card-title>Performance</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="meta-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <li><strong>Duration:</strong> {{ simulationData.performance.duration_ms }} ms</li>
+            <li><strong>Compute:</strong> <span [style.color]="simulationData.performance.compute_type === 'GPU' ? '#64ffda' : null">{{ simulationData.performance.compute_type }}</span></li>
+            <li><strong>Memory:</strong> {{ simulationData.performance.memory_mb | number:'1.2-2' }} MB</li>
+            <li><strong>Sionna:</strong> v{{ simulationData.performance.sionna_version }}</li>
           </ul>
         </mat-card-content>
       </mat-card>

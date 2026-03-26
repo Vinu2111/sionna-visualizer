@@ -22,6 +22,8 @@ public class ChannelCapacityRequestDto {
     @NotEmpty
     private List<Double> bandwidths_mhz = Arrays.asList(10.0, 100.0, 400.0, 1000.0);
 
+    private String colormap = "default";
+
     public ChannelCapacityRequestDto() {}
 
     public ChannelCapacityRequestDto(double snr_min, double snr_max, int snr_steps, List<Double> bandwidths_mhz) {
@@ -42,4 +44,7 @@ public class ChannelCapacityRequestDto {
 
     public List<Double> getBandwidths_mhz() { return bandwidths_mhz; }
     public void setBandwidths_mhz(List<Double> bandwidths_mhz) { this.bandwidths_mhz = bandwidths_mhz; }
+
+    public String getColormap() { return colormap; }
+    public void setColormap(String colormap) { this.colormap = colormap; }
 }

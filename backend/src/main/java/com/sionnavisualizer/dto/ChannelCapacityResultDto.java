@@ -10,6 +10,9 @@ public class ChannelCapacityResultDto {
     private double snr_min;
     private double snr_max;
     private Map<String, Object> insights;
+    private PerformanceDto performance;
+    private List<String> colors;
+    private String colormap_used;
 
     public ChannelCapacityResultDto() {}
 
@@ -30,4 +33,13 @@ public class ChannelCapacityResultDto {
 
     public Map<String, Object> getInsights() { return insights; }
     public void setInsights(Map<String, Object> insights) { this.insights = insights; }
+
+    public PerformanceDto getPerformance() { return performance; }
+    public void setPerformance(PerformanceDto performance) { this.performance = performance; }
+
+    public List<String> getColors() { return colors; }
+    public void setColors(List<String> colors) { this.colors = colors; }
+
+    public String getColormap_used() { return colormap_used; }
+    public void setColormap_used(String colormap_used) { this.colormap_used = colormap_used; }
 }

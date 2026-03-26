@@ -91,7 +91,7 @@ export class LoginComponent {
           this.isLoading = false;
         },
         error: (err) => {
-          this.errorMessage = 'Login firmly rejected natively. Verify your password parameters.';
+          this.errorMessage = 'Login failed. Verify your username and password.';
           this.isLoading = false;
         }
       });

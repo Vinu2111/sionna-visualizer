@@ -16,6 +16,8 @@ public class ModulationComparisonRequestDto {
     @Min(10) @Max(100)
     private int snr_steps = 50;
 
+    private String colormap = "default";
+
     public ModulationComparisonRequestDto() {}
 
     public ModulationComparisonRequestDto(double snr_min, double snr_max, int snr_steps) {
@@ -32,4 +34,7 @@ public class ModulationComparisonRequestDto {
 
     public int getSnr_steps() { return snr_steps; }
     public void setSnr_steps(int snr_steps) { this.snr_steps = snr_steps; }
+
+    public String getColormap() { return colormap; }
+    public void setColormap(String colormap) { this.colormap = colormap; }
 }

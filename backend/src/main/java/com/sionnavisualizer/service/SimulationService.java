@@ -11,6 +11,14 @@ import com.sionnavisualizer.dto.ComparisonResponseDto;
 import com.sionnavisualizer.dto.SimulationResultDto;
 import com.sionnavisualizer.dto.ChannelCapacityRequestDto;
 import com.sionnavisualizer.dto.ChannelCapacityResultDto;
+import com.sionnavisualizer.dto.PathLossRequestDto;
+import com.sionnavisualizer.dto.PathLossResultDto;
+import com.sionnavisualizer.dto.SimulationEstimateRequestDto;
+import com.sionnavisualizer.dto.SimulationEstimateResultDto;
+import com.sionnavisualizer.dto.RayDirectionRequestDto;
+import com.sionnavisualizer.dto.RayDirectionResultDto;
+import com.sionnavisualizer.dto.UeTrajectoryRequestDto;
+import com.sionnavisualizer.dto.UeTrajectoryResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.repository.SimulationResultRepository;
 import org.springframework.stereotype.Service;
@@ -19,11 +27,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import jakarta.annotation.PostConstruct;
 
 /**
  * SimulationService — core business logic for:
@@ -36,6 +50,8 @@ import java.util.List;
 @Service
 public class SimulationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(SimulationService.class);
+
     /** Base URL for the Python FastAPI bridge — injected from application.yml */
     @Value("${python-bridge.url}")
     private String PYTHON_BRIDGE_BASE_URL;
@@ -43,6 +59,68 @@ public class SimulationService {
     private final RestTemplate restTemplate;
     private final SimulationResultRepository simulationResultRepository;
     private final ObjectMapper objectMapper;
+
+    // Cache structure: hash -> CacheEntry
+    private final ConcurrentHashMap<Integer, CacheEntry> simulationCache = new ConcurrentHashMap<>();
+    
+    // Tracks python bridge readiness for custom health indicator
+    private boolean pythonBridgeWarm = false;
+
+    private static class CacheEntry {
+        final Object result;
+        final long timestamp;
+        CacheEntry(Object result) {
+            this.result = result;
+            this.timestamp = System.currentTimeMillis();
+        }
+    }
+
+    private synchronized void putInCache(Integer key, Object result) {
+        if (!simulationCache.containsKey(key) && simulationCache.size() >= 100) {
+            Integer oldestKey = null;
+            long oldestTime = Long.MAX_VALUE;
+            for (Map.Entry<Integer, CacheEntry> entry : simulationCache.entrySet()) {
+                if (entry.getValue().timestamp < oldestTime) {
+                    oldestTime = entry.getValue().timestamp;
+                    oldestKey = entry.getKey();
+                }
+            }
+            if (oldestKey != null) {
+                simulationCache.remove(oldestKey);
+            }
+        }
+        simulationCache.put(key, new CacheEntry(result));
+    }
+
+    public boolean isPythonBridgeWarm() {
+        return pythonBridgeWarm;
+    }
+
+    @PostConstruct
+    public void warmupPythonBridge() {
+        new Thread(() -> {
+            try {
+                logger.info("Starting Python bridge warmup...");
+                String url = PYTHON_BRIDGE_BASE_URL;
+                if (url != null && !url.startsWith("http://") && !url.startsWith("https://")) {
+                    url = "https://" + url;
+                }
+                if (url != null && url.endsWith("/simulate/demo")) {
+                    url = url.substring(0, url.length() - "/simulate/demo".length());
+                } else if (url != null && url.endsWith("/simulate")) {
+                    url = url.substring(0, url.length() - "/simulate".length());
+                }
+                if (url.endsWith("/")) {
+                    url = url.substring(0, url.length() - 1);
+                }
+                restTemplate.getForObject(url + "/warmup", String.class);
+                pythonBridgeWarm = true;
+                logger.info("Python bridge successfully warmed up.");
+            } catch (Exception e) {
+                logger.error("Failed to warm up Python bridge: {}", e.getMessage());
+            }
+        }).start();
+    }
 
     public SimulationService(RestTemplate restTemplate,
                               SimulationResultRepository simulationResultRepository,
@@ -72,6 +150,12 @@ public class SimulationService {
     @io.github.resilience4j.timelimiter.annotation.TimeLimiter(name = "pythonBridge")
     public SimulationDto runSimulation(SimulationRequestDto requestParams) {
         try {
+            int cacheKey = java.util.Objects.hash("AWGN", requestParams.getModulation_order(), requestParams.getCode_rate(), requestParams.getNum_bits_per_symbol(), requestParams.getSnr_min(), requestParams.getSnr_max(), requestParams.getSnr_steps());
+            if (simulationCache.containsKey(cacheKey)) {
+                logger.info("Cache hit for simulation: " + cacheKey);
+                return (SimulationDto) simulationCache.get(cacheKey).result;
+            }
+
             // ── Step 1: Build POST request to Python bridge ───────────────────
             String simulateUrl = buildSimulateUrl();
 
@@ -103,11 +187,22 @@ public class SimulationService {
             entity.setSnrMax(BigDecimal.valueOf(requestParams.getSnr_max()));
             entity.setSimulationTimeMs(dto.getSimulation_time_ms());
             entity.setHardwareUsed("AWGN CPU (numpy/scipy)");
+            entity.setColormapUsed(dto.getColormap_used() != null ? dto.getColormap_used() : requestParams.getColormap());
+            
+            if (dto.getPerformance() != null) {
+                entity.setDurationMs(dto.getPerformance().getDuration_ms());
+                entity.setComputeType(dto.getPerformance().getCompute_type());
+                entity.setMemoryMb(dto.getPerformance().getMemory_mb());
+                entity.setSionnaVersion(dto.getPerformance().getSionna_version());
+            }
+
             entity.setTimestamp(LocalDateTime.now());
             entity.setShareToken(java.util.UUID.randomUUID().toString());
             entity.setIsPublic(true);
 
             simulationResultRepository.save(entity);
+            
+            putInCache(cacheKey, dto);
 
             // ── Step 5: Return DTO to controller ──────────────────────────────
             return dto;
@@ -157,6 +252,15 @@ public class SimulationService {
             entity.setSideLobeLevel(BigDecimal.valueOf(dto.getSide_lobe_level()));
             
             entity.setHardwareUsed("Mathematical ULA (numpy)");
+            entity.setColormapUsed(dto.getColormap_used() != null ? dto.getColormap_used() : requestParams.getColormap());
+            
+            if (dto.getPerformance() != null) {
+                entity.setDurationMs(dto.getPerformance().getDuration_ms());
+                entity.setComputeType(dto.getPerformance().getCompute_type());
+                entity.setMemoryMb(dto.getPerformance().getMemory_mb());
+                entity.setSionnaVersion(dto.getPerformance().getSionna_version());
+            }
+
             entity.setTimestamp(LocalDateTime.now());
             entity.setShareToken(java.util.UUID.randomUUID().toString());
             entity.setIsPublic(true);
@@ -209,6 +313,15 @@ public class SimulationService {
             entity.setCrossoverPoints(objectMapper.writeValueAsString(dto.getCrossover_points()));
             
             entity.setHardwareUsed("Mathematical comparison (scipy.special)");
+            entity.setColormapUsed(dto.getColormap_used() != null ? dto.getColormap_used() : requestParams.getColormap());
+            
+            if (dto.getPerformance() != null) {
+                entity.setDurationMs(dto.getPerformance().getDuration_ms());
+                entity.setComputeType(dto.getPerformance().getCompute_type());
+                entity.setMemoryMb(dto.getPerformance().getMemory_mb());
+                entity.setSionnaVersion(dto.getPerformance().getSionna_version());
+            }
+
             entity.setTimestamp(LocalDateTime.now());
             entity.setShareToken(java.util.UUID.randomUUID().toString());
             entity.setIsPublic(true);
@@ -258,6 +371,15 @@ public class SimulationService {
             entity.setInsightsJson(objectMapper.writeValueAsString(dto.getInsights()));
 
             entity.setHardwareUsed("Mathematical Channel Capacity (Shannon)");
+            entity.setColormapUsed(dto.getColormap_used() != null ? dto.getColormap_used() : requestParams.getColormap());
+
+            if (dto.getPerformance() != null) {
+                entity.setDurationMs(dto.getPerformance().getDuration_ms());
+                entity.setComputeType(dto.getPerformance().getCompute_type());
+                entity.setMemoryMb(dto.getPerformance().getMemory_mb());
+                entity.setSionnaVersion(dto.getPerformance().getSionna_version());
+            }
+
             entity.setTimestamp(LocalDateTime.now());
             entity.setShareToken(java.util.UUID.randomUUID().toString());
             entity.setIsPublic(true);
@@ -305,9 +427,168 @@ public class SimulationService {
             dto.setModulation(entity.getModulationType());
             dto.setCode_rate(entity.getCodeRate() != null ? entity.getCodeRate().doubleValue() : null);
             dto.setSimulation_time_ms(entity.getSimulationTimeMs());
+            
+            if (entity.getDurationMs() != null) {
+                com.sionnavisualizer.dto.PerformanceDto perf = new com.sionnavisualizer.dto.PerformanceDto();
+                perf.setDuration_ms(entity.getDurationMs());
+                perf.setCompute_type(entity.getComputeType());
+                perf.setMemory_mb(entity.getMemoryMb());
+                perf.setSionna_version(entity.getSionnaVersion());
+                dto.setPerformance(perf);
+            }
+            
             return dto;
         } catch (Exception e) {
             throw new RuntimeException("Failed to deserialize simulation from DB: " + e.getMessage(), e);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Estimate Compute Time
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public SimulationEstimateResultDto runEstimate(SimulationEstimateRequestDto request) {
+        try {
+            String baseUrl = buildSimulateUrl();
+            if (baseUrl.endsWith("/simulate")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - "/simulate".length());
+            }
+            String endpoint = baseUrl + "/simulate/estimate";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<SimulationEstimateRequestDto> httpRequest = new HttpEntity<>(request, headers);
+
+            SimulationEstimateResultDto dto = restTemplate.postForObject(endpoint, httpRequest, SimulationEstimateResultDto.class);
+
+            if (dto == null) {
+                throw new RuntimeException("Empty response from Python bridge for estimation");
+            }
+
+            // Estimate requests are read-only, do not save to DB.
+            return dto;
+        } catch (RestClientException e) {
+            System.err.println("REST error calling Python bridge for estimation: " + e.getMessage());
+            throw new RuntimeException("Failed to contact Python backend for estimation. " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error during estimation: " + e.getMessage());
+            throw new RuntimeException("An unexpected error occurred during estimation: " + e.getMessage());
+        }
+    }
+
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Path Loss
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public PathLossResultDto runPathLoss(PathLossRequestDto request) {
+        try {
+            String baseUrl = buildSimulateUrl();
+            if (baseUrl.endsWith("/simulate")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - "/simulate".length());
+            }
+            String endpoint = baseUrl + "/simulate/path-loss";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<PathLossRequestDto> httpRequest = new HttpEntity<>(request, headers);
+
+            PathLossResultDto dto = restTemplate.postForObject(endpoint, httpRequest, PathLossResultDto.class);
+
+            if (dto == null) {
+                throw new RuntimeException("Empty response from Python bridge for path loss");
+            }
+
+            SimulationResult entity = new SimulationResult();
+            entity.setCreatedAt(LocalDateTime.now());
+            entity.setSimulationType("PATH_LOSS");
+            entity.setIsPublic(false);
+            
+            if (dto.getPerformance() != null) {
+                entity.setDurationMs(dto.getPerformance().getDuration_ms());
+                entity.setComputeType(dto.getPerformance().getCompute_type());
+                entity.setMemoryMb(dto.getPerformance().getMemory_mb());
+                entity.setSionnaVersion(dto.getPerformance().getSionna_version());
+            }
+
+            // Storing the request values in generic mapping fields or JSON string would be better 
+            // since there are no dedicated DB fields, we'll store JSON representations.
+            entity.setSnrDb(objectMapper.writeValueAsString(dto.getPaths()));
+            entity.setHardwareUsed("environment=" + request.getEnvironment() + "; freq=" + request.getFrequency_ghz());
+            entity.setColormapUsed(dto.getColormap_used() != null ? dto.getColormap_used() : request.getColormap());
+
+            simulationResultRepository.save(entity);
+            return dto;
+
+        } catch (Exception e) {
+            logger.error("Error during path loss generation: {}", e.getMessage());
+            throw new RuntimeException("Path loss generation failed", e);
+        }
+    }
+
+    public RayDirectionResultDto simulateRayDirections(RayDirectionRequestDto request) {
+        String endpoint = buildSimulateUrl() + "/ray-directions";
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
+            RayDirectionResultDto dto = objectMapper.readValue(response.getBody(), RayDirectionResultDto.class);
+
+            // Save to DB
+            SimulationResult entity = new SimulationResult();
+            entity.setSimulationType("RAY_DIRECTIONS");
+            entity.setCreatedAt(java.time.LocalDateTime.now());
+            entity.setIsPublic(false);
+            
+            if (dto.getPerformance() != null) {
+                entity.setDurationMs(dto.getPerformance().getDuration_ms());
+                entity.setComputeType(dto.getPerformance().getCompute_type());
+                entity.setMemoryMb(dto.getPerformance().getMemory_mb());
+                entity.setSionnaVersion(dto.getPerformance().getSionna_version());
+            }
+
+            entity.setSnrDb(objectMapper.writeValueAsString(dto.getPaths()));
+            entity.setHardwareUsed("paths=" + request.getNum_paths() + "; freq=" + request.getFrequency_ghz());
+            entity.setColormapUsed(dto.getColormap_used() != null ? dto.getColormap_used() : request.getColormap());
+
+            simulationResultRepository.save(entity);
+            return dto;
+
+        } catch (Exception e) {
+            logger.error("Error during ray directions generation: {}", e.getMessage());
+            throw new RuntimeException("Ray directions generation failed", e);
+        }
+    }
+
+    public UeTrajectoryResultDto simulateUeTrajectory(UeTrajectoryRequestDto request) {
+        String endpoint = buildSimulateUrl() + "/ue-trajectory";
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
+            UeTrajectoryResultDto dto = objectMapper.readValue(response.getBody(), UeTrajectoryResultDto.class);
+
+            // Save to DB
+            SimulationResult entity = new SimulationResult();
+            entity.setSimulationType("UE_TRAJECTORY");
+            entity.setCreatedAt(java.time.LocalDateTime.now());
+            entity.setIsPublic(false);
+            
+            if (dto.getPerformance() != null) {
+                entity.setDurationMs(dto.getPerformance().getDuration_ms());
+                entity.setComputeType(dto.getPerformance().getCompute_type());
+                entity.setMemoryMb(dto.getPerformance().getMemory_mb());
+                entity.setSionnaVersion(dto.getPerformance().getSionna_version());
+            }
+
+            entity.setSnrDb(objectMapper.writeValueAsString(dto.getWaypoints()));
+            entity.setHardwareUsed("waypoints=" + request.getNumWaypoints() + "; speed=" + request.getSpeedKmh());
+            entity.setColormapUsed(dto.getColormapUsed() != null ? dto.getColormapUsed() : request.getColormap());
+
+            simulationResultRepository.save(entity);
+            return dto;
+
+        } catch (Exception e) {
+            logger.error("Error during UE trajectory generation: {}", e.getMessage());
+            throw new RuntimeException("UE trajectory generation failed", e);
         }
     }
 
@@ -336,6 +617,25 @@ public class SimulationService {
         return response;
     }
 
+    /**
+     * GET /api/simulations/colormaps
+     *
+     * Fetches the list of available colormaps from the Python bridge.
+     */
+    public Object getColormaps() {
+        try {
+            String baseUrl = buildSimulateUrl();
+            if (baseUrl.endsWith("/simulate")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - "/simulate".length());
+            }
+            String endpoint = baseUrl + "/simulate/colormaps";
+            return restTemplate.getForObject(endpoint, Object.class);
+        } catch (Exception e) {
+            logger.error("Failed to fetch colormaps: {}", e.getMessage());
+            throw new RuntimeException("Could not fetch colormaps from Python bridge");
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Private helpers
     // ─────────────────────────────────────────────────────────────────────────
@@ -358,10 +658,10 @@ public class SimulationService {
             base = base.substring(0, base.length() - "/simulate".length());
         }
         
-        if (base.endsWith("/")) {
+        if (base != null && base.endsWith("/")) {
             base = base.substring(0, base.length() - 1);
         }
         
-        return base + "/simulate";
+        return (base == null ? "" : base) + "/simulate";
     }
 }

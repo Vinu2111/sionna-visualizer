@@ -111,6 +111,32 @@ export class ExportService {
     return lines.join('\n');
   }
 
+  generatePathLossCsv(result: any): string {
+    const lines: string[] = [
+      '# Sionna Visualizer — Path Loss',
+      `# Environment: ${result.summary?.environment ?? 'urban'}, Frequency: ${result.summary?.frequency_ghz ?? 28} GHz`,
+      'path_id,distance_m,path_loss_db,path_type,delay_ns'
+    ];
+    const paths: any[] = result.paths ?? [];
+    for (const p of paths) {
+      lines.push(`${p.path_id},${p.distance_m ?? ''},${p.path_loss_db ?? ''},${p.path_type ?? ''},${p.delay_ns ?? ''}`);
+    }
+    return lines.join('\n');
+  }
+
+  generateRayDirectionsCsv(result: any): string {
+    const lines: string[] = [
+      '# Sionna Visualizer — Ray Directions',
+      `# Environment: ${result?.environment ?? 'urban'}, Frequency: ${result?.frequency_ghz ?? 28} GHz`,
+      'path_id,path_type,path_loss_db,delay_ns,departure_azimuth_deg,departure_elevation_deg,arrival_azimuth_deg,arrival_elevation_deg'
+    ];
+    const paths: any[] = result?.paths ?? [];
+    for (const p of paths) {
+      lines.push(`${p.path_id},${p.path_type ?? ''},${p.path_loss_db ?? ''},${p.delay_ns ?? ''},${p.departure_azimuth_deg ?? ''},${p.departure_elevation_deg ?? ''},${p.arrival_azimuth_deg ?? ''},${p.arrival_elevation_deg ?? ''}`);
+    }
+    return lines.join('\n');
+  }
+
   // ─── JSON export with _metadata wrapper ─────────────────────────────────────
 
   wrapWithMetadata(simulationType: string, data: any): object {

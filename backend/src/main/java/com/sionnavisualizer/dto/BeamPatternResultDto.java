@@ -11,6 +11,13 @@ public class BeamPatternResultDto {
     private double main_lobe_width;
     private double side_lobe_level;
     private double array_gain_db;
+    
+    private PerformanceDto performance;
+    private List<String> colors;
+    private String colormap_used;
+
+    public BeamPatternResultDto() {
+    }
 
     public List<Double> getAngles() {
         return angles;
@@ -75,4 +82,13 @@ public class BeamPatternResultDto {
     public void setArray_gain_db(double array_gain_db) {
         this.array_gain_db = array_gain_db;
     }
+
+    public PerformanceDto getPerformance() { return performance; }
+    public void setPerformance(PerformanceDto performance) { this.performance = performance; }
+
+    public List<String> getColors() { return colors; }
+    public void setColors(List<String> colors) { this.colors = colors; }
+
+    public String getColormap_used() { return colormap_used; }
+    public void setColormap_used(String colormap_used) { this.colormap_used = colormap_used; }
 }

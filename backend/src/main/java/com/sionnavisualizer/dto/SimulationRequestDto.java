@@ -28,6 +28,8 @@ public class SimulationRequestDto {
     @Min(10) @Max(100)
     private int snr_steps = 25;
 
+    private String colormap = "default";
+
     // ─── Constructors ────────────────────────────────────────────────────────
 
     /** Default constructor — produces QPSK rate-1/2 parameters */
@@ -64,4 +66,7 @@ public class SimulationRequestDto {
 
     public int getSnr_steps() { return snr_steps; }
     public void setSnr_steps(int snr_steps) { this.snr_steps = snr_steps; }
+
+    public String getColormap() { return colormap; }
+    public void setColormap(String colormap) { this.colormap = colormap; }
 }

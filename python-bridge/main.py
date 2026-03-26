@@ -10,17 +10,30 @@ Exposes:
 import datetime
 import asyncio
 import anyio
+import time
+import tracemalloc
+import importlib.metadata
 from fastapi import FastAPI, HTTPException
 from models import (
     SimulationRequest, SimulationResult, 
     BeamPatternRequest, BeamPatternResult,
     ModulationComparisonRequest, ModulationComparisonResult,
-    ChannelCapacityRequest, ChannelCapacityResult
+    ChannelCapacityRequest, ChannelCapacityResult,
+    PathLossRequest, PathLossResult,
+    SimulationEstimateRequest, SimulationEstimateResult,
+    RayDirectionRequest, RayDirectionResult,
+    UeTrajectoryRequest, UeTrajectoryResult
 )
 from sionna_runner import run_awgn_simulation
 from beam_pattern import compute_ula_beam_pattern
 from modulation_comparison import compute_modulation_comparison
 from channel_capacity import compute_channel_capacity
+from path_loss import compute_path_loss
+from estimate import compute_estimate
+from estimate import compute_estimate
+from colormap import colormap_service
+from ray_directions import compute_ray_directions
+from ue_trajectory import simulate_ue_trajectory
 
 app = FastAPI(
     title="Sionna Visualizer Bridge",
@@ -43,8 +56,67 @@ def health_check():
 
 
 # ---------------------------------------------------------------------------
+# Performance Tracking Helper
+# ---------------------------------------------------------------------------
+
+def get_compute_type():
+    try:
+        import torch
+        return "GPU" if torch.cuda.is_available() else "CPU"
+    except ImportError:
+        return "CPU"
+
+def get_sionna_version():
+    try:
+        return importlib.metadata.version("sionna")
+    except Exception:
+        return "unknown"
+
+async def run_with_performance(func, *args):
+    tracemalloc.start()
+    start_time = time.time()
+    
+    result = await asyncio.wait_for(
+        anyio.to_thread.run_sync(func, *args),
+        timeout=30.0
+    )
+    
+    end_time = time.time()
+    _, peak_memory = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    
+    duration_ms = int((end_time - start_time) * 1000)
+    memory_mb = round(float(peak_memory) / (1024 * 1024), 2)
+    
+    result["performance"] = {
+        "duration_ms": duration_ms,
+        "compute_type": get_compute_type(),
+        "memory_mb": memory_mb,
+        "sionna_version": get_sionna_version()
+    }
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Core simulation endpoint
 # ---------------------------------------------------------------------------
+
+@app.get("/warmup")
+async def warmup():
+    """
+    Runs a tiny BPSK simulation with 3 SNR points to keep the service warm.
+    """
+    request = SimulationRequest(
+        modulation_order=2,
+        code_rate=0.5,
+        num_bits_per_symbol=1,
+        snr_min=-5.0,
+        snr_max=5.0,
+        snr_steps=3
+    )
+    # Fire and forget or await, we should wait to ensure it actually warms up.
+    await simulate(request)
+    return {"status": "warmed_up"}
 
 @app.post("/simulate", response_model=SimulationResult)
 async def simulate(request: SimulationRequest):
@@ -52,18 +124,18 @@ async def simulate(request: SimulationRequest):
     Run an AWGN BER-vs-SNR simulation with the supplied parameters.
     """
     try:
-        result = await asyncio.wait_for(
-            anyio.to_thread.run_sync(
-                run_awgn_simulation,
-                request.modulation_order,
-                request.code_rate,
-                request.num_bits_per_symbol,
-                request.snr_min,
-                request.snr_max,
-                request.snr_steps,
-            ),
-            timeout=30.0
+        result = await run_with_performance(
+            run_awgn_simulation,
+            request.modulation_order,
+            request.code_rate,
+            request.num_bits_per_symbol,
+            request.snr_min,
+            request.snr_max,
+            request.snr_steps,
         )
+        # 2 data series: theoretical + simulated
+        result["colors"] = colormap_service.get_colors(request.colormap, 2)
+        result["colormap_used"] = request.colormap
         return SimulationResult(**result)
     except asyncio.TimeoutError:
         raise HTTPException(
@@ -102,16 +174,16 @@ async def simulate_beam_pattern(request: BeamPatternRequest):
     Run a ULA beam pattern generation with the supplied parameters.
     """
     try:
-        result = await asyncio.wait_for(
-            anyio.to_thread.run_sync(
-                compute_ula_beam_pattern,
-                request.num_antennas,
-                request.steering_angle,
-                request.frequency_ghz,
-                request.array_spacing,
-            ),
-            timeout=30.0
+        result = await run_with_performance(
+            compute_ula_beam_pattern,
+            request.num_antennas,
+            request.steering_angle,
+            request.frequency_ghz,
+            request.array_spacing,
         )
+        # 1 data series
+        result["colors"] = colormap_service.get_colors(request.colormap, 1)
+        result["colormap_used"] = request.colormap
         return BeamPatternResult(**result)
     except asyncio.TimeoutError:
         raise HTTPException(
@@ -134,15 +206,15 @@ async def simulate_modulation_comparison(request: ModulationComparisonRequest):
     Run theoretical generation across BPSK, QPSK, 16QAM, 64QAM.
     """
     try:
-        result = await asyncio.wait_for(
-            anyio.to_thread.run_sync(
-                compute_modulation_comparison,
-                request.snr_min,
-                request.snr_max,
-                request.snr_steps,
-            ),
-            timeout=30.0
+        result = await run_with_performance(
+            compute_modulation_comparison,
+            request.snr_min,
+            request.snr_max,
+            request.snr_steps,
         )
+        # 4 modulations
+        result["colors"] = colormap_service.get_colors(request.colormap, 4)
+        result["colormap_used"] = request.colormap
         return ModulationComparisonResult(**result)
     except asyncio.TimeoutError:
         raise HTTPException(
@@ -166,16 +238,16 @@ async def simulate_channel_capacity(request: ChannelCapacityRequest):
     Compute Shannon channel capacity across standard 6G bandwidths.
     """
     try:
-        result = await asyncio.wait_for(
-            anyio.to_thread.run_sync(
-                compute_channel_capacity,
-                request.snr_min,
-                request.snr_max,
-                request.snr_steps,
-                request.bandwidths_mhz
-            ),
-            timeout=30.0
+        result = await run_with_performance(
+            compute_channel_capacity,
+            request.snr_min,
+            request.snr_max,
+            request.snr_steps,
+            request.bandwidths_mhz
         )
+        num_bw = len(request.bandwidths_mhz)
+        result["colors"] = colormap_service.get_colors(request.colormap, num_bw)
+        result["colormap_used"] = request.colormap
         return ChannelCapacityResult(**result)
     except asyncio.TimeoutError:
         raise HTTPException(
@@ -198,3 +270,120 @@ async def simulate_channel_capacity(request: ChannelCapacityRequest):
 async def simulate_demo_get():
     """Legacy GET alias — kept for backward compatibility."""
     return await simulate(SimulationRequest())
+
+# ---------------------------------------------------------------------------
+# Path Loss endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/path-loss", response_model=PathLossResult)
+async def simulate_path_loss(request: PathLossRequest):
+    """
+    Compute path loss for per-ray breakdown based on environment.
+    """
+    try:
+        result = await run_with_performance(
+            compute_path_loss,
+            request.num_paths,
+            request.frequency_ghz,
+            request.environment
+        )
+        result["colors"] = colormap_service.get_colors(request.colormap, request.num_paths)
+        result["colormap_used"] = request.colormap
+        return PathLossResult(**result)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Path loss computation failed: {str(exc)}",
+        )
+
+# ---------------------------------------------------------------------------
+# Ray Directions endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/ray-directions", response_model=RayDirectionResult)
+async def simulate_ray_directions(request: RayDirectionRequest):
+    """
+    Compute path loss, angles, and delay for per-ray breakdown based on environment.
+    """
+    try:
+        result = await run_with_performance(
+            compute_ray_directions,
+            request.num_paths,
+            request.frequency_ghz,
+            request.environment,
+            request.tx_position,
+            request.rx_position
+        )
+        result["colors"] = colormap_service.get_colors(request.colormap, request.num_paths)
+        result["colormap_used"] = request.colormap
+        return RayDirectionResult(**result)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ray directions computation failed: {str(exc)}",
+        )
+
+
+# ---------------------------------------------------------------------------
+# UE Trajectory endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/ue-trajectory", response_model=UeTrajectoryResult)
+async def simulate_ue_trajectory_endpoint(request: UeTrajectoryRequest):
+    """
+    Compute moving UE path on a coverage map.
+    """
+    try:
+        # It's a synchronous function, so normally we might want to run in thread
+        # but for simplicity, we can do:
+        result = await anyio.to_thread.run_sync(simulate_ue_trajectory, request)
+        result.colors = colormap_service.get_colors(request.colormap, len(result.waypoints))
+        result.colormap_used = request.colormap
+        return result
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"UE trajectory computation failed: {str(exc)}",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Estimate compute time
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/estimate", response_model=SimulationEstimateResult)
+async def simulate_estimate(request: SimulationEstimateRequest):
+    """
+    Returns an estimate of the compute time (in ms) before running a simulation.
+    """
+    try:
+        est_ms, r_min, r_max, label, color, tips = compute_estimate(
+            request.simulation_type, request.parameters
+        )
+        return SimulationEstimateResult(
+            simulation_type=request.simulation_type,
+            estimated_ms=est_ms,
+            estimated_range={"min_ms": r_min, "max_ms": r_max},
+            complexity_label=label,
+            complexity_color=color,
+            tips=tips,
+            parameters_received=request.parameters
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate estimate: {str(exc)}",
+        )
+
+
+# ---------------------------------------------------------------------------
+# GET /simulate/colormaps — list all available palettes
+# ---------------------------------------------------------------------------
+
+@app.get("/simulate/colormaps")
+async def list_colormaps():
+    """
+    Returns all registered colormaps with a 5-colour preview strip each.
+    No authentication required.
+    """
+    return {"colormaps": colormap_service.list_all()}

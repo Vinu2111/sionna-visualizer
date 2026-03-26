@@ -9,6 +9,14 @@ import com.sionnavisualizer.dto.ModulationComparisonResultDto;
 import com.sionnavisualizer.dto.ComparisonResponseDto;
 import com.sionnavisualizer.dto.ChannelCapacityRequestDto;
 import com.sionnavisualizer.dto.ChannelCapacityResultDto;
+import com.sionnavisualizer.dto.PathLossRequestDto;
+import com.sionnavisualizer.dto.PathLossResultDto;
+import com.sionnavisualizer.dto.SimulationEstimateRequestDto;
+import com.sionnavisualizer.dto.SimulationEstimateResultDto;
+import com.sionnavisualizer.dto.RayDirectionRequestDto;
+import com.sionnavisualizer.dto.RayDirectionResultDto;
+import com.sionnavisualizer.dto.UeTrajectoryRequestDto;
+import com.sionnavisualizer.dto.UeTrajectoryResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
 import org.springframework.http.ResponseEntity;
@@ -125,6 +133,90 @@ public class SimulationController {
         }
     }
 
+    /**
+     * POST /api/simulations/path-loss
+     *
+     * Runs path loss generation for multi-ray modeling.
+     */
+    @PostMapping("/simulations/path-loss")
+    public ResponseEntity<?> runPathLoss(@Valid @RequestBody PathLossRequestDto request) {
+        try {
+            if (request.getNum_paths() != 4 && request.getNum_paths() != 8 && 
+                request.getNum_paths() != 16 && request.getNum_paths() != 32) {
+                return ResponseEntity.badRequest().body("Number of paths must be 4, 8, 16, or 32");
+            }
+            PathLossResultDto result = simulationService.runPathLoss(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
+    /**
+     * POST /api/simulations/ray-directions
+     *
+     * Computes ray paths, departure and arrival angles.
+     */
+    @PostMapping("/simulations/ray-directions")
+    public ResponseEntity<?> runRayDirections(@Valid @RequestBody RayDirectionRequestDto request) {
+        try {
+            if (request.getNum_paths() != 4 && request.getNum_paths() != 8 && 
+                request.getNum_paths() != 16 && request.getNum_paths() != 32) {
+                return ResponseEntity.badRequest().body("Number of paths must be 4, 8, 16, or 32");
+            }
+            if (request.getFrequency_ghz() < 1 || request.getFrequency_ghz() > 100) {
+                return ResponseEntity.badRequest().body("Frequency must be between 1 and 100 GHz");
+            }
+            if (request.getTx_position() == null || request.getTx_position().size() != 3) {
+                return ResponseEntity.badRequest().body("tx_position must be an array of exactly 3 values");
+            }
+            if (request.getRx_position() == null || request.getRx_position().size() != 3) {
+                return ResponseEntity.badRequest().body("rx_position must be an array of exactly 3 values");
+            }
+            
+            RayDirectionResultDto result = simulationService.simulateRayDirections(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
+    /**
+     * POST /api/simulations/ue-trajectory
+     *
+     * Computes UE trajectory moving over coverage map.
+     */
+    @PostMapping("/simulations/ue-trajectory")
+    public ResponseEntity<?> runUeTrajectory(@Valid @RequestBody UeTrajectoryRequestDto request) {
+        try {
+            UeTrajectoryResultDto result = simulationService.simulateUeTrajectory(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
+    /**
+     * POST /api/simulations/estimate
+     *
+     * Predicts compute time for a given simulation — no DB write, no auth required.
+     */
+    @PostMapping("/simulations/estimate")
+    public ResponseEntity<?> runEstimate(@Valid @RequestBody SimulationEstimateRequestDto request) {
+        try {
+            java.util.List<String> validTypes = java.util.Arrays.asList(
+                "AWGN", "BEAM_PATTERN", "MODULATION_COMPARISON", "CHANNEL_CAPACITY", "PATH_LOSS", "RAY_DIRECTIONS", "UE_TRAJECTORY"
+            );
+            if (!validTypes.contains(request.getSimulation_type().toUpperCase())) {
+                return ResponseEntity.badRequest().body("Invalid simulation_type. Must be one of: " + validTypes);
+            }
+            SimulationEstimateResultDto result = simulationService.runEstimate(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // History / sharing endpoints
     // ─────────────────────────────────────────────────────────────────────────
@@ -192,6 +284,20 @@ public class SimulationController {
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
             return ResponseEntity.status(404).body(ex.getMessage());
+        }
+    }
+
+    /**
+     * GET /api/simulations/colormaps
+     *
+     * Returns the list of available chart colormaps.
+     */
+    @GetMapping("/simulations/colormaps")
+    public ResponseEntity<?> getColormaps() {
+        try {
+            return ResponseEntity.ok(simulationService.getColormaps());
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
         }
     }
 }

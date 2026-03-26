@@ -13,6 +13,9 @@ public class ModulationComparisonResultDto {
     private double snr_max;
     private int snr_steps;
     private Map<String, Object> crossover_points;
+    private PerformanceDto performance;
+    private List<String> colors;
+    private String colormap_used;
 
     public List<Double> getSnr_db() { return snr_db; }
     public void setSnr_db(List<Double> snr_db) { this.snr_db = snr_db; }
@@ -40,4 +43,13 @@ public class ModulationComparisonResultDto {
 
     public Map<String, Object> getCrossover_points() { return crossover_points; }
     public void setCrossover_points(Map<String, Object> crossover_points) { this.crossover_points = crossover_points; }
+
+    public PerformanceDto getPerformance() { return performance; }
+    public void setPerformance(PerformanceDto performance) { this.performance = performance; }
+
+    public List<String> getColors() { return colors; }
+    public void setColors(List<String> colors) { this.colors = colors; }
+
+    public String getColormap_used() { return colormap_used; }
+    public void setColormap_used(String colormap_used) { this.colormap_used = colormap_used; }
 }

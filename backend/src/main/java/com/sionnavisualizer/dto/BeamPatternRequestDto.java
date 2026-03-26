@@ -19,6 +19,8 @@ public class BeamPatternRequestDto {
     @DecimalMin("0.1") @DecimalMax("2.0")
     private double array_spacing = 0.5;
 
+    private String colormap = "default";
+
     public BeamPatternRequestDto() {
     }
 
@@ -60,4 +62,7 @@ public class BeamPatternRequestDto {
     public void setArray_spacing(double array_spacing) {
         this.array_spacing = array_spacing;
     }
+
+    public String getColormap() { return colormap; }
+    public void setColormap(String colormap) { this.colormap = colormap; }
 }

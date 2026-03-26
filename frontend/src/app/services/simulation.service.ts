@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { SimulationResult, SimulationHistoryItem, SimulationRequest, BeamPatternRequest, BeamPatternResult, ModulationComparisonRequest, ModulationComparisonResult } from '../models/simulation-result.model';
+import { SimulationResult, SimulationHistoryItem, SimulationRequest, BeamPatternRequest, BeamPatternResult, ModulationComparisonRequest, ModulationComparisonResult, PathLossRequest, PathLossResult, SimulationEstimateRequest, SimulationEstimateResult, ColormapOption, RayDirectionRequest, RayDirectionResult, UeTrajectoryRequest, UeTrajectoryResult } from '../models/simulation-result.model';
 import { environment } from '../../environments/environment';
 
 export interface ComparisonMetadata {
@@ -38,6 +38,7 @@ export interface SimulationResultDto {
   shareToken: string;
   isPublic: boolean;
   createdAt: string;
+  colormapUsed?: string;
 }
 
 export interface ComparisonResponse {
@@ -95,6 +96,34 @@ export class SimulationService {
   }
 
   /**
+   * Triggers a Path Loss per-ray analysis simulation.
+   */
+  runPathLoss(request: PathLossRequest): Observable<PathLossResult> {
+    return this.http.post<PathLossResult>(`${environment.apiUrl}/api/simulations/path-loss`, request);
+  }
+
+  /**
+   * Estimates compute time for a given simulation — no DB write.
+   */
+  runEstimate(request: SimulationEstimateRequest): Observable<SimulationEstimateResult> {
+    return this.http.post<SimulationEstimateResult>(`${environment.apiUrl}/api/simulations/estimate`, request);
+  }
+
+  /**
+   * Triggers a new Ray Directions simulation and saves it.
+   */
+  runRayDirections(request: RayDirectionRequest): Observable<RayDirectionResult> {
+    return this.http.post<RayDirectionResult>(`${environment.apiUrl}/api/simulations/ray-directions`, request);
+  }
+
+  /**
+   * Triggers a new UE Trajectory simulation and saves it.
+   */
+  runUeTrajectory(request: UeTrajectoryRequest): Observable<UeTrajectoryResult> {
+    return this.http.post<UeTrajectoryResult>(`${environment.apiUrl}/api/simulations/ue-trajectory`, request);
+  }
+
+  /**
    * Compares two saved simulations by their IDs.
    */
   compareSimulations(id1: number, id2: number): Observable<ComparisonResponse> {
@@ -120,5 +149,12 @@ export class SimulationService {
    */
   getSimulationByShareToken(token: string): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/api/simulations/public/${token}`);
+  }
+
+  /**
+   * Fetches the list of available chart colormaps.
+   */
+  getColormaps(): Observable<ColormapOption[]> {
+    return this.http.get<ColormapOption[]>(`${environment.apiUrl}/api/simulations/colormaps`);
   }
 }

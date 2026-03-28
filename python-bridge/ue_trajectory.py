@@ -1,8 +1,8 @@
 import time
 import math
 import random
+import importlib.metadata
 import numpy as np
-import sionna
 from models import (
     UeTrajectoryRequest,
     UeTrajectoryResult,
@@ -154,7 +154,7 @@ def simulate_ue_trajectory(request: UeTrajectoryRequest) -> UeTrajectoryResult:
         duration_ms=duration_ms,
         compute_type="CPU",
         memory_mb=1.2,
-        sionna_version=sionna.__version__
+        sionna_version=importlib.metadata.version("sionna") if importlib.metadata.packages_distributions().get("sionna") else "N/A"
     )
 
     return UeTrajectoryResult(

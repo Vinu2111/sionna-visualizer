@@ -73,16 +73,11 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Rate Limiting (Bucket4j) -->
+		<!-- Rate Limiting (Bucket4j core - used directly in RateLimitingFilter) -->
 		<dependency>
 			<groupId>com.bucket4j</groupId>
 			<artifactId>bucket4j-core</artifactId>
-			<version>8.7.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.giffing.bucket4j.spring.boot.starter</groupId>
-			<artifactId>bucket4j-spring-boot-starter</artifactId>
-			<version>8.7.0</version>
+			<version>8.10.1</version>
 		</dependency>
 
 		<!-- Input Validation -->

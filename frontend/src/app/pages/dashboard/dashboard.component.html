@@ -1334,5 +1334,384 @@
       </div>
     </mat-tab>
 
+    <!-- ════════════════════════════════════════
+         Tab: Calibration (Feature 1)
+         ════════════════════════════════════════ -->
+    <mat-tab label="Calibration">
+      <div style="padding-top: 24px;">
+
+        <mat-card class="form-card">
+          <mat-card-header><mat-card-title>Calibration Parameters</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="calibForm" (ngSubmit)="runCalibration()" class="sim-form">
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Simulation Type</mat-label>
+                  <mat-select formControlName="simulationType">
+                    <mat-option value="AWGN">AWGN</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Environment</mat-label>
+                  <mat-select formControlName="environment">
+                    <mat-option value="urban">Urban</mat-option>
+                    <mat-option value="suburban">Suburban</mat-option>
+                    <mat-option value="rural">Rural</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Frequency (GHz)</mat-label>
+                  <mat-select formControlName="frequencyGhz">
+                    <mat-option [value]="28">28 GHz</mat-option>
+                    <mat-option [value]="39">39 GHz</mat-option>
+                    <mat-option [value]="60">60 GHz</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <mat-button-toggle-group [(ngModel)]="calibInputMode" [ngModelOptions]="{standalone: true}"
+                style="margin: 16px 0; background: #0d1b2a;">
+                <mat-button-toggle value="manual">Manual Entry</mat-button-toggle>
+                <mat-button-toggle value="csv">Upload CSV</mat-button-toggle>
+              </mat-button-toggle-group>
+
+              <div *ngIf="calibInputMode === 'manual'" class="meas-table-wrapper">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                    <tr>
+                      <th style="text-align:left; color:#aaaaaa; padding: 4px 8px;">SNR (dB)</th>
+                      <th style="text-align:left; color:#aaaaaa; padding: 4px 8px;">Measured BER</th>
+                      <th style="text-align:left; color:#aaaaaa; padding: 4px 8px;">Location (optional)</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of measurementRows; let i = index">
+                      <td style="padding: 4px;">
+                        <input type="number" [(ngModel)]="row.snr_db" [ngModelOptions]="{standalone: true}"
+                          class="meas-input" placeholder="e.g. 5">
+                      </td>
+                      <td style="padding: 4px;">
+                        <input type="number" [(ngModel)]="row.ber_measured" [ngModelOptions]="{standalone: true}"
+                          class="meas-input" placeholder="e.g. 0.05" step="0.001" min="0" max="1">
+                      </td>
+                      <td style="padding: 4px;">
+                        <input type="text" [(ngModel)]="row.location" [ngModelOptions]="{standalone: true}"
+                          class="meas-input" placeholder="Lab bench A">
+                      </td>
+                      <td style="padding: 4px;">
+                        <button mat-icon-button type="button" color="warn" (click)="removeCalibRow(i)" [disabled]="measurementRows.length <= 2">
+                          <mat-icon>remove_circle</mat-icon>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <button mat-stroked-button type="button" style="margin-top: 8px;" (click)="addCalibRow()">
+                  <mat-icon>add</mat-icon> Add Row
+                </button>
+              </div>
+
+              <div *ngIf="calibInputMode === 'csv'" class="csv-drop-zone"
+                   (click)="csvFileInput.click()"
+                   (dragover)="$event.preventDefault()"
+                   (drop)="onCsvDrop($event)">
+                <mat-icon style="font-size: 40px; height: 40px; width: 40px; color: #64ffda;">upload_file</mat-icon>
+                <p>Drag &amp; drop .csv file here, or click to browse</p>
+                <p style="color: #aaaaaa; font-size: 12px;">Format: snr_db,ber_measured,location</p>
+                <input #csvFileInput type="file" accept=".csv" style="display:none" (change)="onCsvFileSelected($event)">
+              </div>
+              <p *ngIf="csvLoadedMsg" style="color: #64ffda; font-size: 13px; margin-top:8px;">{{ csvLoadedMsg }}</p>
+
+              <div class="form-actions" style="margin-top: 16px;">
+                <button mat-raised-button color="primary" type="submit" [disabled]="calibForm.invalid || isCalibSimulating">
+                  <mat-spinner *ngIf="isCalibSimulating" diameter="18" style="display:inline-block;margin-right:6px;"></mat-spinner>
+                  <mat-icon *ngIf="!isCalibSimulating">science</mat-icon>
+                  {{ isCalibSimulating ? 'Calibrating...' : 'Run Calibration' }}
+                </button>
+                <button mat-stroked-button type="button" class="estimate-btn"
+                        [disabled]="isEstimating" (click)="estimateCalib()">
+                  <mat-icon>timer</mat-icon> Estimate Time
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <div class="chart-placeholder" *ngIf="!calibData && !isCalibSimulating">
+          <mat-icon>science</mat-icon>
+          <p>Input measurement data and run calibration analysis</p>
+        </div>
+
+        <ng-container *ngIf="calibData">
+          <div class="export-actions-row">
+            <button mat-stroked-button class="export-btn" (click)="downloadCsvCalib()" matTooltip="Download calibration CSV">
+              <mat-icon>grid_on</mat-icon> Download CSV
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="downloadPng('calibOverlay')" matTooltip="Download overlay chart">
+              <mat-icon>download</mat-icon> Overlay PNG
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="downloadPng('calibError')" matTooltip="Download error chart">
+              <mat-icon>download</mat-icon> Error PNG
+            </button>
+          </div>
+
+          <mat-card class="chart-card">
+            <button mat-icon-button class="chart-download-btn" (click)="downloadPng('calibOverlay')" matTooltip="Download chart as PNG">
+              <mat-icon>download</mat-icon>
+            </button>
+            <mat-card-header><mat-card-title>Simulation vs Measured BER</mat-card-title></mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas baseChart #calibOverlayChart="base-chart"
+                        [data]="calibOverlayChartData"
+                        [options]="calibOverlayChartOptions"
+                        type="line"></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+            <mat-card class="chart-card" style="margin-bottom: 0;">
+              <button mat-icon-button class="chart-download-btn" (click)="downloadPng('calibError')" matTooltip="Download chart as PNG">
+                <mat-icon>download</mat-icon>
+              </button>
+              <mat-card-header><mat-card-title>Calibration Error per Point</mat-card-title></mat-card-header>
+              <mat-card-content>
+                <div class="chart-wrapper">
+                  <canvas baseChart #calibErrorChart="base-chart"
+                          [data]="calibErrorChartData"
+                          [options]="calibErrorChartOptions"
+                          type="bar"></canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <div style="display: flex; flex-direction: column; gap: 12px; justify-content: center;">
+              <mat-card [ngStyle]="{'border-left': '4px solid ' + calibQualityColor(calibData.calibration_summary.calibration_quality), 'padding': '16px'}">
+                <div class="label" style="font-size: 12px;">Calibration Quality</div>
+                <div class="value" style="font-size: 24px; font-weight: 700; margin-top: 4px;"
+                     [style.color]="calibQualityColor(calibData.calibration_summary.calibration_quality)">
+                  {{ calibData.calibration_summary.calibration_quality }}
+                </div>
+              </mat-card>
+              <mat-card style="padding: 16px;">
+                <div class="label" style="font-size: 12px;">RMSE</div>
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#64ffda;">
+                  {{ calibData.calibration_summary.rmse | number:'1.4-4' }}
+                </div>
+              </mat-card>
+              <mat-card style="padding: 16px;">
+                <div class="label" style="font-size: 12px;">Systematic Offset</div>
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px;"
+                     [style.color]="calibData.calibration_summary.systematic_offset_db > 0 ? '#ff6b6b' : '#64ffda'">
+                  {{ calibData.calibration_summary.systematic_offset_db > 0 ? '+' : '' }}{{ calibData.calibration_summary.systematic_offset_db | number:'1.2-2' }} dB
+                </div>
+              </mat-card>
+              <mat-card style="padding: 16px;">
+                <div class="label" style="font-size: 12px;">Points Compared</div>
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#f7b731;">
+                  {{ calibData.calibration_summary.num_measurement_points }}
+                </div>
+              </mat-card>
+            </div>
+          </div>
+
+          <mat-card class="performance-card" *ngIf="calibData.performance"
+                    [ngStyle]="{'border-left': '4px solid #64ffda99', 'margin-top': '24px'}">
+            <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
+            <mat-card-content>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">
+                <div class="meta-item"><span class="label">Duration</span><span class="value">{{ calibData.performance.duration_ms }} ms</span></div>
+                <div class="meta-item"><span class="label">Compute</span><span class="value">{{ calibData.performance.compute_type }}</span></div>
+                <div class="meta-item"><span class="label">Memory</span><span class="value">{{ calibData.performance.memory_mb | number:'1.2-2' }} MB</span></div>
+                <div class="meta-item"><span class="label">Sionna</span><span class="value">v{{ calibData.performance.sionna_version }}</span></div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </ng-container>
+      </div>
+    </mat-tab>
+
+    <!-- ════════════════════════════════════════
+         Tab: SINR Analysis (Feature 2)
+         ════════════════════════════════════════ -->
+    <mat-tab label="SINR Analysis">
+      <div style="padding-top: 24px;">
+
+        <mat-card class="form-card">
+          <mat-card-header><mat-card-title>SINR Steering Parameters</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="sinrForm" (ngSubmit)="runSinrAnalysis()" class="sim-form">
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Number of Antennas</mat-label>
+                  <mat-select formControlName="numAntennas">
+                    <mat-option [value]="8">8 Elements</mat-option>
+                    <mat-option [value]="16">16 Elements</mat-option>
+                    <mat-option [value]="32">32 Elements</mat-option>
+                    <mat-option [value]="64">64 Elements</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Frequency</mat-label>
+                  <mat-select formControlName="frequencyGhz">
+                    <mat-option [value]="28">28 GHz</mat-option>
+                    <mat-option [value]="39">39 GHz</mat-option>
+                    <mat-option [value]="60">60 GHz</mat-option>
+                    <mat-option [value]="77">77 GHz</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Interference Angle (°)</mat-label>
+                  <input matInput type="number" formControlName="interferenceAngle" min="-90" max="90">
+                </mat-form-field>
+              </div>
+
+              <div class="steering-chips-row" style="margin: 8px 0 16px;">
+                <span class="slider-label" style="display:block; margin-bottom:8px;">Steering Angles</span>
+                <div class="chips-container">
+                  <div *ngFor="let angle of sinrSteeringAngles; let i = index" class="angle-chip">
+                    {{ angle }}°
+                    <button mat-icon-button class="chip-remove-btn" type="button" (click)="removeSinrAngle(i)">
+                      <mat-icon style="font-size:14px; width:14px; height:14px; line-height:14px;">close</mat-icon>
+                    </button>
+                  </div>
+                  <input class="meas-input angle-add-input" type="number" [(ngModel)]="newAngleInput"
+                         [ngModelOptions]="{standalone: true}"
+                         placeholder="Add °" min="-90" max="90"
+                         (keydown.enter)="addSinrAngle(); $event.preventDefault()">
+                  <button mat-stroked-button type="button" (click)="addSinrAngle()">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <div class="slider-row">
+                <div class="slider-field">
+                  <span class="slider-label">Signal Power ({{ sinrForm.get('signalPower')?.value }} dBm)</span>
+                  <mat-slider min="-20" max="20" step="1" discrete style="width: 100%;">
+                    <input matSliderThumb formControlName="signalPower">
+                  </mat-slider>
+                </div>
+                <div class="slider-field">
+                  <span class="slider-label">Interference Power ({{ sinrForm.get('interferencePower')?.value }} dBm)</span>
+                  <mat-slider min="-20" max="20" step="1" discrete style="width: 100%;">
+                    <input matSliderThumb formControlName="interferencePower">
+                  </mat-slider>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button mat-raised-button color="primary" type="submit" [disabled]="sinrForm.invalid || isSinrSimulating">
+                  <mat-spinner *ngIf="isSinrSimulating" diameter="18" style="display:inline-block;margin-right:6px;"></mat-spinner>
+                  <mat-icon *ngIf="!isSinrSimulating">radar</mat-icon>
+                  {{ isSinrSimulating ? 'Simulating...' : 'Run Simulation' }}
+                </button>
+                <button mat-stroked-button type="button" class="estimate-btn"
+                        [disabled]="isEstimating" (click)="estimateSinr()">
+                  <mat-icon>timer</mat-icon> Estimate Time
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <div class="chart-placeholder" *ngIf="!sinrData && !isSinrSimulating">
+          <mat-icon>radar</mat-icon>
+          <p>Configure antenna parameters and run SINR analysis</p>
+        </div>
+
+        <ng-container *ngIf="sinrData">
+          <div class="export-actions-row">
+            <button mat-stroked-button class="export-btn" (click)="downloadCsvSinr()" matTooltip="Download steering CSV">
+              <mat-icon>grid_on</mat-icon> Download CSV
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="downloadPng('sinrLine')" matTooltip="Download SINR chart">
+              <mat-icon>download</mat-icon> SINR PNG
+            </button>
+            <button mat-stroked-button class="export-btn" (click)="downloadPng('sinrPolar')" matTooltip="Download polar chart">
+              <mat-icon>download</mat-icon> Polar PNG
+            </button>
+          </div>
+
+          <mat-card class="chart-card">
+            <button mat-icon-button class="chart-download-btn" (click)="downloadPng('sinrLine')" matTooltip="Download chart as PNG">
+              <mat-icon>download</mat-icon>
+            </button>
+            <mat-card-header><mat-card-title>SINR vs Steering Angle</mat-card-title></mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas baseChart #sinrLineChart="base-chart"
+                        [data]="sinrLineChartData"
+                        [options]="sinrLineChartOptions"
+                        type="line"></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+            <mat-card class="chart-card" style="margin-bottom: 0;">
+              <button mat-icon-button class="chart-download-btn" (click)="downloadPng('sinrPolar')" matTooltip="Download chart as PNG">
+                <mat-icon>download</mat-icon>
+              </button>
+              <mat-card-header><mat-card-title>Beam vs Interference Pattern</mat-card-title></mat-card-header>
+              <mat-card-content>
+                <div class="chart-wrapper" style="height: 350px;">
+                  <canvas baseChart #sinrPolarChart="base-chart"
+                          [data]="sinrPolarChartData"
+                          [options]="sinrPolarChartOptions"
+                          type="radar"></canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <div style="display: flex; flex-direction: column; gap: 12px; justify-content: center;">
+              <mat-card style="padding: 16px; border-left: 4px solid #64ffda;">
+                <div class="label" style="font-size: 12px;">Optimal Angle</div>
+                <div class="value" style="font-size: 24px; font-weight: 700; margin-top: 4px; color:#64ffda;">
+                  {{ sinrData.optimal_steering.angle_deg }}°
+                </div>
+              </mat-card>
+              <mat-card style="padding: 16px;">
+                <div class="label" style="font-size: 12px;">Max SINR</div>
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#64ffda;">
+                  {{ sinrData.summary.max_sinr_db | number:'1.1-1' }} dB
+                </div>
+              </mat-card>
+              <mat-card style="padding: 16px;">
+                <div class="label" style="font-size: 12px;">SINR Range</div>
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#f7b731;">
+                  {{ sinrData.summary.sinr_range_db | number:'1.1-1' }} dB
+                </div>
+              </mat-card>
+              <mat-card style="padding: 16px;">
+                <div class="label" style="font-size: 12px;">Angles above 10 dB</div>
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#64ffda;">
+                  {{ sinrData.summary.num_angles_above_10db }}
+                </div>
+              </mat-card>
+            </div>
+          </div>
+
+          <mat-card class="performance-card" *ngIf="sinrData.performance"
+                    [ngStyle]="{'border-left': '4px solid #64ffda99', 'margin-top': '24px'}">
+            <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
+            <mat-card-content>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">
+                <div class="meta-item"><span class="label">Duration</span><span class="value">{{ sinrData.performance.duration_ms }} ms</span></div>
+                <div class="meta-item"><span class="label">Compute</span><span class="value">{{ sinrData.performance.compute_type }}</span></div>
+                <div class="meta-item"><span class="label">Memory</span><span class="value">{{ sinrData.performance.memory_mb | number:'1.2-2' }} MB</span></div>
+                <div class="meta-item"><span class="label">Sionna</span><span class="value">v{{ sinrData.performance.sionna_version }}</span></div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </ng-container>
+      </div>
+    </mat-tab>
+
   </mat-tab-group>
+
 </div>

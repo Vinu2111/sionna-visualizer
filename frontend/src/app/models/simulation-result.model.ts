@@ -295,3 +295,90 @@ export interface UeTrajectoryResult {
   colors?: string[];
   colormap_used?: string;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Feature 1: Measurement Overlay / Calibration
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface MeasurementPointInput {
+  snr_db: number;
+  ber_measured: number;
+  location?: string;
+}
+
+export interface MeasurementOverlayRequest {
+  simulation_type: string;
+  simulation_id?: number;
+  measurements: MeasurementPointInput[];
+  frequency_ghz: number;
+  environment: string;
+}
+
+export interface ComparisonPoint {
+  snr_db: number;
+  ber_simulated: number;
+  ber_measured: number;
+  absolute_error: number;
+  relative_error_percent: number;
+  error_db: number | null;
+  location?: string;
+}
+
+export interface CalibrationSummary {
+  mean_absolute_error: number;
+  rmse: number;
+  calibration_quality: string;
+  systematic_offset_db: number;
+  max_error_point: number;
+  num_measurement_points: number;
+}
+
+export interface MeasurementOverlayResult {
+  comparison_points: ComparisonPoint[];
+  calibration_summary: CalibrationSummary;
+  simulation_type: string;
+  performance?: PerformanceMetadata;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Feature 2: SINR Steering
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SinrSteeringRequest {
+  num_antennas: number;
+  frequency_ghz: number;
+  steering_angles: number[];
+  interference_angle_deg: number;
+  signal_power_dbm: number;
+  interference_power_dbm: number;
+}
+
+export interface SteeringResult {
+  steering_angle_deg: number;
+  array_gain_db: number;
+  interference_gain_db: number;
+  sinr_db: number;
+  efficiency_percent: number;
+  is_optimal: boolean;
+}
+
+export interface OptimalSteering {
+  angle_deg: number;
+  sinr_db: number;
+  array_gain_db: number;
+}
+
+export interface SinrSummary {
+  max_sinr_db: number;
+  min_sinr_db: number;
+  sinr_range_db: number;
+  num_angles_above_10db: number;
+  interference_null_angle: number;
+}
+
+export interface SinrSteeringResult {
+  steering_results: SteeringResult[];
+  optimal_steering: OptimalSteering;
+  summary: SinrSummary;
+  performance?: PerformanceMetadata;
+}

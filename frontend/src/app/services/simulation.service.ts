@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { SimulationResult, SimulationHistoryItem, SimulationRequest, BeamPatternRequest, BeamPatternResult, ModulationComparisonRequest, ModulationComparisonResult, PathLossRequest, PathLossResult, SimulationEstimateRequest, SimulationEstimateResult, ColormapOption, RayDirectionRequest, RayDirectionResult, UeTrajectoryRequest, UeTrajectoryResult } from '../models/simulation-result.model';
+import { SimulationResult, SimulationHistoryItem, SimulationRequest, BeamPatternRequest, BeamPatternResult, ModulationComparisonRequest, ModulationComparisonResult, PathLossRequest, PathLossResult, SimulationEstimateRequest, SimulationEstimateResult, ColormapOption, RayDirectionRequest, RayDirectionResult, UeTrajectoryRequest, UeTrajectoryResult, MeasurementOverlayRequest, MeasurementOverlayResult, SinrSteeringRequest, SinrSteeringResult } from '../models/simulation-result.model';
 import { environment } from '../../environments/environment';
 
 export interface ComparisonMetadata {
@@ -156,5 +156,19 @@ export class SimulationService {
    */
   getColormaps(): Observable<ColormapOption[]> {
     return this.http.get<ColormapOption[]>(`${environment.apiUrl}/api/simulations/colormaps`);
+  }
+
+  /**
+   * Runs measurement overlay calibration — compares real BER data against simulation.
+   */
+  runMeasurementOverlay(request: MeasurementOverlayRequest): Observable<MeasurementOverlayResult> {
+    return this.http.post<MeasurementOverlayResult>(`${environment.apiUrl}/api/simulations/measurement-overlay`, request);
+  }
+
+  /**
+   * Computes SINR vs steering angle for a ULA with interference.
+   */
+  runSinrSteering(request: SinrSteeringRequest): Observable<SinrSteeringResult> {
+    return this.http.post<SinrSteeringResult>(`${environment.apiUrl}/api/simulations/sinr-steering`, request);
   }
 }

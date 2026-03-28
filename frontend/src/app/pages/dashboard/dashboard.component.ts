@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
@@ -18,11 +19,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ViewChild } from '@angular/core';
-import { BaseChartDirective } from 'ng2-charts';
+import { BaseChartDirective, NgChartsModule } from 'ng2-charts';
 import { ExportService } from '../../services/export.service';
 import { ChartConfiguration, ChartOptions, ChartData } from 'chart.js';
-import { NgChartsModule } from 'ng2-charts';
 import { SimulationService } from '../../services/simulation.service';
 import {
   SimulationResult, SimulationRequest,
@@ -31,7 +30,9 @@ import {
   ChannelCapacityRequest, ChannelCapacityResult,
   PathLossRequest, PathLossResult, PathDto,
   SimulationEstimateRequest, SimulationEstimateResult,
-  RayDirectionRequest, RayDirectionResult, RayDirectionPath, RayDirectionSummary
+  RayDirectionRequest, RayDirectionResult, RayDirectionPath, RayDirectionSummary,
+  MeasurementOverlayRequest, MeasurementOverlayResult, ComparisonPoint, MeasurementPointInput,
+  SinrSteeringRequest, SinrSteeringResult
 } from '../../models/simulation-result.model';
 import { ColormapSelectorComponent } from '../../components/colormap-selector/colormap-selector.component';
 import { UeTrajectoryComponent } from '../../components/ue-trajectory/ue-trajectory.component';
@@ -59,7 +60,7 @@ function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatSliderModule,
+    MatButtonToggleModule,
     MatSliderModule,
     MatCheckboxModule,
     MatTabsModule,
@@ -92,6 +93,26 @@ export class DashboardComponent implements OnInit {
   isRaySimulating = false;
   loadError = false;
 
+  calibData: MeasurementOverlayResult | null = null;
+  sinrData: SinrSteeringResult | null = null;
+  isCalibSimulating = false;
+  isSinrSimulating = false;
+  
+  // Calibration specific state
+  calibInputMode: 'manual' | 'csv' = 'manual';
+  measurementRows: MeasurementPointInput[] = [
+    { snr_db: -5, ber_measured: 0.150, location: '' },
+    { snr_db: 0, ber_measured: 0.080, location: '' },
+    { snr_db: 5, ber_measured: 0.030, location: '' },
+    { snr_db: 10, ber_measured: 0.005, location: '' }
+  ];
+  csvLoadedMsg = '';
+
+  // SINR specific state
+  sinrSteeringAngles: number[] = [-60, -45, -30, -15, 0, 15, 30, 45, 60];
+  newAngleInput: number | null = null;
+
+
   @ViewChild('berChart') berChart?: BaseChartDirective;
   @ViewChild('beamChart') beamChart?: BaseChartDirective;
   @ViewChild('modChart') modChart?: BaseChartDirective;
@@ -103,6 +124,12 @@ export class DashboardComponent implements OnInit {
   @ViewChild('rayDepChart') rayDepChart?: BaseChartDirective;
   @ViewChild('rayArrChart') rayArrChart?: BaseChartDirective;
 
+  @ViewChild('calibOverlayChart') calibOverlayChart?: BaseChartDirective;
+  @ViewChild('calibErrorChart') calibErrorChart?: BaseChartDirective;
+  @ViewChild('sinrLineChart') sinrLineChart?: BaseChartDirective;
+  @ViewChild('sinrPolarChart') sinrPolarChart?: BaseChartDirective;
+
+
   apiKeys: any[] = [];
   newKeyDescription = '';
   isRevoking = false;
@@ -113,6 +140,10 @@ export class DashboardComponent implements OnInit {
   capForm: FormGroup;
   pathLossForm: FormGroup;
   rayForm: FormGroup;
+
+  calibForm: FormGroup;
+  sinrForm: FormGroup;
+
 
   // ─── Estimate state shared across all tabs ──────────────────────────────
   estimate: SimulationEstimateResult | null = null;
@@ -377,6 +408,77 @@ export class DashboardComponent implements OnInit {
     scales: { r: { grid: { color: '#1e2a3a' }, ticks: { display: false }, angleLines: { color: '#1e2a3a' } } }
   };
 
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Calibration Overlay
+  // ─────────────────────────────────────────────────────────────────────────
+  public calibOverlayChartData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: [
+      { data: [], label: 'Theoretical AWGN', fill: false, tension: 0.1, borderDash: [5, 5], borderColor: '#64ffda', pointRadius: 0 },
+      { data: [], label: 'Measured BER', fill: false, tension: 0, borderColor: '#ff6b6b', backgroundColor: '#ff6b6b', showLine: false, pointRadius: 5, pointStyle: 'rect' }
+    ]
+  };
+  public calibOverlayChartOptions: ChartOptions<'line'> = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#eeeeee' } }, title: { display: true, text: 'Expected vs Actual BER', color: '#eeeeee' } },
+    scales: {
+      y: { type: 'logarithmic', title: { display: true, text: 'BER', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { color: '#1e2a3a' } },
+      x: { title: { display: true, text: 'SNR (dB)', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { color: '#1e2a3a' } }
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: Calibration Error (Bar)
+  // ─────────────────────────────────────────────────────────────────────────
+  public calibErrorChartData: ChartConfiguration<'bar'>['data'] = {
+    labels: [],
+    datasets: [{ data: [], label: 'Relative Error (%)', backgroundColor: [] }]
+  };
+  public calibErrorChartOptions: ChartOptions<'bar'> = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Relative Error per Point', color: '#eeeeee' } },
+    scales: {
+      y: { title: { display: true, text: 'Error (%)', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { color: '#1e2a3a' } },
+      x: { title: { display: true, text: 'Measurement SNR (dB)', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { display: false } }
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: SINR Line
+  // ─────────────────────────────────────────────────────────────────────────
+  public sinrLineChartData: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: [
+      { data: [], label: 'SINR (dB)', fill: false, tension: 0.1, borderColor: '#64ffda', pointBackgroundColor: '#64ffda' },
+      { data: [], label: 'Array Gain (dB)', fill: false, tension: 0.1, borderDash: [5, 5], borderColor: '#aaaaaa', pointRadius: 0 }
+    ]
+  };
+  public sinrLineChartOptions: ChartOptions<'line'> = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#eeeeee' } }, title: { display: true, text: 'Beamforming Performance', color: '#eeeeee' } },
+    scales: {
+      y: { title: { display: true, text: 'dB', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { color: '#1e2a3a' } },
+      x: { title: { display: true, text: 'Steering Angle (\xb0)', color: '#aaaaaa' }, ticks: { color: '#aaaaaa' }, grid: { color: '#1e2a3a' } }
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Chart Config: SINR Polar
+  // ─────────────────────────────────────────────────────────────────────────
+  public sinrPolarChartData: ChartConfiguration<'radar'>['data'] = {
+    labels: [],
+    datasets: [
+      { data: [], label: 'Beam Pattern at Optimal Angle', borderColor: '#64ffda', backgroundColor: 'rgba(100, 255, 218, 0.2)', borderWidth: 2, pointRadius: 0 },
+      { data: [], label: 'Interference Direction', borderColor: '#ff6b6b', backgroundColor: 'rgba(255, 107, 107, 0.5)', borderWidth: 3, pointStyle: 'triangle', pointRadius: 5 }
+    ]
+  };
+  public sinrPolarChartOptions: ChartOptions<'radar'> = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { title: { display: true, text: 'Spatial Filtering', color: '#eeeeee' }, legend: { labels: { color: '#eeeeee' } } },
+    scales: { r: { angleLines: { color: 'rgba(255, 255, 255, 0.1)' }, grid: { color: 'rgba(255, 255, 255, 0.1)' }, pointLabels: { color: '#eeeeee', font: { size: 10 } }, ticks: { display: false } } }
+  };
+
   public lineChartLegend = true;
 
   constructor(
@@ -403,6 +505,22 @@ export class DashboardComponent implements OnInit {
       colormap: ['default']
     });
 
+    this.calibForm = this.fb.group({
+      simulationType: ['AWGN', Validators.required],
+      environment: ['urban', Validators.required],
+      frequencyGhz: [28, Validators.required]
+    });
+
+    this.sinrForm = this.fb.group({
+      numAntennas: [16, Validators.required],
+      frequencyGhz: [28, [Validators.required, Validators.min(1), Validators.max(100)]],
+      interferenceAngle: [45, [Validators.required, Validators.min(-90), Validators.max(90)]],
+      signalPower: [0, Validators.required],
+      interferencePower: [-10, Validators.required],
+      colormap: ['default']
+    });
+
+
     this.modForm = this.fb.group({
       snrMin: [-5, [Validators.required, Validators.min(-15), Validators.max(10)]],
       snrMax: [25, [Validators.required, Validators.min(15), Validators.max(40)]],
@@ -428,6 +546,22 @@ export class DashboardComponent implements OnInit {
       colormap: ['default']
     });
 
+    this.calibForm = this.fb.group({
+      simulationType: ['AWGN', Validators.required],
+      environment: ['urban', Validators.required],
+      frequencyGhz: [28, Validators.required]
+    });
+
+    this.sinrForm = this.fb.group({
+      numAntennas: [16, Validators.required],
+      frequencyGhz: [28, [Validators.required, Validators.min(1), Validators.max(100)]],
+      interferenceAngle: [45, [Validators.required, Validators.min(-90), Validators.max(90)]],
+      signalPower: [0, Validators.required],
+      interferencePower: [-10, Validators.required],
+      colormap: ['default']
+    });
+
+
     this.rayForm = this.fb.group({
       num_paths: [8, Validators.required],
       frequency_ghz: [28, [Validators.required, Validators.min(1), Validators.max(100)]],
@@ -440,6 +574,22 @@ export class DashboardComponent implements OnInit {
       rx_h: [1.5, Validators.required],
       colormap: ['default']
     });
+
+    this.calibForm = this.fb.group({
+      simulationType: ['AWGN', Validators.required],
+      environment: ['urban', Validators.required],
+      frequencyGhz: [28, Validators.required]
+    });
+
+    this.sinrForm = this.fb.group({
+      numAntennas: [16, Validators.required],
+      frequencyGhz: [28, [Validators.required, Validators.min(1), Validators.max(100)]],
+      interferenceAngle: [45, [Validators.required, Validators.min(-90), Validators.max(90)]],
+      signalPower: [0, Validators.required],
+      interferencePower: [-10, Validators.required],
+      colormap: ['default']
+    });
+
   }
 
   ngOnInit(): void {
@@ -931,7 +1081,7 @@ export class DashboardComponent implements OnInit {
   // EXPORT METHODS
   // ─────────────────────────────────────────────────────────────────────────
 
-  downloadPng(chartType: 'ber' | 'beam' | 'mod' | 'cap' | 'spectral' | 'path-loss-bar' | 'path-loss-scatter' | 'path-loss-delay' | 'ray-dep' | 'ray-arr'): void {
+  downloadPng(chartType: 'ber' | 'beam' | 'mod' | 'cap' | 'spectral' | 'path-loss-bar' | 'path-loss-scatter' | 'path-loss-delay' | 'ray-dep' | 'ray-arr' | 'calibOverlay' | 'calibError' | 'sinrLine' | 'sinrPolar'): void {
     let chart: BaseChartDirective | undefined;
     let filename = '';
 
@@ -1055,6 +1205,272 @@ export class DashboardComponent implements OnInit {
     }
     const wrapped = this.exportService.wrapWithMetadata(simType, data);
     this.exportService.downloadJSON(filename, wrapped);
+  }
+
+
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Calibration Features
+  // ─────────────────────────────────────────────────────────────────────────
+  addCalibRow() {
+    this.measurementRows.push({ snr_db: 0, ber_measured: 0.05, location: '' });
+  }
+
+  removeCalibRow(index: number) {
+    if (this.measurementRows.length > 2) {
+      this.measurementRows.splice(index, 1);
+    }
+  }
+
+  onCsvFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) this.processCsvFile(file);
+  }
+
+  onCsvDrop(event: DragEvent) {
+    event.preventDefault();
+    if (event.dataTransfer?.files.length) {
+      this.processCsvFile(event.dataTransfer.files[0]);
+    }
+  }
+
+  private processCsvFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const lines = text.split('\n').filter(l => l.trim().length > 0);
+      const parsed: MeasurementPointInput[] = [];
+      
+      // Skip header if it exists
+      let startIdx = 0;
+      if (lines[0].toLowerCase().includes('snr')) startIdx = 1;
+
+      for (let i = startIdx; i < lines.length; i++) {
+        const parts = lines[i].split(',');
+        if (parts.length >= 2) {
+          const snr = parseFloat(parts[0]);
+          const ber = parseFloat(parts[1]);
+          if (!isNaN(snr) && !isNaN(ber)) {
+            parsed.push({ snr_db: snr, ber_measured: ber, location: parts[2] ? parts[2].trim() : '' });
+          }
+        }
+      }
+      
+      if (parsed.length >= 2) {
+        this.measurementRows = parsed;
+        this.csvLoadedMsg = `Loaded ${parsed.length} measurement points successfully.`;
+      } else {
+        this.snackBar.open('Invalid CSV format. Need at least 2 data rows.', 'Close', { duration: 3000 });
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  runCalibration() {
+    if (this.calibForm.invalid || this.measurementRows.length < 2) return;
+    this.isCalibSimulating = true;
+    this.calibData = null;
+    this.dismissEstimate();
+
+    const request: MeasurementOverlayRequest = {
+      ...this.calibForm.value,
+      measurements: this.measurementRows
+    };
+
+    this.simulationService.runMeasurementOverlay(request).subscribe({
+      next: (res) => {
+        this.calibData = res;
+        this.updateCalibCharts(res);
+        this.isCalibSimulating = false;
+      },
+      error: (err) => {
+        this.isCalibSimulating = false;
+        this.snackBar.open('Calibration failed: ' + (err.error || err.message), 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  estimateCalib() {
+    if (this.calibForm.invalid) return;
+    this.isEstimating = true;
+    this.estimateTab = 'AWGN';
+    const req = {
+      simulation_type: 'MEASUREMENT_OVERLAY',
+      parameters: { ...this.calibForm.value, points: this.measurementRows.length }
+    };
+    this.simulationService.runEstimate(req).subscribe({
+      next: (res) => { this.estimate = res; this.isEstimating = false; },
+      error: () => { this.isEstimating = false; this.snackBar.open('Estimate failed', 'OK', {duration:2000}); }
+    });
+  }
+
+  updateCalibCharts(data: MeasurementOverlayResult) {
+    if (!data.comparison_points || data.comparison_points.length === 0) return;
+    
+    const sorted = [...data.comparison_points].sort((a, b) => a.snr_db - b.snr_db);
+    const snrs = sorted.map(p => p.snr_db);
+    const berSim = sorted.map(p => p.ber_simulated);
+    const berMeas = sorted.map(p => Math.max(p.ber_measured, 1e-10)); // prevent log(0) error
+    
+    // Overlay Chart
+    this.calibOverlayChartData.labels = snrs;
+    this.calibOverlayChartData.datasets[0].data = berSim;
+    this.calibOverlayChartData.datasets[1].data = berMeas;
+    if (this.calibOverlayChart) this.calibOverlayChart.update();
+
+    // Error Bar Chart
+    const errors = sorted.map(p => p.relative_error_percent);
+    const colors = errors.map(e => e < 10 ? '#64ffda' : e < 30 ? '#f7b731' : '#ff6b6b');
+    
+    this.calibErrorChartData.labels = snrs.map(s => s + ' dB');
+    this.calibErrorChartData.datasets[0].data = errors;
+    this.calibErrorChartData.datasets[0].backgroundColor = colors;
+    if (this.calibErrorChart) this.calibErrorChart.update();
+  }
+
+  calibQualityColor(quality: string): string {
+    switch(quality.toLowerCase()) {
+      case 'excellent': return '#64ffda';
+      case 'good': return '#45aaf2';
+      case 'fair': return '#f7b731';
+      case 'poor': return '#ff6b6b';
+      default: return '#aaaaaa';
+    }
+  }
+
+  downloadCsvCalib() {
+    if (!this.calibData) return;
+    let csv = 'SNR_dB,BER_Simulated,BER_Measured,AbsoluteError,RelativeErrorPct,Location\n';
+    this.calibData.comparison_points.forEach(p => {
+      csv += `${p.snr_db},${p.ber_simulated},${p.ber_measured},${p.absolute_error},${p.relative_error_percent},${p.location || ''}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `calibration_overlay_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SINR Steering Features
+  // ─────────────────────────────────────────────────────────────────────────
+  addSinrAngle() {
+    if (this.newAngleInput !== null && this.newAngleInput >= -90 && this.newAngleInput <= 90) {
+      if (!this.sinrSteeringAngles.includes(this.newAngleInput)) {
+        this.sinrSteeringAngles.push(this.newAngleInput);
+        this.sinrSteeringAngles.sort((a,b) => a - b);
+      }
+      this.newAngleInput = null;
+    }
+  }
+
+  removeSinrAngle(index: number) {
+    if (this.sinrSteeringAngles.length > 1) {
+      this.sinrSteeringAngles.splice(index, 1);
+    }
+  }
+
+  runSinrAnalysis() {
+    if (this.sinrForm.invalid || this.sinrSteeringAngles.length === 0) return;
+    this.isSinrSimulating = true;
+    this.sinrData = null;
+    this.dismissEstimate();
+
+    const request: SinrSteeringRequest = {
+      ...this.sinrForm.value,
+      steering_angles: this.sinrSteeringAngles
+    };
+
+    this.simulationService.runSinrSteering(request).subscribe({
+      next: (res) => {
+        this.sinrData = res;
+        this.updateSinrCharts(res);
+        this.isSinrSimulating = false;
+      },
+      error: (err) => {
+        this.isSinrSimulating = false;
+        this.snackBar.open('SINR analysis failed: ' + (err.error || err.message), 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  estimateSinr() {
+    if (this.sinrForm.invalid) return;
+    this.isEstimating = true;
+    this.estimateTab = 'SINR_STEERING';
+    const req = {
+      simulation_type: 'SINR_STEERING',
+      parameters: { ...this.sinrForm.value, angles: this.sinrSteeringAngles.length }
+    };
+    this.simulationService.runEstimate(req).subscribe({
+      next: (res) => { this.estimate = res; this.isEstimating = false; },
+      error: () => { this.isEstimating = false; this.snackBar.open('Estimate failed', 'OK', {duration:2000}); }
+    });
+  }
+
+  updateSinrCharts(data: SinrSteeringResult) {
+    if (!data.steering_results || data.steering_results.length === 0) return;
+
+    // Line chart
+    const angles = data.steering_results.map(r => r.steering_angle_deg);
+    const sinr = data.steering_results.map(r => r.sinr_db);
+    const ag = data.steering_results.map(r => r.array_gain_db);
+
+    this.sinrLineChartData.labels = angles;
+    this.sinrLineChartData.datasets[0].data = sinr;
+    this.sinrLineChartData.datasets[1].data = ag;
+    if (this.sinrLineChart) this.sinrLineChart.update();
+
+    // Polar chart mapping to simulate an antenna pattern
+    // The true pattern requires dense sampling, but we map steering array responses onto it.
+    // We create a mock dense pattern for visual effect, highlighting the interference angle.
+    const mockAngles = [];
+    const patternDb = [];
+    const intLayer = [];
+    const optAngle = data.optimal_steering.angle_deg;
+    const intAngle = this.sinrForm.get('interferenceAngle')?.value || 0;
+
+    for (let a = -90; a <= 90; a += 5) {
+      mockAngles.push(a + '\xb0');
+      // Simple sync function approx for ULA pattern visual centered at optimal angle
+      const diff = Math.abs(a - optAngle);
+      const val = diff === 0 ? 0 : 20 * Math.log10(Math.abs(Math.sin((Math.PI * diff)/30) / ((Math.PI * diff)/30) + 1e-2));
+      patternDb.push(Math.max(-40, val));
+      
+      // Interference vector: spike at exactly intAngle
+      if (Math.abs(a - intAngle) <= 5) {
+        intLayer.push(0); // OdB (edge of radar)
+      } else {
+        intLayer.push(null);
+      }
+    }
+
+    this.sinrPolarChartData.labels = mockAngles;
+    this.sinrPolarChartData.datasets[0].data = patternDb;
+    this.sinrPolarChartData.datasets[1].data = intLayer;
+    
+    // Auto adjust scales
+    if (this.sinrPolarChartOptions && this.sinrPolarChartOptions.scales && this.sinrPolarChartOptions.scales['r']) {
+      this.sinrPolarChartOptions.scales['r'].min = -40;
+    }
+    if (this.sinrPolarChart) this.sinrPolarChart.update();
+  }
+
+  downloadCsvSinr() {
+    if (!this.sinrData) return;
+    let csv = 'SteeringAngleDeg,ArrayGainDb,InterferenceGainDb,SinrDb,EfficiencyPct,IsOptimal\n';
+    this.sinrData.steering_results.forEach(r => {
+      csv += `${r.steering_angle_deg},${r.array_gain_db},${r.interference_gain_db},${r.sinr_db},${r.efficiency_percent},${r.is_optimal}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sinr_steering_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   copyJson(type: 'ber' | 'beam' | 'mod' | 'cap' | 'path-loss' | 'ray-dir'): void {

@@ -19,6 +19,10 @@ import com.sionnavisualizer.dto.RayDirectionRequestDto;
 import com.sionnavisualizer.dto.RayDirectionResultDto;
 import com.sionnavisualizer.dto.UeTrajectoryRequestDto;
 import com.sionnavisualizer.dto.UeTrajectoryResultDto;
+import com.sionnavisualizer.dto.MeasurementOverlayRequestDto;
+import com.sionnavisualizer.dto.MeasurementOverlayResultDto;
+import com.sionnavisualizer.dto.SinrSteeringRequestDto;
+import com.sionnavisualizer.dto.SinrSteeringResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.repository.SimulationResultRepository;
 import org.springframework.stereotype.Service;
@@ -633,6 +637,72 @@ public class SimulationService {
         } catch (Exception e) {
             logger.error("Failed to fetch colormaps: {}", e.getMessage());
             throw new RuntimeException("Could not fetch colormaps from Python bridge");
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Measurement Overlay
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public MeasurementOverlayResultDto runMeasurementOverlay(MeasurementOverlayRequestDto request) {
+        String endpoint = buildSimulateUrl() + "/measurement-overlay";
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
+            MeasurementOverlayResultDto dto = objectMapper.readValue(response.getBody(), MeasurementOverlayResultDto.class);
+
+            SimulationResult entity = new SimulationResult();
+            entity.setSimulationType("MEASUREMENT_OVERLAY");
+            entity.setCreatedAt(LocalDateTime.now());
+            entity.setIsPublic(false);
+            entity.setHardwareUsed("simType=" + request.getSimulationType() + "; env=" + request.getEnvironment());
+
+            if (dto.getPerformance() != null) {
+                entity.setDurationMs(dto.getPerformance().getDuration_ms());
+                entity.setComputeType(dto.getPerformance().getCompute_type());
+                entity.setMemoryMb(dto.getPerformance().getMemory_mb());
+                entity.setSionnaVersion(dto.getPerformance().getSionna_version());
+            }
+
+            entity.setSnrDb(objectMapper.writeValueAsString(dto.getComparisonPoints()));
+            simulationResultRepository.save(entity);
+            return dto;
+        } catch (Exception e) {
+            logger.error("Measurement overlay failed: {}", e.getMessage());
+            throw new RuntimeException("Measurement overlay failed: " + e.getMessage(), e);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SINR Steering
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public SinrSteeringResultDto runSinrSteering(SinrSteeringRequestDto request) {
+        String endpoint = buildSimulateUrl() + "/sinr-steering";
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
+            SinrSteeringResultDto dto = objectMapper.readValue(response.getBody(), SinrSteeringResultDto.class);
+
+            SimulationResult entity = new SimulationResult();
+            entity.setSimulationType("SINR_STEERING");
+            entity.setCreatedAt(LocalDateTime.now());
+            entity.setIsPublic(false);
+            entity.setNumAntennas(request.getNumAntennas());
+            entity.setFrequencyGhz(java.math.BigDecimal.valueOf(request.getFrequencyGhz()));
+            entity.setHardwareUsed("antennas=" + request.getNumAntennas() + "; freq=" + request.getFrequencyGhz());
+
+            if (dto.getPerformance() != null) {
+                entity.setDurationMs(dto.getPerformance().getDuration_ms());
+                entity.setComputeType(dto.getPerformance().getCompute_type());
+                entity.setMemoryMb(dto.getPerformance().getMemory_mb());
+                entity.setSionnaVersion(dto.getPerformance().getSionna_version());
+            }
+
+            entity.setSnrDb(objectMapper.writeValueAsString(dto.getSteeringResults()));
+            simulationResultRepository.save(entity);
+            return dto;
+        } catch (Exception e) {
+            logger.error("SINR steering failed: {}", e.getMessage());
+            throw new RuntimeException("SINR steering failed: " + e.getMessage(), e);
         }
     }
 

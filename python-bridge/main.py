@@ -22,7 +22,9 @@ from models import (
     PathLossRequest, PathLossResult,
     SimulationEstimateRequest, SimulationEstimateResult,
     RayDirectionRequest, RayDirectionResult,
-    UeTrajectoryRequest, UeTrajectoryResult
+    UeTrajectoryRequest, UeTrajectoryResult,
+    MeasurementOverlayRequest, MeasurementOverlayResult,
+    SinrSteeringRequest, SinrSteeringResult
 )
 from sionna_runner import run_awgn_simulation
 from beam_pattern import compute_ula_beam_pattern
@@ -34,6 +36,8 @@ from estimate import compute_estimate
 from colormap import colormap_service
 from ray_directions import compute_ray_directions
 from ue_trajectory import simulate_ue_trajectory
+from measurement_overlay import compute_measurement_overlay
+from sinr_steering import compute_sinr_steering
 
 app = FastAPI(
     title="Sionna Visualizer Bridge",
@@ -374,6 +378,60 @@ async def simulate_estimate(request: SimulationEstimateRequest):
             status_code=500,
             detail=f"Failed to generate estimate: {str(exc)}",
         )
+
+
+# ---------------------------------------------------------------------------
+# Measurement Overlay endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/measurement-overlay", response_model=MeasurementOverlayResult)
+async def simulate_measurement_overlay(request: MeasurementOverlayRequest):
+    """
+    Compare real-world BER measurements against simulated AWGN curve.
+    Returns calibration quality, error analysis, and comparison points.
+    """
+    try:
+        measurements_raw = [m.model_dump() for m in request.measurements]
+        result = await run_with_performance(
+            compute_measurement_overlay,
+            request.simulation_type,
+            request.simulation_id,
+            measurements_raw,
+            request.frequency_ghz,
+            request.environment,
+        )
+        return MeasurementOverlayResult(**result)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=408, detail="Measurement overlay timed out.")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Measurement overlay failed: {str(exc)}")
+
+
+# ---------------------------------------------------------------------------
+# SINR Steering endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/sinr-steering", response_model=SinrSteeringResult)
+async def simulate_sinr_steering(request: SinrSteeringRequest):
+    """
+    Compute SINR across steering angles for a ULA with a defined interferer.
+    Returns per-angle array gain, interference suppression, SINR, and efficiency.
+    """
+    try:
+        result = await run_with_performance(
+            compute_sinr_steering,
+            request.num_antennas,
+            request.frequency_ghz,
+            request.steering_angles,
+            request.interference_angle_deg,
+            request.signal_power_dbm,
+            request.interference_power_dbm,
+        )
+        return SinrSteeringResult(**result)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=408, detail="SINR steering computation timed out.")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"SINR steering computation failed: {str(exc)}")
 
 
 # ---------------------------------------------------------------------------

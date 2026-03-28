@@ -198,12 +198,17 @@
       </mat-card>
     </div>
 
-    <!-- Performance Details -->
-    <app-performance-card 
-      [performance]="result.performance"
-      [hardwareUsed]="'Python CPU / D3 Renderer'"
-      [colormapUsed]="result.colormap_used">
-    </app-performance-card>
+    <mat-card class="performance-card" *ngIf="result.performance" style="margin-top:24px;">
+      <mat-card-header>
+        <mat-card-title>Compute Performance</mat-card-title>
+      </mat-card-header>
+      <mat-card-content style="display:flex; justify-content:space-between; margin-top:16px;">
+        <div><span>Duration:</span> {{ result.performance.duration_ms }} ms</div>
+        <div><span>Compute:</span> {{ result.performance.compute_type }}</div>
+        <div><span>Memory:</span> {{ result.performance.memory_mb | number:'1.2-2' }} MB</div>
+        <div><span>Sionna:</span> v{{ result.performance.sionna_version }}</div>
+      </mat-card-content>
+    </mat-card>
 
   </div>
 </div>

@@ -17,6 +17,10 @@ import com.sionnavisualizer.dto.RayDirectionRequestDto;
 import com.sionnavisualizer.dto.RayDirectionResultDto;
 import com.sionnavisualizer.dto.UeTrajectoryRequestDto;
 import com.sionnavisualizer.dto.UeTrajectoryResultDto;
+import com.sionnavisualizer.dto.MeasurementOverlayRequestDto;
+import com.sionnavisualizer.dto.MeasurementOverlayResultDto;
+import com.sionnavisualizer.dto.SinrSteeringRequestDto;
+import com.sionnavisualizer.dto.SinrSteeringResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
 import org.springframework.http.ResponseEntity;
@@ -211,6 +215,67 @@ public class SimulationController {
                 return ResponseEntity.badRequest().body("Invalid simulation_type. Must be one of: " + validTypes);
             }
             SimulationEstimateResultDto result = simulationService.runEstimate(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
+    /**
+     * POST /api/simulations/measurement-overlay
+     *
+     * Accepts real BER measurement points and compares them against the simulated curve.
+     * Returns calibration quality, RMSE, systematic offset, and per-point error analysis.
+     */
+    @PostMapping("/simulations/measurement-overlay")
+    public ResponseEntity<?> runMeasurementOverlay(@Valid @RequestBody MeasurementOverlayRequestDto request) {
+        try {
+            // Validate per-point ranges
+            for (var point : request.getMeasurements()) {
+                if (point.getSnrDb() < -20 || point.getSnrDb() > 40) {
+                    return ResponseEntity.badRequest().body("Each snr_db must be between -20 and 40 dB");
+                }
+                if (point.getBerMeasured() < 0 || point.getBerMeasured() > 1) {
+                    return ResponseEntity.badRequest().body("Each ber_measured must be between 0 and 1");
+                }
+            }
+            java.util.List<String> validTypes = java.util.Arrays.asList("AWGN");
+            if (!validTypes.contains(request.getSimulationType().toUpperCase())) {
+                return ResponseEntity.badRequest().body("simulation_type must be one of: " + validTypes);
+            }
+            MeasurementOverlayResultDto result = simulationService.runMeasurementOverlay(request);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.internalServerError().body(ex.getMessage());
+        }
+    }
+
+    /**
+     * POST /api/simulations/sinr-steering
+     *
+     * Computes SINR, array gain, interference suppression across multiple steering angles.
+     */
+    @PostMapping("/simulations/sinr-steering")
+    public ResponseEntity<?> runSinrSteering(@Valid @RequestBody SinrSteeringRequestDto request) {
+        try {
+            int[] validAntennas = {8, 16, 32, 64};
+            boolean validN = false;
+            for (int n : validAntennas) { if (n == request.getNumAntennas()) validN = true; }
+            if (!validN) {
+                return ResponseEntity.badRequest().body("num_antennas must be 8, 16, 32, or 64");
+            }
+            if (request.getSteeringAngles() == null || request.getSteeringAngles().size() < 1 || request.getSteeringAngles().size() > 20) {
+                return ResponseEntity.badRequest().body("steering_angles must have 1 to 20 angles");
+            }
+            for (double angle : request.getSteeringAngles()) {
+                if (angle < -90 || angle > 90) {
+                    return ResponseEntity.badRequest().body("Each steering angle must be between -90 and 90 degrees");
+                }
+            }
+            if (request.getFrequencyGhz() < 1 || request.getFrequencyGhz() > 100) {
+                return ResponseEntity.badRequest().body("frequency_ghz must be between 1 and 100");
+            }
+            SinrSteeringResultDto result = simulationService.runSinrSteering(request);
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
             return ResponseEntity.internalServerError().body(ex.getMessage());

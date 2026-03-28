@@ -243,3 +243,127 @@ class UeTrajectoryResult(BaseModel):
     performance: Optional[PerformanceMetadata] = None
     colors: Optional[List[str]] = None
     colormap_used: Optional[str] = None
+
+class Transmitter(BaseModel):
+    tx_id: int
+    position: List[float]
+    tx_power_dbm: float
+    label: str
+
+class MultiTxRequest(BaseModel):
+    transmitters: List[Transmitter]
+    grid_size: int = 20
+    frequency_ghz: float = 28.0
+    environment: str = "urban"
+    show_interference: bool = True
+    colormap: str = "default"
+
+class CoverageGrid(BaseModel):
+    best_signal: List[List[float]]
+    serving_tx: List[List[int]]
+    sinr: List[List[float]]
+    classification: List[List[str]]
+
+class PerTxStats(BaseModel):
+    tx_id: int
+    label: str
+    cells_served: int
+    coverage_percent: float
+    mean_signal_dbm: float
+    overlap_cells: int
+
+class NetworkSummary(BaseModel):
+    total_coverage_percent: float
+    strong_coverage_percent: float
+    interference_zones_percent: float
+    mean_sinr_db: float
+    coverage_holes_percent: float
+
+class MultiTxResult(BaseModel):
+    grid_size: int
+    transmitters: List[Transmitter]
+    coverage_grid: CoverageGrid
+    per_tx_stats: List[PerTxStats]
+    network_summary: NetworkSummary
+    performance: Optional[PerformanceMetadata] = None
+    colors: Optional[List[str]] = None
+    colormap_used: Optional[str] = None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Feature 1: Measurement Overlay / Calibration
+# ─────────────────────────────────────────────────────────────────────────────
+
+class MeasurementPoint(BaseModel):
+    snr_db: float
+    ber_measured: float
+    location: Optional[str] = ""
+
+class MeasurementOverlayRequest(BaseModel):
+    simulation_type: str = "AWGN"
+    simulation_id: Optional[int] = None
+    measurements: List[MeasurementPoint]
+    frequency_ghz: float = 28.0
+    environment: str = "urban"
+
+class ComparisonPoint(BaseModel):
+    snr_db: float
+    ber_simulated: float
+    ber_measured: float
+    absolute_error: float
+    relative_error_percent: float
+    error_db: Optional[float] = None
+    location: Optional[str] = ""
+
+class CalibrationSummary(BaseModel):
+    mean_absolute_error: float
+    rmse: float
+    calibration_quality: str
+    systematic_offset_db: float
+    max_error_point: float
+    num_measurement_points: int
+
+class MeasurementOverlayResult(BaseModel):
+    comparison_points: List[ComparisonPoint]
+    calibration_summary: CalibrationSummary
+    simulation_type: str
+    performance: Optional[PerformanceMetadata] = None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Feature 2: SINR Steering
+# ─────────────────────────────────────────────────────────────────────────────
+
+class SinrSteeringRequest(BaseModel):
+    num_antennas: int = 16
+    frequency_ghz: float = 28.0
+    steering_angles: List[float] = [-60, -45, -30, -15, 0, 15, 30, 45, 60]
+    interference_angle_deg: float = 45.0
+    signal_power_dbm: float = 0.0
+    interference_power_dbm: float = -10.0
+
+class SteeringResult(BaseModel):
+    steering_angle_deg: float
+    array_gain_db: float
+    interference_gain_db: float
+    sinr_db: float
+    efficiency_percent: float
+    is_optimal: bool
+
+class OptimalSteering(BaseModel):
+    angle_deg: float
+    sinr_db: float
+    array_gain_db: float
+
+class SinrSummary(BaseModel):
+    max_sinr_db: float
+    min_sinr_db: float
+    sinr_range_db: float
+    num_angles_above_10db: int
+    interference_null_angle: float
+
+class SinrSteeringResult(BaseModel):
+    steering_results: List[SteeringResult]
+    optimal_steering: OptimalSteering
+    summary: SinrSummary
+    performance: Optional[PerformanceMetadata] = None

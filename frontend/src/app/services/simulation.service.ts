@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 import { SimulationResult, SimulationHistoryItem, SimulationRequest, BeamPatternRequest, BeamPatternResult, ModulationComparisonRequest, ModulationComparisonResult, PathLossRequest, PathLossResult, SimulationEstimateRequest, SimulationEstimateResult, ColormapOption, RayDirectionRequest, RayDirectionResult, UeTrajectoryRequest, UeTrajectoryResult, MeasurementOverlayRequest, MeasurementOverlayResult, SinrSteeringRequest, SinrSteeringResult } from '../models/simulation-result.model';
 import { environment } from '../../environments/environment';
 
@@ -151,11 +152,18 @@ export class SimulationService {
     return this.http.get<any>(`${environment.apiUrl}/api/simulations/public/${token}`);
   }
 
+  private colormaps$: Observable<ColormapOption[]> | null = null;
+
   /**
    * Fetches the list of available chart colormaps.
    */
   getColormaps(): Observable<ColormapOption[]> {
-    return this.http.get<ColormapOption[]>(`${environment.apiUrl}/api/simulations/colormaps`);
+    if (!this.colormaps$) {
+      this.colormaps$ = this.http.get<ColormapOption[]>(`${environment.apiUrl}/api/simulations/colormaps`).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.colormaps$;
   }
 
   /**

@@ -47,11 +47,11 @@ public class HealthController {
             healthStatus.put("status", "DEGRADED");
         }
 
+        String baseUrl = pythonBridgeUrl.replace("/simulate/demo", "");
         // Check Python Bridge
         try {
             // We'll check if the host is reachable. We might get 405 Method Not Allowed dynamically cleanly seamlessly correctly
             // but if we get a response, it means it's ALIVE.
-            String baseUrl = pythonBridgeUrl.replace("/simulate/demo", "");
             restTemplate.getForEntity(baseUrl + "/docs", String.class);
             healthStatus.put("pythonBridge", "UP");
         } catch (Exception e) {

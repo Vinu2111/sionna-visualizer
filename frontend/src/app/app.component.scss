@@ -1,13 +1,20 @@
 .main-toolbar {
-  background-color: #1e1e1e !important;
-  color: #eeeeee;
-  border-bottom: 1px solid #333333;
+  background: rgba(3, 7, 18, 0.7) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
   padding: 0 2rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 
   .brand-text {
+    font-family: 'Outfit', sans-serif;
     font-size: 1.5rem;
-    font-weight: 500;
-    color: #00ff88;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     cursor: pointer;
     letter-spacing: 0.5px;
   }
@@ -18,32 +25,33 @@
 
   .nav-links {
     display: flex;
-    gap: 1rem;
+    gap: 0.5rem;
 
     button {
-      color: #aaaaaa;
+      color: var(--text-muted);
       font-size: 1.05rem;
-      border-radius: 4px;
+      border-radius: 8px;
       transition: all 0.2s ease;
+      font-weight: 500;
 
       &:hover {
-        color: #eeeeee;
+        color: var(--text-main);
         background-color: rgba(255, 255, 255, 0.05);
       }
     }
 
-    /* Target the button when it's the active route */
     .active-link {
-      color: #00ff88 !important;
-      background-color: rgba(0, 255, 136, 0.1);
-      font-weight: 500;
+      color: var(--primary-color) !important;
+      background-color: var(--glow-primary);
+      font-weight: 600;
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
     }
   }
 }
 
 .main-content {
-  background-color: #121212;
-  min-height: calc(100vh - 64px); /* Assuming toolbar is 64px max */
+  background-color: transparent;
+  min-height: calc(100vh - 64px); 
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -51,12 +59,14 @@
    ───────────────────────────────────────────────────────────────────────── */
 .app-sidenav-container {
   height: 100vh;
+  background-color: transparent;
 }
 
 .app-sidenav {
   width: 250px;
-  background-color: #0d1117;
-  border-right: 1px solid rgba(100, 255, 218, 0.1);
+  background-color: rgba(17, 24, 39, 0.95);
+  backdrop-filter: blur(16px);
+  border-right: 1px solid var(--border-color);
 }
 
 .drawer-nav-links {
@@ -70,17 +80,23 @@
     justify-content: flex-start;
     padding: 12px 16px;
     font-size: 1.1rem;
-    color: #aaaaaa;
+    color: var(--text-muted);
     border-radius: 8px;
+    transition: all 0.2s ease;
     
     .mat-icon {
       vertical-align: middle;
-      color: #00ff88;
+      color: var(--primary-color);
+    }
+
+    &:hover {
+      color: var(--text-main);
+      background-color: rgba(255, 255, 255, 0.05);
     }
     
     &.active-link {
-      color: #eeeeee;
-      background-color: rgba(0, 255, 136, 0.1);
+      color: var(--text-main);
+      background-color: var(--glow-primary);
       font-weight: 500;
     }
   }
@@ -88,7 +104,7 @@
 
 .mobile-menu-btn {
   display: none;
-  color: #eeeeee;
+  color: var(--text-main);
   margin-right: 8px;
 }
 

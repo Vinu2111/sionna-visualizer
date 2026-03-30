@@ -182,7 +182,7 @@
           </mat-card>
 
           <mat-card class="performance-card" *ngIf="simulationData.performance"
-                    [ngStyle]="{'border-left': simulationData.performance.compute_type === 'GPU' ? '4px solid #64ffda' : 'none', 'margin-top': '16px'}">
+                    [ngStyle]="{'border-left': simulationData.performance.compute_type === 'GPU' ? '4px solid #8b5cf6' : 'none', 'margin-top': '16px'}">
             <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
             <mat-card-content>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">
@@ -192,7 +192,7 @@
                 </div>
                 <div class="meta-item">
                   <span class="label">Compute</span>
-                  <span class="value" [style.color]="simulationData.performance.compute_type === 'GPU' ? '#64ffda' : null">{{ simulationData.performance.compute_type }}</span>
+                  <span class="value" [style.color]="simulationData.performance.compute_type === 'GPU' ? '#8b5cf6' : null">{{ simulationData.performance.compute_type }}</span>
                 </div>
                 <div class="meta-item">
                   <span class="label">Memory</span>
@@ -376,7 +376,7 @@
           </mat-card>
 
           <mat-card class="performance-card" *ngIf="beamData.performance"
-                    [ngStyle]="{'border-left': beamData.performance.compute_type === 'GPU' ? '4px solid #64ffda' : 'none', 'margin-top': '16px'}">
+                    [ngStyle]="{'border-left': beamData.performance.compute_type === 'GPU' ? '4px solid #8b5cf6' : 'none', 'margin-top': '16px'}">
             <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
             <mat-card-content>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">
@@ -386,7 +386,7 @@
                 </div>
                 <div class="meta-item">
                   <span class="label">Compute</span>
-                  <span class="value" [style.color]="beamData.performance.compute_type === 'GPU' ? '#64ffda' : null">{{ beamData.performance.compute_type }}</span>
+                  <span class="value" [style.color]="beamData.performance.compute_type === 'GPU' ? '#8b5cf6' : null">{{ beamData.performance.compute_type }}</span>
                 </div>
                 <div class="meta-item">
                   <span class="label">Memory</span>
@@ -521,14 +521,14 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #64ffda;">BPSK &amp; QPSK</div>
+                <div class="insight-title" style="color: #8b5cf6;">BPSK &amp; QPSK</div>
                 <div class="insight-body">Identical BER performance — QPSK doubles the spectral efficiency for free.</div>
               </mat-card-content>
             </mat-card>
 
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #f7b731;">16QAM Tradeoff</div>
+                <div class="insight-title" style="color: #f59e0b;">16QAM Tradeoff</div>
                 <div class="insight-body">
                   Needs ~{{ modData.crossover_points.qpsk_advantage_over_16qam_at_snr | number:'1.1-1' }} dB
                   more SNR than QPSK to reach BER &lt; 10<sup>-3</sup>.
@@ -538,7 +538,7 @@
 
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #ff6b6b;">64QAM Tradeoff</div>
+                <div class="insight-title" style="color: #f43f5e;">64QAM Tradeoff</div>
                 <div class="insight-body">
                   Needs ~{{ modData.crossover_points.qam16_advantage_over_64qam_at_snr | number:'1.1-1' }} dB
                   more SNR than 16QAM. 6 bits/symbol but demanding on channel quality.
@@ -555,7 +555,7 @@
           </div>
 
           <mat-card class="performance-card" *ngIf="modData.performance"
-                    [ngStyle]="{'border-left': modData.performance.compute_type === 'GPU' ? '4px solid #64ffda' : 'none', 'margin-top': '16px'}">
+                    [ngStyle]="{'border-left': modData.performance.compute_type === 'GPU' ? '4px solid #8b5cf6' : 'none', 'margin-top': '16px'}">
             <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
             <mat-card-content>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">
@@ -565,7 +565,7 @@
                 </div>
                 <div class="meta-item">
                   <span class="label">Compute</span>
-                  <span class="value" [style.color]="modData.performance.compute_type === 'GPU' ? '#64ffda' : null">{{ modData.performance.compute_type }}</span>
+                  <span class="value" [style.color]="modData.performance.compute_type === 'GPU' ? '#8b5cf6' : null">{{ modData.performance.compute_type }}</span>
                 </div>
                 <div class="meta-item">
                   <span class="label">Memory</span>
@@ -721,14 +721,14 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 24px;">
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #64ffda;">1 Gbps (100 MHz)</div>
+                <div class="insight-title" style="color: #8b5cf6;">1 Gbps (100 MHz)</div>
                 <div class="insight-body">requires ~{{ capData.insights.snr_for_1gbps_100mhz | number:'1.1-1' }} dB SNR</div>
               </mat-card-content>
             </mat-card>
 
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #f7b731;">10 Gbps (1 GHz)</div>
+                <div class="insight-title" style="color: #f59e0b;">10 Gbps (1 GHz)</div>
                 <div class="insight-body">
                   requires ~{{ capData.insights.snr_for_10gbps_1000mhz | number:'1.1-1' }} dB SNR
                 </div>
@@ -737,7 +737,7 @@
 
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #ff6b6b;">Spectral Efficiency</div>
+                <div class="insight-title" style="color: #f43f5e;">Spectral Efficiency</div>
                 <div class="insight-body">
                   At 20 dB SNR, theoretical limit is {{ capData.insights.spectral_efficiency_at_snr20 | number:'1.1-1' }} bits/s/Hz.
                 </div>
@@ -753,7 +753,7 @@
           </div>
 
           <mat-card class="performance-card" *ngIf="capData.performance"
-                    [ngStyle]="{'border-left': capData.performance.compute_type === 'GPU' ? '4px solid #64ffda' : 'none', 'margin-top': '16px'}">
+                    [ngStyle]="{'border-left': capData.performance.compute_type === 'GPU' ? '4px solid #8b5cf6' : 'none', 'margin-top': '16px'}">
             <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
             <mat-card-content>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">
@@ -763,7 +763,7 @@
                 </div>
                 <div class="meta-item">
                   <span class="label">Compute</span>
-                  <span class="value" [style.color]="capData.performance.compute_type === 'GPU' ? '#64ffda' : null">{{ capData.performance.compute_type }}</span>
+                  <span class="value" [style.color]="capData.performance.compute_type === 'GPU' ? '#8b5cf6' : null">{{ capData.performance.compute_type }}</span>
                 </div>
                 <div class="meta-item">
                   <span class="label">Memory</span>
@@ -879,19 +879,19 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #64ffda;">LOS Path Loss</div>
+                <div class="insight-title" style="color: #8b5cf6;">LOS Path Loss</div>
                 <div class="insight-body">{{ pathLossData.summary.los_path_loss_db | number:'1.2-2' }} dB</div>
               </mat-card-content>
             </mat-card>
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #f7b731;">Max Path Loss</div>
+                <div class="insight-title" style="color: #f59e0b;">Max Path Loss</div>
                 <div class="insight-body">{{ pathLossData.summary.max_path_loss_db | number:'1.2-2' }} dB</div>
               </mat-card-content>
             </mat-card>
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #ff6b6b;">Loss Spread</div>
+                <div class="insight-title" style="color: #f43f5e;">Loss Spread</div>
                 <div class="insight-body">{{ pathLossData.summary.path_loss_spread_db | number:'1.2-2' }} dB</div>
               </mat-card-content>
             </mat-card>
@@ -959,7 +959,7 @@
                 </ng-container>
                 <ng-container matColumnDef="path_type">
                   <th mat-header-cell *matHeaderCellDef style="color: #aaaaaa;"> Type </th>
-                  <td mat-cell *matCellDef="let element" [style.color]="element.path_type === 'LOS' ? '#64ffda' : '#ff6b6b'"> 
+                  <td mat-cell *matCellDef="let element" [style.color]="element.path_type === 'LOS' ? '#8b5cf6' : '#f43f5e'"> 
                     {{element.path_type}} 
                   </td>
                 </ng-container>
@@ -975,7 +975,7 @@
           </mat-card>
 
           <mat-card class="performance-card" *ngIf="pathLossData.performance"
-                    [ngStyle]="{'border-left': pathLossData.performance.compute_type === 'GPU' ? '4px solid #64ffda' : 'none'}">
+                    [ngStyle]="{'border-left': pathLossData.performance.compute_type === 'GPU' ? '4px solid #8b5cf6' : 'none'}">
             <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
             <mat-card-content>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">
@@ -985,7 +985,7 @@
                 </div>
                 <div class="meta-item">
                   <span class="label">Compute</span>
-                  <span class="value" [style.color]="pathLossData.performance.compute_type === 'GPU' ? '#64ffda' : null">{{ pathLossData.performance.compute_type }}</span>
+                  <span class="value" [style.color]="pathLossData.performance.compute_type === 'GPU' ? '#8b5cf6' : null">{{ pathLossData.performance.compute_type }}</span>
                 </div>
                 <div class="meta-item">
                   <span class="label">Memory</span>
@@ -1155,11 +1155,11 @@
                         [matTooltip]="'Path ID: ' + path.path_id + '\nLoss: ' + (path.path_loss_db | number:'1.1-1') + ' dB\nDelay: ' + (path.delay_ns | number:'1.1-1') + ' ns\nType: ' + path.path_type"></path>
                   
                   <!-- TX Marker -->
-                  <polygon [attr.points]="(sceneTx.x) + ',' + (sceneTx.y-8) + ' ' + (sceneTx.x-8) + ',' + (sceneTx.y+8) + ' ' + (sceneTx.x+8) + ',' + (sceneTx.y+8)" fill="#f7b731"/>
+                  <polygon [attr.points]="(sceneTx.x) + ',' + (sceneTx.y-8) + ' ' + (sceneTx.x-8) + ',' + (sceneTx.y+8) + ' ' + (sceneTx.x+8) + ',' + (sceneTx.y+8)" fill="#f59e0b"/>
                   <text [attr.x]="sceneTx.x" [attr.y]="sceneTx.y + 18" fill="#aaaaaa" font-size="8" text-anchor="middle">TX</text>
                   
                   <!-- RX Marker -->
-                  <circle [attr.cx]="sceneRx.x" [attr.cy]="sceneRx.y" r="6" fill="#64ffda"/>
+                  <circle [attr.cx]="sceneRx.x" [attr.cy]="sceneRx.y" r="6" fill="#8b5cf6"/>
                   <text [attr.x]="sceneRx.x" [attr.y]="sceneRx.y + 18" fill="#aaaaaa" font-size="8" text-anchor="middle">RX</text>
                 </svg>
               </div>
@@ -1197,19 +1197,19 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #64ffda;">Angular Spread</div>
+                <div class="insight-title" style="color: #8b5cf6;">Angular Spread</div>
                 <div class="insight-body">{{ rayData.summary.angular_spread_deg | number:'1.1-1' }}°</div>
               </mat-card-content>
             </mat-card>
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #f7b731;">Mean Dep. Azimuth</div>
+                <div class="insight-title" style="color: #f59e0b;">Mean Dep. Azimuth</div>
                 <div class="insight-body">{{ rayData.summary.mean_departure_azimuth | number:'1.1-1' }}°</div>
               </mat-card-content>
             </mat-card>
             <mat-card class="insight-card">
               <mat-card-content>
-                <div class="insight-title" style="color: #ff6b6b;">Mean Arr. Azimuth</div>
+                <div class="insight-title" style="color: #f43f5e;">Mean Arr. Azimuth</div>
                 <div class="insight-body">{{ rayData.summary.mean_arrival_azimuth | number:'1.1-1' }}°</div>
               </mat-card-content>
             </mat-card>
@@ -1223,7 +1223,7 @@
 
           <!-- Performance -->
           <mat-card class="performance-card" *ngIf="rayData.performance"
-                    [ngStyle]="{'border-left': rayData.performance.compute_type === 'GPU' ? '4px solid #64ffda' : 'none'}">
+                    [ngStyle]="{'border-left': rayData.performance.compute_type === 'GPU' ? '4px solid #8b5cf6' : 'none'}">
             <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
             <mat-card-content>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">
@@ -1233,7 +1233,7 @@
                 </div>
                 <div class="meta-item">
                   <span class="label">Compute</span>
-                  <span class="value" [style.color]="rayData.performance.compute_type === 'GPU' ? '#64ffda' : null">{{ rayData.performance.compute_type }}</span>
+                  <span class="value" [style.color]="rayData.performance.compute_type === 'GPU' ? '#8b5cf6' : null">{{ rayData.performance.compute_type }}</span>
                 </div>
                 <div class="meta-item">
                   <span class="label">Memory</span>
@@ -1281,7 +1281,7 @@
           <mat-card-content style="text-align: center; padding: 48px;">
             <mat-icon style="font-size: 48px; height: 48px; width: 48px; color: #aaaaaa; margin-bottom: 16px;">compare</mat-icon>
             <h2 style="color: #eeeeee;">Simulation Comparison — Coming Soon</h2>
-            <p style="color: #888888;">Select simulations from <a routerLink="/history">History</a> to compare them, or access this feature via the <a routerLink="/compare" style="color: #64ffda;">Compare page</a> directly.</p>
+            <p style="color: #888888;">Select simulations from <a routerLink="/history">History</a> to compare them, or access this feature via the <a routerLink="/compare" style="color: #8b5cf6;">Compare page</a> directly.</p>
           </mat-card-content>
         </mat-card>
       </div>
@@ -1298,7 +1298,7 @@
           </mat-card-header>
           <mat-card-content>
             <p>Your API key gives programmatic access to all simulation endpoints. Keep it secret.</p>
-            <p><a routerLink="/api-docs" style="color: #64ffda;">View full API Documentation</a></p>
+            <p><a routerLink="/api-docs" style="color: #8b5cf6;">View full API Documentation</a></p>
             
             <form (ngSubmit)="generateApiKey()" style="margin-top: 16px; display: flex; gap: 16px; align-items: baseline;">
               <mat-form-field appearance="outline" style="flex-grow: 1;">
@@ -1417,12 +1417,12 @@
                    (click)="csvFileInput.click()"
                    (dragover)="$event.preventDefault()"
                    (drop)="onCsvDrop($event)">
-                <mat-icon style="font-size: 40px; height: 40px; width: 40px; color: #64ffda;">upload_file</mat-icon>
+                <mat-icon style="font-size: 40px; height: 40px; width: 40px; color: #8b5cf6;">upload_file</mat-icon>
                 <p>Drag &amp; drop .csv file here, or click to browse</p>
                 <p style="color: #aaaaaa; font-size: 12px;">Format: snr_db,ber_measured,location</p>
                 <input #csvFileInput type="file" accept=".csv" style="display:none" (change)="onCsvFileSelected($event)">
               </div>
-              <p *ngIf="csvLoadedMsg" style="color: #64ffda; font-size: 13px; margin-top:8px;">{{ csvLoadedMsg }}</p>
+              <p *ngIf="csvLoadedMsg" style="color: #8b5cf6; font-size: 13px; margin-top:8px;">{{ csvLoadedMsg }}</p>
 
               <div class="form-actions" style="margin-top: 16px;">
                 <button mat-raised-button color="primary" type="submit" [disabled]="calibForm.invalid || isCalibSimulating">
@@ -1498,20 +1498,20 @@
               </mat-card>
               <mat-card style="padding: 16px;">
                 <div class="label" style="font-size: 12px;">RMSE</div>
-                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#64ffda;">
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#8b5cf6;">
                   {{ calibData.calibration_summary.rmse | number:'1.4-4' }}
                 </div>
               </mat-card>
               <mat-card style="padding: 16px;">
                 <div class="label" style="font-size: 12px;">Systematic Offset</div>
                 <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px;"
-                     [style.color]="calibData.calibration_summary.systematic_offset_db > 0 ? '#ff6b6b' : '#64ffda'">
+                     [style.color]="calibData.calibration_summary.systematic_offset_db > 0 ? '#f43f5e' : '#8b5cf6'">
                   {{ calibData.calibration_summary.systematic_offset_db > 0 ? '+' : '' }}{{ calibData.calibration_summary.systematic_offset_db | number:'1.2-2' }} dB
                 </div>
               </mat-card>
               <mat-card style="padding: 16px;">
                 <div class="label" style="font-size: 12px;">Points Compared</div>
-                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#f7b731;">
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#f59e0b;">
                   {{ calibData.calibration_summary.num_measurement_points }}
                 </div>
               </mat-card>
@@ -1519,7 +1519,7 @@
           </div>
 
           <mat-card class="performance-card" *ngIf="calibData.performance"
-                    [ngStyle]="{'border-left': '4px solid #64ffda99', 'margin-top': '24px'}">
+                    [ngStyle]="{'border-left': '4px solid #8b5cf699', 'margin-top': '24px'}">
             <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
             <mat-card-content>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">
@@ -1669,27 +1669,27 @@
             </mat-card>
 
             <div style="display: flex; flex-direction: column; gap: 12px; justify-content: center;">
-              <mat-card style="padding: 16px; border-left: 4px solid #64ffda;">
+              <mat-card style="padding: 16px; border-left: 4px solid #8b5cf6;">
                 <div class="label" style="font-size: 12px;">Optimal Angle</div>
-                <div class="value" style="font-size: 24px; font-weight: 700; margin-top: 4px; color:#64ffda;">
+                <div class="value" style="font-size: 24px; font-weight: 700; margin-top: 4px; color:#8b5cf6;">
                   {{ sinrData.optimal_steering.angle_deg }}°
                 </div>
               </mat-card>
               <mat-card style="padding: 16px;">
                 <div class="label" style="font-size: 12px;">Max SINR</div>
-                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#64ffda;">
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#8b5cf6;">
                   {{ sinrData.summary.max_sinr_db | number:'1.1-1' }} dB
                 </div>
               </mat-card>
               <mat-card style="padding: 16px;">
                 <div class="label" style="font-size: 12px;">SINR Range</div>
-                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#f7b731;">
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#f59e0b;">
                   {{ sinrData.summary.sinr_range_db | number:'1.1-1' }} dB
                 </div>
               </mat-card>
               <mat-card style="padding: 16px;">
                 <div class="label" style="font-size: 12px;">Angles above 10 dB</div>
-                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#64ffda;">
+                <div class="value" style="font-size: 22px; font-weight: 700; margin-top: 4px; color:#8b5cf6;">
                   {{ sinrData.summary.num_angles_above_10db }}
                 </div>
               </mat-card>
@@ -1697,7 +1697,7 @@
           </div>
 
           <mat-card class="performance-card" *ngIf="sinrData.performance"
-                    [ngStyle]="{'border-left': '4px solid #64ffda99', 'margin-top': '24px'}">
+                    [ngStyle]="{'border-left': '4px solid #8b5cf699', 'margin-top': '24px'}">
             <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
             <mat-card-content>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px;">

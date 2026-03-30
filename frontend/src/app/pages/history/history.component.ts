@@ -57,13 +57,13 @@ export class HistoryComponent implements OnInit {
       {
         data: [], label: 'Theoretical BER',
         fill: false, tension: 0.1,
-        borderColor: '#64ffda', pointBackgroundColor: '#64ffda',
+        borderColor: '#8b5cf6', pointBackgroundColor: '#8b5cf6',
         pointBorderColor: '#fff', pointRadius: 0
       },
       {
         data: [], label: 'Simulated BER',
         fill: false, tension: 0.1,
-        borderColor: '#ff6b6b', pointBackgroundColor: '#ff6b6b',
+        borderColor: '#f43f5e', pointBackgroundColor: '#f43f5e',
         pointBorderColor: '#fff'
       }
     ]

@@ -71,12 +71,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         // Allow specific frontend origins
-        config.setAllowedOrigins(List.of(
-            "https://sionna-visualizer.vercel.app",
-            "http://localhost:4200"
+        config.setAllowedOriginPatterns(List.of(
+            "https://*.vercel.app",
+            "http://localhost:4200",
+            "https://sionna-visualizer.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

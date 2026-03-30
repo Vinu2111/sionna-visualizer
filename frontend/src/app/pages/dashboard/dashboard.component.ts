@@ -177,8 +177,8 @@ export class DashboardComponent implements OnInit {
     datasets: [{
       data: [],
       label: 'Signal Strength (dB)',
-      borderColor: '#64ffda',
-      backgroundColor: 'rgba(100, 255, 218, 0.1)',
+      borderColor: '#8b5cf6',
+      backgroundColor: 'rgba(139, 92, 246, 0.1)',
       borderWidth: 2,
       pointRadius: 0
     }]
@@ -193,13 +193,13 @@ export class DashboardComponent implements OnInit {
       {
         data: [], label: 'Theoretical BER',
         fill: false, tension: 0.1, borderDash: [5, 5],
-        borderColor: '#64ffda', pointBackgroundColor: '#64ffda',
+        borderColor: '#8b5cf6', pointBackgroundColor: '#8b5cf6',
         pointBorderColor: '#fff', pointRadius: 0
       },
       {
         data: [], label: 'Simulated BER',
         fill: false, tension: 0.1,
-        borderColor: '#ff6b6b', pointBackgroundColor: '#ff6b6b',
+        borderColor: '#f43f5e', pointBackgroundColor: '#f43f5e',
         pointBorderColor: '#fff'
       }
     ]
@@ -234,9 +234,9 @@ export class DashboardComponent implements OnInit {
     labels: [],
     datasets: [
       { data: [], label: 'BPSK',  fill: false, tension: 0.1, borderColor: '#ffffff', pointRadius: 0, borderWidth: 2 },
-      { data: [], label: 'QPSK',  fill: false, tension: 0.1, borderColor: '#64ffda', pointRadius: 0, borderWidth: 2 },
-      { data: [], label: '16QAM', fill: false, tension: 0.1, borderColor: '#f7b731', pointRadius: 0, borderWidth: 2 },
-      { data: [], label: '64QAM', fill: false, tension: 0.1, borderColor: '#ff6b6b', pointRadius: 0, borderWidth: 2 }
+      { data: [], label: 'QPSK',  fill: false, tension: 0.1, borderColor: '#8b5cf6', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: '16QAM', fill: false, tension: 0.1, borderColor: '#f59e0b', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: '64QAM', fill: false, tension: 0.1, borderColor: '#f43f5e', pointRadius: 0, borderWidth: 2 }
     ]
   };
 
@@ -415,8 +415,8 @@ export class DashboardComponent implements OnInit {
   public calibOverlayChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
-      { data: [], label: 'Theoretical AWGN', fill: false, tension: 0.1, borderDash: [5, 5], borderColor: '#64ffda', pointRadius: 0 },
-      { data: [], label: 'Measured BER', fill: false, tension: 0, borderColor: '#ff6b6b', backgroundColor: '#ff6b6b', showLine: false, pointRadius: 5, pointStyle: 'rect' }
+      { data: [], label: 'Theoretical AWGN', fill: false, tension: 0.1, borderDash: [5, 5], borderColor: '#8b5cf6', pointRadius: 0 },
+      { data: [], label: 'Measured BER', fill: false, tension: 0, borderColor: '#f43f5e', backgroundColor: '#f43f5e', showLine: false, pointRadius: 5, pointStyle: 'rect' }
     ]
   };
   public calibOverlayChartOptions: ChartOptions<'line'> = {
@@ -450,7 +450,7 @@ export class DashboardComponent implements OnInit {
   public sinrLineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
-      { data: [], label: 'SINR (dB)', fill: false, tension: 0.1, borderColor: '#64ffda', pointBackgroundColor: '#64ffda' },
+      { data: [], label: 'SINR (dB)', fill: false, tension: 0.1, borderColor: '#8b5cf6', pointBackgroundColor: '#8b5cf6' },
       { data: [], label: 'Array Gain (dB)', fill: false, tension: 0.1, borderDash: [5, 5], borderColor: '#aaaaaa', pointRadius: 0 }
     ]
   };
@@ -469,8 +469,8 @@ export class DashboardComponent implements OnInit {
   public sinrPolarChartData: ChartConfiguration<'radar'>['data'] = {
     labels: [],
     datasets: [
-      { data: [], label: 'Beam Pattern at Optimal Angle', borderColor: '#64ffda', backgroundColor: 'rgba(100, 255, 218, 0.2)', borderWidth: 2, pointRadius: 0 },
-      { data: [], label: 'Interference Direction', borderColor: '#ff6b6b', backgroundColor: 'rgba(255, 107, 107, 0.5)', borderWidth: 3, pointStyle: 'triangle', pointRadius: 5 }
+      { data: [], label: 'Beam Pattern at Optimal Angle', borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.2)', borderWidth: 2, pointRadius: 0 },
+      { data: [], label: 'Interference Direction', borderColor: '#f43f5e', backgroundColor: 'rgba(244, 63, 94, 0.5)', borderWidth: 3, pointStyle: 'triangle', pointRadius: 5 }
     ]
   };
   public sinrPolarChartOptions: ChartOptions<'radar'> = {
@@ -657,14 +657,14 @@ export class DashboardComponent implements OnInit {
         { 
           ...this.lineChartData.datasets[0], 
           data: result.ber_theoretical,
-          borderColor: result.colors?.[0] || '#64ffda',
-          pointBackgroundColor: result.colors?.[0] || '#64ffda'
+          borderColor: result.colors?.[0] || '#8b5cf6',
+          pointBackgroundColor: result.colors?.[0] || '#8b5cf6'
         },
         { 
           ...this.lineChartData.datasets[1], 
           data: result.ber_simulated,
-          borderColor: result.colors?.[1] || '#ff6b6b',
-          pointBackgroundColor: result.colors?.[1] || '#ff6b6b'
+          borderColor: result.colors?.[1] || '#f43f5e',
+          pointBackgroundColor: result.colors?.[1] || '#f43f5e'
         }
       ]
     };
@@ -694,8 +694,8 @@ export class DashboardComponent implements OnInit {
           datasets: [{ 
             ...this.radarChartData.datasets[0], 
             data: res.pattern_db,
-            borderColor: res.colors?.[0] || '#64ffda',
-            backgroundColor: res.colors?.[0] ? `${res.colors[0]}1a` : 'rgba(100, 255, 218, 0.1)'
+            borderColor: res.colors?.[0] || '#8b5cf6',
+            backgroundColor: res.colors?.[0] ? `${res.colors[0]}1a` : 'rgba(139, 92, 246, 0.1)'
           }]
         };
         if (this.radarChartOptions?.plugins?.title) {
@@ -731,9 +731,9 @@ export class DashboardComponent implements OnInit {
           labels: res.snr_db,
           datasets: [
             { ...this.modChartData.datasets[0], data: res.bpsk, borderColor: res.colors?.[0] || '#ffffff' },
-            { ...this.modChartData.datasets[1], data: res.qpsk, borderColor: res.colors?.[1] || '#64ffda' },
-            { ...this.modChartData.datasets[2], data: res.qam16, borderColor: res.colors?.[2] || '#f7b731' },
-            { ...this.modChartData.datasets[3], data: res.qam64, borderColor: res.colors?.[3] || '#ff6b6b' }
+            { ...this.modChartData.datasets[1], data: res.qpsk, borderColor: res.colors?.[1] || '#8b5cf6' },
+            { ...this.modChartData.datasets[2], data: res.qam16, borderColor: res.colors?.[2] || '#f59e0b' },
+            { ...this.modChartData.datasets[3], data: res.qam64, borderColor: res.colors?.[3] || '#f43f5e' }
           ]
         };
         this.isModSimulating = false;
@@ -791,8 +791,8 @@ export class DashboardComponent implements OnInit {
             label: 'Spectral Eff',
             fill: true,
             tension: 0.1,
-            backgroundColor: 'rgba(100, 255, 218, 0.1)',
-            borderColor: res.colors?.[res.colors.length - 1] || '#64ffda',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            borderColor: res.colors?.[res.colors.length - 1] || '#8b5cf6',
             pointRadius: 0,
             borderWidth: 2
           }]
@@ -953,7 +953,7 @@ export class DashboardComponent implements OnInit {
         this.plBarChartData.labels = res.paths.map(p => `Path ${p.path_id}`);
         this.plBarChartData.datasets[0].data = res.paths.map(p => p.path_loss_db);
         this.plBarChartData.datasets[0].backgroundColor = res.colors || res.paths.map(p => 
-          p.path_type === 'LOS' ? 'rgba(100, 255, 218, 0.8)' : 'rgba(255, 107, 107, 0.8)'
+          p.path_type === 'LOS' ? 'rgba(139, 92, 246, 0.8)' : 'rgba(244, 63, 94, 0.8)'
         );
         this.plBarChart?.update();
 
@@ -962,13 +962,13 @@ export class DashboardComponent implements OnInit {
           {
             label: 'LOS Paths',
             data: res.paths.filter(p => p.path_type === 'LOS').map(p => ({ x: p.distance_m, y: p.path_loss_db })),
-            backgroundColor: res.colors?.[0] || '#64ffda',
+            backgroundColor: res.colors?.[0] || '#8b5cf6',
             pointRadius: 6
           },
           {
             label: 'NLOS Paths',
             data: res.paths.filter(p => p.path_type === 'NLOS').map(p => ({ x: p.distance_m, y: p.path_loss_db })),
-            backgroundColor: res.colors?.[1] || '#ff6b6b',
+            backgroundColor: res.colors?.[1] || '#f43f5e',
             pointRadius: 6
           }
         ];
@@ -977,7 +977,7 @@ export class DashboardComponent implements OnInit {
         // Update Delay Chart (Delay per Path)
         this.plDelayChartData.labels = res.paths.map(p => `Path ${p.path_id}`);
         this.plDelayChartData.datasets[0].data = res.paths.map(p => p.delay_ns);
-        this.plDelayChartData.datasets[0].backgroundColor = res.colors || '#f7b731';
+        this.plDelayChartData.datasets[0].backgroundColor = res.colors || '#f59e0b';
         this.plDelayChart?.update();
 
         this.isPathLossSimulating = false;
@@ -1014,7 +1014,7 @@ export class DashboardComponent implements OnInit {
         this.rayDepChartData.labels = res.paths.map((p: RayDirectionPath) => `Path ${p.path_id} (Dep Az: ${p.departure_azimuth_deg.toFixed(1)}°)`);
         this.rayDepChartData.datasets[0].data = res.paths.map((p: RayDirectionPath) => 100 / Math.max(1, p.path_loss_db)); // Inverse of path loss for spoke length
         this.rayDepChartData.datasets[0].backgroundColor = res.colors || res.paths.map((p: RayDirectionPath) => 
-          p.path_type === 'LOS' ? 'rgba(100, 255, 218, 0.6)' : 'rgba(255, 107, 107, 0.4)'
+          p.path_type === 'LOS' ? 'rgba(139, 92, 246, 0.6)' : 'rgba(244, 63, 94, 0.4)'
         );
         this.rayDepChart?.update();
 
@@ -1022,7 +1022,7 @@ export class DashboardComponent implements OnInit {
         this.rayArrChartData.labels = res.paths.map((p: RayDirectionPath) => `Path ${p.path_id} (Arr Az: ${p.arrival_azimuth_deg.toFixed(1)}°)`);
         this.rayArrChartData.datasets[0].data = res.paths.map((p: RayDirectionPath) => 100 / Math.max(1, p.path_loss_db)); // Same length logic
         this.rayArrChartData.datasets[0].backgroundColor = res.colors || res.paths.map((p: RayDirectionPath) => 
-          p.path_type === 'LOS' ? 'rgba(100, 255, 218, 0.6)' : 'rgba(255, 107, 107, 0.4)'
+          p.path_type === 'LOS' ? 'rgba(139, 92, 246, 0.6)' : 'rgba(244, 63, 94, 0.4)'
         );
         this.rayArrChart?.update();
 
@@ -1071,7 +1071,7 @@ export class DashboardComponent implements OnInit {
         delay_ns: p.delay_ns,
         path_type: p.path_type,
         d: d,
-        color: res.colors?.[i] || (isLOS ? '#64ffda' : '#ff6b6b'),
+        color: res.colors?.[i] || (isLOS ? '#8b5cf6' : '#f43f5e'),
         isLOS: isLOS
       };
     });
@@ -1320,7 +1320,7 @@ export class DashboardComponent implements OnInit {
 
     // Error Bar Chart
     const errors = sorted.map(p => p.relative_error_percent);
-    const colors = errors.map(e => e < 10 ? '#64ffda' : e < 30 ? '#f7b731' : '#ff6b6b');
+    const colors = errors.map(e => e < 10 ? '#8b5cf6' : e < 30 ? '#f59e0b' : '#f43f5e');
     
     this.calibErrorChartData.labels = snrs.map(s => s + ' dB');
     this.calibErrorChartData.datasets[0].data = errors;
@@ -1330,10 +1330,10 @@ export class DashboardComponent implements OnInit {
 
   calibQualityColor(quality: string): string {
     switch(quality.toLowerCase()) {
-      case 'excellent': return '#64ffda';
+      case 'excellent': return '#8b5cf6';
       case 'good': return '#45aaf2';
-      case 'fair': return '#f7b731';
-      case 'poor': return '#ff6b6b';
+      case 'fair': return '#f59e0b';
+      case 'poor': return '#f43f5e';
       default: return '#aaaaaa';
     }
   }

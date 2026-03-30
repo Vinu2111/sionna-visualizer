@@ -61,8 +61,8 @@ export class UeTrajectoryComponent implements OnInit, OnDestroy {
       {
         data: [],
         label: 'Signal Strength (dBm)',
-        borderColor: '#64ffda',
-        backgroundColor: 'rgba(100, 255, 218, 0.2)',
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139, 92, 246, 0.2)',
         fill: true,
         tension: 0.1,
         pointRadius: 4,
@@ -284,8 +284,8 @@ export class UeTrajectoryComponent implements OnInit, OnDestroy {
       .attr('cx', scaleX(res.tx_position[0]))
       .attr('cy', scaleY(res.tx_position[1]))
       .attr('r', scaleX(res.tx_position[0] + radius) - scaleX(res.tx_position[0]))
-      .attr('fill', 'rgba(100, 255, 218, 0.05)')
-      .attr('stroke', 'rgba(100, 255, 218, 0.3)')
+      .attr('fill', 'rgba(139, 92, 246, 0.05)')
+      .attr('stroke', 'rgba(139, 92, 246, 0.3)')
       .attr('stroke-dasharray', '5,5');
 
     // Path segments

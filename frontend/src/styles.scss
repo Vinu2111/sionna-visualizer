@@ -7,20 +7,26 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
    Global Consistent Color Tokens & Theming
    ───────────────────────────────────────────────────────────────────────── */
 :root {
-  --primary-color: #64ffda;
-  --error-color: #ff6b6b;
-  --warning-color: #f7b731;
-  --bg-color: #0a0e1a;
-  --card-bg-color: #0d1117;
-  --border-color: rgba(100, 255, 218, 0.1);
-  --border-hover-color: rgba(100, 255, 218, 0.3);
-  --text-main: #eeeeee;
-  --text-body: rgba(255, 255, 255, 0.7);
-  --text-muted: rgba(255, 255, 255, 0.5);
+  --primary-color: #8b5cf6;
+  --secondary-color: #0ea5e9;
+  --error-color: #f43f5e;
+  --warning-color: #f59e0b;
+  --bg-color: #030712;
+  --card-bg-color: rgba(17, 24, 39, 0.6);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-hover-color: rgba(139, 92, 246, 0.4);
+  --text-main: #f8fafc;
+  --text-body: #cbd5e1;
+  --text-muted: #94a3b8;
+  --glow-primary: rgba(139, 92, 246, 0.5);
+  --glow-secondary: rgba(14, 165, 233, 0.5);
 }
 
 body {
-  background-color: var(--bg-color);
+  background: radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.08), transparent 25%),
+              radial-gradient(circle at 85% 30%, rgba(14, 165, 233, 0.08), transparent 25%),
+              var(--bg-color);
+  background-attachment: fixed;
   color: var(--text-body);
 }
 
@@ -35,19 +41,48 @@ body { font-size: 14px; }
 
 /* All Cards styling */
 .mat-mdc-card {
-  background-color: var(--card-bg-color) !important;
-  border-radius: 12px !important;
+  background: var(--card-bg-color) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px !important;
   border: 1px solid var(--border-color) !important;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s ease;
 
   &:hover {
     border-color: var(--border-hover-color) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 16px rgba(139, 92, 246, 0.1) !important;
   }
 }
 
-/* Button overrides for precise spec padding */
+/* Material Form Fields & Inputs Fixes for Dark Mode */
+.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
+  color: var(--text-main) !important;
+}
+.mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
+  color: var(--text-muted) !important;
+}
+.mat-mdc-select-value-text {
+  color: var(--text-main) !important;
+}
+.mat-mdc-select-arrow {
+  color: var(--text-muted) !important;
+}
+.mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+.mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+.mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--focused):hover .mdc-notched-outline .mdc-notched-outline__leading,
+.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--focused):hover .mdc-notched-outline .mdc-notched-outline__notch,
+.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--focused):hover .mdc-notched-outline .mdc-notched-outline__trailing {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Base button overrides */
 .mat-mdc-button-base {
-  border-radius: 8px !important;
+  border-radius: 12px !important;
+  letter-spacing: 0.5px !important;
 }
 
 /* Page Transitions */

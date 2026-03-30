@@ -14,7 +14,7 @@ import { SimulationHistoryItem } from '../../models/simulation-result.model';
   imports: [CommonModule, FormsModule, MatDialogModule, MatButtonModule, MatCheckboxModule, MatIconModule],
   template: `
     <h2 mat-dialog-title style="display:flex;align-items:center;gap:8px;">
-      <mat-icon style="color:#64ffda;">file_download</mat-icon>
+      <mat-icon style="color:#8b5cf6;">file_download</mat-icon>
       Export Selected Simulations
     </h2>
     <mat-dialog-content style="min-width:340px;padding:16px 24px;">

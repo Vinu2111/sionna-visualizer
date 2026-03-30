@@ -3,7 +3,7 @@
 .history-container {
   padding: 2rem;
   min-height: 100vh;
-  background-color: #0a0e1a;
+  background-color: #030712;
   color: #eeeeee;
   font-family: 'Inter', sans-serif;
 
@@ -19,7 +19,7 @@
       font-size: 2rem;
       font-weight: 700;
       margin-bottom: 4px;
-      background: linear-gradient(135deg, #64ffda, #00bfff);
+      background: linear-gradient(135deg, #8b5cf6, #0ea5e9);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -66,8 +66,8 @@
 
 
 .generate-btn {
-  background: linear-gradient(135deg, #64ffda, #00bfff) !important;
-  color: #0a0e1a !important;
+  background: linear-gradient(135deg, #8b5cf6, #0ea5e9) !important;
+  color: #030712 !important;
   font-weight: 600 !important;
   height: 44px;
   border-radius: 8px !important;
@@ -75,12 +75,12 @@
 
   &:not([disabled]):hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(100, 255, 218, 0.25);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
   }
 
   .btn-spinner {
     margin-right: 0;
-    --mdc-circular-progress-active-indicator-color: #0a0e1a;
+    --mdc-circular-progress-active-indicator-color: #030712;
   }
 }
 
@@ -95,7 +95,7 @@
 /* ── Empty State ─────────────────────────────────────────────────────────── */
 .empty-card {
   background-color: #0d1117 !important;
-  border: 1.5px dashed rgba(100, 255, 218, 0.2) !important;
+  border: 1.5px dashed rgba(139, 92, 246, 0.2) !important;
   border-radius: 16px !important;
   text-align: center;
 
@@ -106,7 +106,7 @@
       font-size: 64px;
       width: 64px;
       height: 64px;
-      color: rgba(100, 255, 218, 0.4);
+      color: rgba(139, 92, 246, 0.4);
       margin-bottom: 16px;
     }
 
@@ -136,7 +136,7 @@
 
   .table-card {
     background-color: #0d1117 !important;
-    border: 1px solid rgba(100, 255, 218, 0.1) !important;
+    border: 1px solid rgba(139, 92, 246, 0.1) !important;
     border-radius: 12px !important;
     overflow-x: auto;
   }
@@ -147,9 +147,9 @@
     background-color: transparent;
 
     th.mat-header-cell {
-      color: #64ffda;
+      color: #8b5cf6;
       font-weight: 600;
-      border-bottom: 1px solid rgba(100, 255, 218, 0.12);
+      border-bottom: 1px solid rgba(139, 92, 246, 0.12);
       font-size: 0.82rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -165,33 +165,33 @@
       transition: background-color 0.15s ease;
 
       &:hover {
-        background-color: rgba(100, 255, 218, 0.04);
+        background-color: rgba(139, 92, 246, 0.04);
       }
     }
 
     .selected-row {
-      background-color: rgba(100, 255, 218, 0.08) !important;
-      border-left: 3px solid #64ffda;
+      background-color: rgba(139, 92, 246, 0.08) !important;
+      border-left: 3px solid #8b5cf6;
     }
 
     .compare-row-a {
-      background-color: rgba(100, 255, 218, 0.06) !important;
-      border-left: 3px solid #64ffda;
+      background-color: rgba(139, 92, 246, 0.06) !important;
+      border-left: 3px solid #8b5cf6;
     }
 
     .compare-row-b {
-      background-color: rgba(255, 107, 107, 0.06) !important;
-      border-left: 3px solid #ff6b6b;
+      background-color: rgba(244, 63, 94, 0.06) !important;
+      border-left: 3px solid #f43f5e;
     }
 
     .check-a ::ng-deep .mdc-checkbox__background {
-      border-color: #64ffda !important;
-      background-color: #64ffda !important;
+      border-color: #8b5cf6 !important;
+      background-color: #8b5cf6 !important;
     }
 
     .check-b ::ng-deep .mdc-checkbox__background {
-      border-color: #ff6b6b !important;
-      background-color: #ff6b6b !important;
+      border-color: #f43f5e !important;
+      background-color: #f43f5e !important;
     }
 
     .action-cell {
@@ -202,23 +202,23 @@
     }
 
     .compare-row-a {
-      background-color: rgba(100, 255, 218, 0.06) !important;
-      border-left: 3px solid #64ffda;
+      background-color: rgba(139, 92, 246, 0.06) !important;
+      border-left: 3px solid #8b5cf6;
     }
 
     .compare-row-b {
-      background-color: rgba(255, 107, 107, 0.06) !important;
-      border-left: 3px solid #ff6b6b;
+      background-color: rgba(244, 63, 94, 0.06) !important;
+      border-left: 3px solid #f43f5e;
     }
 
     .check-a ::ng-deep .mdc-checkbox__background {
-      border-color: #64ffda !important;
-      background-color: #64ffda !important;
+      border-color: #8b5cf6 !important;
+      background-color: #8b5cf6 !important;
     }
 
     .check-b ::ng-deep .mdc-checkbox__background {
-      border-color: #ff6b6b !important;
-      background-color: #ff6b6b !important;
+      border-color: #f43f5e !important;
+      background-color: #f43f5e !important;
     }
 
     .action-cell {
@@ -245,11 +245,11 @@
 
   .chart-card {
     background-color: #0d1117 !important;
-    border: 1px solid rgba(100, 255, 218, 0.1) !important;
+    border: 1px solid rgba(139, 92, 246, 0.1) !important;
     border-radius: 12px !important;
 
     mat-card-title { color: #eeeeee; font-size: 1rem; }
-    mat-card-subtitle { color: rgba(100, 255, 218, 0.7); }
+    mat-card-subtitle { color: rgba(139, 92, 246, 0.7); }
 
     .chart-wrapper {
       position: relative;
@@ -274,8 +274,8 @@
 
 /* ── Export Buttons ──────────────────────────────────────────────────────── */
 .bulk-export-btn {
-  border: 1px solid rgba(100, 255, 218, 0.4) !important;
-  color: #64ffda !important;
+  border: 1px solid rgba(139, 92, 246, 0.4) !important;
+  color: #8b5cf6 !important;
   font-weight: 500 !important;
   height: 44px;
   border-radius: 8px !important;
@@ -284,14 +284,14 @@
   mat-icon { margin-right: 6px; }
 
   &:not([disabled]):hover {
-    background-color: rgba(100, 255, 218, 0.1) !important;
-    border-color: #64ffda !important;
+    background-color: rgba(139, 92, 246, 0.1) !important;
+    border-color: #8b5cf6 !important;
   }
 }
 
 .action-cell {
   .export-icon-btn {
-    color: rgba(100, 255, 218, 0.6) !important;
+    color: rgba(139, 92, 246, 0.6) !important;
     width: 32px !important;
     height: 32px !important;
     line-height: 32px !important;
@@ -305,7 +305,7 @@
       height: 18px !important;
     }
 
-    &:hover { color: #64ffda !important; }
+    &:hover { color: #8b5cf6 !important; }
   }
 }
 

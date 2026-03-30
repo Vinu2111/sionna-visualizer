@@ -2,7 +2,7 @@
 
 .share-page {
   min-height: 100vh;
-  background-color: #0a0e1a;
+  background-color: #030712;
   color: #eeeeee;
   display: flex;
   flex-direction: column;
@@ -12,7 +12,7 @@
 .public-banner {
   background-color: #0d1117;
   padding: 1rem 2rem;
-  border-bottom: 1px solid rgba(100, 255, 218, 0.15);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -21,7 +21,7 @@
     margin: 0;
     font-size: 1.4rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #64ffda, #00bfff);
+    background: linear-gradient(135deg, #8b5cf6, #0ea5e9);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -66,7 +66,7 @@
     font-size: 64px;
     height: 64px;
     width: 64px;
-    color: rgba(100, 255, 218, 0.3);
+    color: rgba(139, 92, 246, 0.3);
   }
 
   h2 {
@@ -93,11 +93,11 @@
 /* ── Chart Box ─────────────────────────────────────────────────────────────── */
 .chart-box {
   background-color: #0d1117 !important;
-  border: 1px solid rgba(100, 255, 218, 0.1) !important;
+  border: 1px solid rgba(139, 92, 246, 0.1) !important;
   border-radius: 12px !important;
   transition: border-color 0.2s ease;
 
-  &:hover { border-color: rgba(100, 255, 218, 0.25) !important; }
+  &:hover { border-color: rgba(139, 92, 246, 0.25) !important; }
 
   mat-card-title { color: #eeeeee; font-size: 1rem; }
   mat-card-subtitle { color: rgba(255,255,255,0.45); }
@@ -111,7 +111,7 @@
 /* ── Specs Card ───────────────────────────────────────────────────────────── */
 .specs-card {
   background-color: #0d1117 !important;
-  border: 1px solid rgba(100, 255, 218, 0.1) !important;
+  border: 1px solid rgba(139, 92, 246, 0.1) !important;
   border-radius: 12px !important;
 
   mat-card-title { color: #eeeeee; font-size: 1rem; }
@@ -125,15 +125,15 @@
     flex-wrap: wrap;
 
     li {
-      background-color: rgba(100, 255, 218, 0.05);
-      border: 1px solid rgba(100, 255, 218, 0.1);
+      background-color: rgba(139, 92, 246, 0.05);
+      border: 1px solid rgba(139, 92, 246, 0.1);
       padding: 8px 16px;
       border-radius: 8px;
       color: rgba(255,255,255,0.7);
       font-size: 0.9rem;
 
       strong {
-        color: #64ffda;
+        color: #8b5cf6;
         margin-right: 6px;
       }
     }
@@ -142,11 +142,11 @@
 
 /* ── CTA Banner ────────────────────────────────────────────────────────────── */
 .cta-banner {
-  background: linear-gradient(135deg, rgba(100,255,218,0.05) 0%, rgba(0,191,255,0.05) 100%);
+  background: linear-gradient(135deg, rgba(139, 92, 246,0.05) 0%, rgba(0,191,255,0.05) 100%);
   padding: 48px;
   border-radius: 12px;
   text-align: center;
-  border: 1px solid rgba(100, 255, 218, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.15);
 
   h2 {
     color: #ffffff;
@@ -173,8 +173,8 @@
 }
 
 .export-btn {
-  border: 1px solid rgba(100, 255, 218, 0.4) !important;
-  color: #64ffda !important;
+  border: 1px solid rgba(139, 92, 246, 0.4) !important;
+  color: #8b5cf6 !important;
   font-weight: 500 !important;
   font-size: 0.85rem !important;
   background-color: transparent !important;
@@ -191,9 +191,9 @@
   }
 
   &:hover {
-    background-color: rgba(100, 255, 218, 0.1) !important;
-    border-color: #64ffda !important;
-    box-shadow: 0 0 12px rgba(100, 255, 218, 0.15);
+    background-color: rgba(139, 92, 246, 0.1) !important;
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.15);
   }
 }
 

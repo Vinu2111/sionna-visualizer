@@ -16,7 +16,7 @@
   <mat-card class="section-card" style="margin-bottom: 32px;">
     <mat-card-header><mat-card-title>Quick Start</mat-card-title></mat-card-header>
     <mat-card-content>
-      <pre class="code-block" style="background: #111; padding: 16px; border-radius: 8px; overflow-x: auto;"><code style="color: #64ffda;">import requests
+      <pre class="code-block" style="background: #111; padding: 16px; border-radius: 8px; overflow-x: auto;"><code style="color: #8b5cf6;">import requests
 
 API_KEY = "your-api-key-here"
 BASE_URL = "https://sionna-visualizer-production-50ae.up.railway.app"
@@ -121,7 +121,7 @@ plt.show()</code></pre>
         </table>
         
         <p style="color: #aaa; margin-bottom: 8px;">Python Example:</p>
-        <pre class="code-block" style="background: #111; padding: 12px; border-radius: 8px; overflow-x: auto; margin-top: 0;"><code style="color: #64ffda;">import requests
+        <pre class="code-block" style="background: #111; padding: 12px; border-radius: 8px; overflow-x: auto; margin-top: 0;"><code style="color: #8b5cf6;">import requests
 response = requests.post(
     "https://sionna-visualizer-production-50ae.up.railway.app/v1/api/simulate/channel-capacity",
     headers=&#123;"X-API-Key": "YOUR_API_KEY"&#125;,
@@ -147,7 +147,7 @@ print(response.json()['insights'])</code></pre>
         <li>Generate an API key by registering and visiting the Dashboard -> API Keys tab.</li>
         <li>Rate Limits: <b>100 requests per day</b> per API Key.</li>
       </ul>
-      <pre class="code-block" style="background: #111; padding: 16px; border-radius: 8px; overflow-x: auto;"><code style="color: #64ffda;">curl -X POST \
+      <pre class="code-block" style="background: #111; padding: 16px; border-radius: 8px; overflow-x: auto;"><code style="color: #8b5cf6;">curl -X POST \
   https://sionna-visualizer-production-50ae.up.railway.app/v1/api/simulate/ber-snr \
   -H "X-API-Key: YOUR_API_KEY_HERE" \
   -H "Content-Type: application/json" \
@@ -190,7 +190,7 @@ print(response.json()['insights'])</code></pre>
             <th class="mat-header-cell" style="padding: 12px;">Action</th>
           </tr>
           <tr class="mat-row" *ngFor="let key of apiKeys" style="border-bottom: 1px solid #222;">
-            <td class="mat-cell" style="padding: 12px; font-family: monospace; color: #64ffda;">{{ key.keyValue.substring(0, 15) }}...</td>
+            <td class="mat-cell" style="padding: 12px; font-family: monospace; color: #8b5cf6;">{{ key.keyValue.substring(0, 15) }}...</td>
             <td class="mat-cell" style="padding: 12px;">{{ key.requestCount }} / 100</td>
             <td class="mat-cell" style="padding: 12px;">
               <button mat-button color="warn" (click)="revokeApiKey(key.keyValue)" [disabled]="isRevoking">Revoke</button>

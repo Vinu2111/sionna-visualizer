@@ -42,10 +42,10 @@ export class CompareComponent implements OnInit {
   public berChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
-      { data: [], label: 'Sim A — Theoretical', fill: false, tension: 0.1, borderDash: [5, 5], borderColor: '#64ffda', pointRadius: 0, borderWidth: 2 },
-      { data: [], label: 'Sim A — Simulated',   fill: false, tension: 0.1, borderColor: '#64ffda', pointRadius: 0, borderWidth: 2 },
-      { data: [], label: 'Sim B — Theoretical', fill: false, tension: 0.1, borderDash: [5, 5], borderColor: '#ff6b6b', pointRadius: 0, borderWidth: 2 },
-      { data: [], label: 'Sim B — Simulated',   fill: false, tension: 0.1, borderColor: '#ff6b6b', pointRadius: 0, borderWidth: 2 }
+      { data: [], label: 'Sim A — Theoretical', fill: false, tension: 0.1, borderDash: [5, 5], borderColor: '#8b5cf6', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: 'Sim A — Simulated',   fill: false, tension: 0.1, borderColor: '#8b5cf6', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: 'Sim B — Theoretical', fill: false, tension: 0.1, borderDash: [5, 5], borderColor: '#f43f5e', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: 'Sim B — Simulated',   fill: false, tension: 0.1, borderColor: '#f43f5e', pointRadius: 0, borderWidth: 2 }
     ]
   };
 
@@ -75,8 +75,8 @@ export class CompareComponent implements OnInit {
   public beamChartData: ChartData<'line'> = {
     labels: [],
     datasets: [
-      { data: [], label: 'Sim A Beam Pattern', fill: false, tension: 0.3, borderColor: '#64ffda', pointRadius: 0, borderWidth: 2 },
-      { data: [], label: 'Sim B Beam Pattern', fill: false, tension: 0.3, borderColor: '#ff6b6b', pointRadius: 0, borderWidth: 2 }
+      { data: [], label: 'Sim A Beam Pattern', fill: false, tension: 0.3, borderColor: '#8b5cf6', pointRadius: 0, borderWidth: 2 },
+      { data: [], label: 'Sim B Beam Pattern', fill: false, tension: 0.3, borderColor: '#f43f5e', pointRadius: 0, borderWidth: 2 }
     ]
   };
 

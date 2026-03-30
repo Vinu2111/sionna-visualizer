@@ -119,6 +119,26 @@ router-outlet ~ * {
   }
 }
 
+/* Material Tabs Fixes for Dark Mode */
+.mdc-tab__text-label {
+  color: var(--text-muted) !important;
+}
+.mdc-tab--active .mdc-tab__text-label {
+  color: var(--text-main) !important;
+  font-weight: 600 !important;
+}
+.mat-mdc-tab-labels {
+  background-color: transparent !important;
+}
+
+/* Material Inputs explicitly overriding to white text */
+.mat-mdc-input-element {
+  color: var(--text-main) !important;
+}
+.mat-mdc-select-value {
+  color: var(--text-main) !important;
+}
+
 /* SnackBar Error styling */
 .error-snackbar {
   background-color: var(--error-color) !important;

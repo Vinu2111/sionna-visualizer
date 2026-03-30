@@ -22,8 +22,8 @@ export class ColormapSelectorComponent implements OnInit {
 
   ngOnInit(): void {
     this.simulationService.getColormaps().subscribe({
-      next: (data) => {
-        this.colormaps = data;
+      next: (data: any) => {
+        this.colormaps = data.colormaps || data || [];
         this.loading = false;
       },
       error: (err) => {

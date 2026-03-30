@@ -55,7 +55,7 @@ public class HealthController {
             restTemplate.getForEntity(baseUrl + "/docs", String.class);
             healthStatus.put("pythonBridge", "UP");
         } catch (Exception e) {
-            healthStatus.put("pythonBridge", "DOWN");
+            healthStatus.put("pythonBridge", "DOWN (" + baseUrl + "/docs) - " + e.getMessage());
             healthStatus.put("status", "DEGRADED");
         }
 

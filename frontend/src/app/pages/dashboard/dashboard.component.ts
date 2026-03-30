@@ -92,6 +92,8 @@ export class DashboardComponent implements OnInit {
   isPathLossSimulating = false;
   isRaySimulating = false;
   loadError = false;
+  retryAttempt = 0;
+  retryMessage = '';
 
   calibData: MeasurementOverlayResult | null = null;
   sinrData: SinrSteeringResult | null = null;
@@ -600,15 +602,41 @@ export class DashboardComponent implements OnInit {
   fetchSimulationData(): void {
     this.isLoading = true;
     this.loadError = false;
+    this.retryAttempt = 0;
+    this.tryFetchWithRetry();
+  }
+
+  private tryFetchWithRetry(): void {
+    const MAX_RETRIES = 3;
+    this.retryAttempt++;
+    this.retryMessage = this.retryAttempt > 1
+      ? `Connecting to simulation engine... (attempt ${this.retryAttempt} of ${MAX_RETRIES})`
+      : 'Connecting to simulation engine...';
+
     this.simulationService.getDemoSimulation().subscribe({
-      next: (result) => {
+      next: (result: any) => {
+        // If engine is warming up, it returns { status: 'demo_unavailable' }
+        if (result && result.status === 'demo_unavailable') {
+          if (this.retryAttempt < MAX_RETRIES) {
+            setTimeout(() => this.tryFetchWithRetry(), 3000);
+          } else {
+            this.loadError = true;
+            this.isLoading = false;
+          }
+          return;
+        }
         this.updateChartData(result);
+        this.retryMessage = '';
         this.isLoading = false;
       },
       error: (err) => {
         console.error('Failed to load simulation data', err);
-        this.loadError = true;
-        this.isLoading = false;
+        if (this.retryAttempt < MAX_RETRIES) {
+          setTimeout(() => this.tryFetchWithRetry(), 3000);
+        } else {
+          this.loadError = true;
+          this.isLoading = false;
+        }
       }
     });
   }

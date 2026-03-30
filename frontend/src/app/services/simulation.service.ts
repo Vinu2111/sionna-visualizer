@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, timeout } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 import { SimulationResult, SimulationHistoryItem, SimulationRequest, BeamPatternRequest, BeamPatternResult, ModulationComparisonRequest, ModulationComparisonResult, PathLossRequest, PathLossResult, SimulationEstimateRequest, SimulationEstimateResult, ColormapOption, RayDirectionRequest, RayDirectionResult, UeTrajectoryRequest, UeTrajectoryResult, MeasurementOverlayRequest, MeasurementOverlayResult, SinrSteeringRequest, SinrSteeringResult } from '../models/simulation-result.model';
 import { environment } from '../../environments/environment';
@@ -65,7 +65,7 @@ export class SimulationService {
    * Triggers a quick demo simulation (QPSK defaults) for the initial chart load.
    */
   getDemoSimulation(): Observable<SimulationResult> {
-    return this.http.get<SimulationResult>(this.demoUrl);
+    return this.http.get<SimulationResult>(this.demoUrl).pipe(timeout(15000));
   }
 
   /**

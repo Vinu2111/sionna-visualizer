@@ -11,9 +11,11 @@ import datetime
 import asyncio
 import anyio
 import time
+import traceback
 import tracemalloc
 import importlib.metadata
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from models import (
     SimulationRequest, SimulationResult, 
     BeamPatternRequest, BeamPatternResult,
@@ -32,7 +34,6 @@ from modulation_comparison import compute_modulation_comparison
 from channel_capacity import compute_channel_capacity
 from path_loss import compute_path_loss
 from estimate import compute_estimate
-from estimate import compute_estimate
 from colormap import colormap_service
 from ray_directions import compute_ray_directions
 from ue_trajectory import simulate_ue_trajectory
@@ -44,6 +45,25 @@ app = FastAPI(
     description="CPU-only AWGN BER-vs-SNR simulation microservice",
     version="2.0.0",
 )
+
+
+# ---------------------------------------------------------------------------
+# Global exception handler — catches ALL unhandled errors
+# Returns structured JSON instead of a raw 500 stack trace
+# ---------------------------------------------------------------------------
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    error_detail = traceback.format_exc()
+    print(f"Unhandled error on {request.url}: {error_detail}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": str(exc),
+            "path": str(request.url),
+            "message": "Simulation engine error — check Railway logs"
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -109,18 +129,22 @@ async def run_with_performance(func, *args):
 async def warmup():
     """
     Runs a tiny BPSK simulation with 3 SNR points to keep the service warm.
+    Always returns 200 even if the simulation fails — warmup failure must never crash.
     """
-    request = SimulationRequest(
-        modulation_order=2,
-        code_rate=0.5,
-        num_bits_per_symbol=1,
-        snr_min=-5.0,
-        snr_max=5.0,
-        snr_steps=3
-    )
-    # Fire and forget or await, we should wait to ensure it actually warms up.
-    await simulate(request)
-    return {"status": "warmed_up"}
+    try:
+        request = SimulationRequest(
+            modulation_order=2,
+            code_rate=0.5,
+            num_bits_per_symbol=1,
+            snr_min=-5.0,
+            snr_max=5.0,
+            snr_steps=3
+        )
+        await simulate(request)
+        return {"status": "warm", "message": "Bridge ready"}
+    except Exception as e:
+        print(f"Warmup failed (non-fatal): {e}")
+        return {"status": "cold", "message": str(e)}
 
 @app.post("/simulate", response_model=SimulationResult)
 async def simulate(request: SimulationRequest):

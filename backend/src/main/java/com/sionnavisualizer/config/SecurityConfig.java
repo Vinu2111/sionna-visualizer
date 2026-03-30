@@ -51,6 +51,7 @@ public class SecurityConfig {
                     "/api/simulations/estimate",
                     "/api/share/**",
                     "/api/health",
+                    "/api/health/ping",
                     "/v1/api/**"
                 ).permitAll()
                 // All other endpoints natively require strict Authorization Bearer approval

@@ -5,6 +5,7 @@
   <!-- Progress bar while initial data loads -->
   <div class="loading-bar-container" *ngIf="isLoading">
     <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+    <p class="retry-message" *ngIf="retryMessage">{{ retryMessage }}</p>
   </div>
 
   <!-- Connection error state -->
@@ -12,7 +13,7 @@
     <mat-card-content>
       <mat-icon>wifi_off</mat-icon>
       <h3>Unable to connect to simulation engine</h3>
-      <p>Please check your connection and make sure the backend is running.</p>
+      <p>The engine may still be starting up. Please wait 30 seconds and try again.</p>
       <button mat-raised-button color="accent" (click)="fetchSimulationData()">
         Retry
       </button>

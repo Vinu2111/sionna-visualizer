@@ -23,11 +23,14 @@ import com.sionnavisualizer.dto.SinrSteeringRequestDto;
 import com.sionnavisualizer.dto.SinrSteeringResultDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST Controller exposing Sionna simulation API endpoints to the Angular frontend.
@@ -44,6 +47,8 @@ import java.util.List;
 @CrossOrigin(originPatterns = {"https://*.vercel.app", "http://localhost:4200"})
 public class SimulationController {
 
+    private static final Logger log = LoggerFactory.getLogger(SimulationController.class);
+
     private final SimulationService simulationService;
 
     public SimulationController(SimulationService simulationService) {
@@ -59,14 +64,20 @@ public class SimulationController {
      *
      * Triggers a QPSK rate-1/2 simulation with default parameters.
      * Used for the initial dashboard load — no request body needed.
+     * NEVER returns 500 — always 200 with either real data or a graceful message.
      */
     @GetMapping("/simulate/demo")
     public ResponseEntity<?> runDemoSimulation() {
         try {
             SimulationDto result = simulationService.runDemoSimulation();
             return ResponseEntity.ok(result);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.internalServerError().body(ex.getMessage());
+        } catch (Exception e) {
+            log.error("Demo endpoint error: {}", e.getMessage());
+            return ResponseEntity.ok(Map.of(
+                "status", "demo_unavailable",
+                "message", "Simulation engine warming up. Please retry in 15 seconds.",
+                "timestamp", System.currentTimeMillis()
+            ));
         }
     }
 

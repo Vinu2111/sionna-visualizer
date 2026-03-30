@@ -27,6 +27,15 @@ public class HealthController {
         this.restTemplate = new RestTemplate();
     }
 
+    /** Lightweight ping — always returns 200. No Python call. Used by frontend to check Java is alive. */
+    @GetMapping("/ping")
+    public ResponseEntity<Map<String, Object>> ping() {
+        return ResponseEntity.ok(Map.of(
+            "status", "ok",
+            "timestamp", System.currentTimeMillis()
+        ));
+    }
+
     @GetMapping
     public ResponseEntity<Map<String, String>> checkHealth() {
         Map<String, String> healthStatus = new HashMap<>();

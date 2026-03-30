@@ -38,6 +38,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,8 +103,9 @@ public class SimulationService {
 
     @PostConstruct
     public void warmupPythonBridge() {
-        new Thread(() -> {
+        CompletableFuture.runAsync(() -> {
             try {
+                Thread.sleep(5000); // wait 5s for Railway services to fully start
                 logger.info("Starting Python bridge warmup...");
                 String url = PYTHON_BRIDGE_BASE_URL;
                 if (url != null && !url.startsWith("http://") && !url.startsWith("https://")) {
@@ -114,16 +116,18 @@ public class SimulationService {
                 } else if (url != null && url.endsWith("/simulate")) {
                     url = url.substring(0, url.length() - "/simulate".length());
                 }
-                if (url.endsWith("/")) {
+                if (url != null && url.endsWith("/")) {
                     url = url.substring(0, url.length() - 1);
                 }
                 restTemplate.getForObject(url + "/warmup", String.class);
                 pythonBridgeWarm = true;
                 logger.info("Python bridge successfully warmed up.");
             } catch (Exception e) {
-                logger.error("Failed to warm up Python bridge: {}", e.getMessage());
+                // Non-fatal: Python bridge may not be deployed yet
+                logger.warn("Python bridge warmup failed (non-fatal): {}", e.getMessage());
+                // Do NOT rethrow — warmup failure must never crash startup
             }
-        }).start();
+        });
     }
 
     public SimulationService(RestTemplate restTemplate,

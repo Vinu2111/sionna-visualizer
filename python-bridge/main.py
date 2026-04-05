@@ -335,3 +335,73 @@ async def simulate_demo_post(request: SimulationRequest = None):
 @app.get("/simulate/demo", response_model=SimulationResult)
 async def simulate_demo_get():
     return await simulate_awgn(SimulationRequest())
+
+@app.get("/simulate/colormaps")
+def get_colormaps():
+    """Returns the list of available chart colormaps."""
+    return colormap_service.list_all()
+
+@app.post("/simulate/modulation-comparison", response_model=ModulationComparisonResult)
+async def modulation_comparison(request: ModulationComparisonRequest):
+    result = await run_with_performance(
+        compute_modulation_comparison,
+        request.snr_min, request.snr_max, request.snr_steps
+    )
+    result["colors"] = colormap_service.get_colors(request.colormap, 4)
+    result["colormap_used"] = request.colormap
+    return ModulationComparisonResult(**result)
+
+@app.post("/simulate/path-loss", response_model=PathLossResult)
+async def path_loss(request: PathLossRequest):
+    result = await run_with_performance(
+        compute_path_loss,
+        request.num_paths, request.frequency_ghz, request.environment
+    )
+    result["colors"] = colormap_service.get_colors(request.colormap, request.num_paths)
+    result["colormap_used"] = request.colormap
+    return PathLossResult(**result)
+
+@app.post("/simulate/ray-directions", response_model=RayDirectionResult)
+async def ray_directions(request: RayDirectionRequest):
+    result = await run_with_performance(
+        compute_ray_directions,
+        request.num_paths, request.frequency_ghz, request.environment,
+        request.tx_position, request.rx_position
+    )
+    result["colors"] = colormap_service.get_colors(request.colormap, request.num_paths)
+    result["colormap_used"] = request.colormap
+    return RayDirectionResult(**result)
+
+@app.post("/simulate/ue-trajectory", response_model=UeTrajectoryResult)
+async def ue_trajectory(request: UeTrajectoryRequest):
+    result = await run_with_performance(
+        simulate_ue_trajectory,
+        request.num_waypoints, request.frequency_ghz, request.environment,
+        request.tx_position, request.speed_kmh, request.trajectory_type
+    )
+    result["colors"] = colormap_service.get_colors(request.colormap, 1)
+    result["colormap_used"] = request.colormap
+    return UeTrajectoryResult(**result)
+
+@app.post("/simulate/estimate", response_model=SimulationEstimateResult)
+async def estimate(request: SimulationEstimateRequest):
+    result = compute_estimate(request.simulation_type, request.parameters)
+    return SimulationEstimateResult(**result)
+
+@app.post("/simulations/measurement-overlay", response_model=MeasurementOverlayResult)
+async def measurement_overlay(request: MeasurementOverlayRequest):
+    result = await run_with_performance(
+        compute_measurement_overlay,
+        request.simulation_type, request.measurements,
+        request.frequency_ghz, request.environment
+    )
+    return MeasurementOverlayResult(**result)
+
+@app.post("/simulations/sinr-steering", response_model=SinrSteeringResult)
+async def sinr_steering(request: SinrSteeringRequest):
+    result = await run_with_performance(
+        compute_sinr_steering,
+        request.num_antennas, request.frequency_ghz, request.steering_angles,
+        request.interference_angle_deg, request.signal_power_dbm, request.interference_power_dbm
+    )
+    return SinrSteeringResult(**result)

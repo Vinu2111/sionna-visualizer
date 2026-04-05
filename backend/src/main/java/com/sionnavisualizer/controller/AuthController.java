@@ -15,11 +15,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMethod;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(originPatterns = {"https://*.vercel.app", "http://localhost:4200"})
+// FIX 5: Extra CORS safety for critical auth endpoints
+@CrossOrigin(
+    origins = "${cors.allowed.origin:http://localhost:4200}",
+    allowedHeaders = "*",
+    methods = {RequestMethod.POST, RequestMethod.GET, RequestMethod.OPTIONS}
+)
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;

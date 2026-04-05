@@ -43,6 +43,14 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        // FIX 4.1: Skip JWT validation for OPTIONS preflight requests
+        // Browser sends OPTIONS before the actual POST/PUT. 
+        // These requests never carry an Authorization header, so we must let them through.
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // Step 1: Read the header out of the request exactly named "Authorization"
         final String authorizationHeader = request.getHeader("Authorization");
 
@@ -79,5 +87,11 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // Lastly, continue the request to whichever intended controller the frontend wanted
         filterChain.doFilter(request, response);
+    }
+
+    // FIX 4.2: Built-in Spring exclusion for OPTIONS preflight
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return "OPTIONS".equalsIgnoreCase(request.getMethod());
     }
 }

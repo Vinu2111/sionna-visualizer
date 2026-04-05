@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 
 @Configuration
@@ -26,6 +27,10 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;
+
+    // FIX 1.1: Map CORS origin from environment or fallback to local Angular dev
+    @Value("${cors.allowed.origin:http://localhost:4200}")
+    private String allowedOrigin;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtFilter jwtFilter) {
         this.userDetailsService = userDetailsService;
@@ -38,12 +43,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-            // Enable CORS using our configured bean below
+            // FIX 1.2: CORS must be first in the chain
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             // State is entirely carried securely in the JSON Token; CSRF is for stateful architecture
             .csrf(AbstractHttpConfigurer::disable)
             // Permit /auth universally so users can register, and our demo natively locally without a token
             .authorizeHttpRequests(auth -> auth
+                // OPTIONS preflight MUST be explicitly permitted before any other check
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/simulate/demo",
@@ -72,15 +79,21 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Allow specific frontend origins
-        config.setAllowedOriginPatterns(List.of(
-            "https://*.vercel.app",
-            "http://localhost:4200",
-            "https://sionna-visualizer.vercel.app"
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        
+        // FIX 1.3: Allow the production Vercel frontend origin securely
+        config.setAllowedOrigins(List.of(allowedOrigin));
+        
+        // Allow all HTTP methods including OPTIONS for preflight
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        
+        // Headers required for JWT authentication
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        
+        // Expose Authorization header so frontend can read the tokens
+        config.setExposedHeaders(List.of("Authorization"));
+        
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L); // Cache preflight for 1 hour to reduce OPTIONS calls
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

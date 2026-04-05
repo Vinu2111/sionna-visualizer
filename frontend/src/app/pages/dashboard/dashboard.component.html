@@ -207,6 +207,14 @@
             </mat-card-content>
           </mat-card>
 
+          <!-- Anomaly Detection Panel -->
+          <div style="margin-top: 16px;" *ngIf="simulationData.id">
+            <app-anomaly-detection 
+              [simulationId]="simulationData.id" 
+              [autoAnalyze]="anomalyAutoAnalyze">
+            </app-anomaly-detection>
+          </div>
+
         </ng-container>
 
         <!-- Empty state: user has no data yet -->

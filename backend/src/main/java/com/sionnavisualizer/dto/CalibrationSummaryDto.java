@@ -1,25 +1,42 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CalibrationSummaryDto {
 
     @JsonProperty("mean_absolute_error")
+    @NotNull
+    @Min(0)
     private double meanAbsoluteError;
 
     @JsonProperty("rmse")
+    @NotNull
+    @Min(0)
     private double rmse;
 
     @JsonProperty("calibration_quality")
+    @NotBlank
     private String calibrationQuality;
 
     @JsonProperty("systematic_offset_db")
+    @NotNull
+    @Min(0)
     private double systematicOffsetDb;
 
     @JsonProperty("max_error_point")
+    @NotNull
+    @Min(0)
     private double maxErrorPoint;
 
     @JsonProperty("num_measurement_points")
+    @NotNull
+    @Min(0)
     private int numMeasurementPoints;
 
     public double getMeanAbsoluteError() { return meanAbsoluteError; }

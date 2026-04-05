@@ -1,9 +1,19 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.*;
+
 public class PathLossSummaryDto {
+    @NotNull
+    @Min(0)
     private Double losPathLossDb;
+    @NotNull
+    @Min(0)
     private Double maxPathLossDb;
+    @NotNull
+    @Min(0)
     private Double pathLossSpreadDb;
+    @NotNull
+    @Min(0)
     private Double meanDelayNs;
 
     public PathLossSummaryDto() {}

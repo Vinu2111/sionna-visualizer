@@ -1,5 +1,11 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+
 /**
  * Response DTO for GET /api/simulations/compare?id1=X&id2=Y
  * Contains both simulation records and metadata about whether
@@ -14,7 +20,9 @@ public class ComparisonResponseDto {
     // ─── inner metadata ────────────────────────────────────────────────────
     public static class ComparisonMetadata {
         private boolean same_type;
+        @NotBlank
         private String type1;
+        @NotBlank
         private String type2;
         private boolean can_overlay;
 

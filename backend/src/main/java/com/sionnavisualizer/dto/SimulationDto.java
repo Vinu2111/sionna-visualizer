@@ -1,5 +1,11 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+
 import java.util.List;
 
 /**
@@ -13,6 +19,8 @@ import java.util.List;
  * the final JSON back to the Angular frontend.
  */
 public class SimulationDto {
+    private Long id;
+
 
     /** SNR values tested, in dB (e.g. [-5.0, -3.33, ..., 20.0]) */
     private List<Double> snr_db;
@@ -24,22 +32,33 @@ public class SimulationDto {
     private List<Double> ber_simulated;
 
     /** Modulation scheme name, e.g. "QPSK", "16QAM" */
+    @NotBlank
     private String modulation;
 
     /** Code rate, e.g. 0.5 */
+    @NotNull
+    @Min(0)
     private Double code_rate;
 
     /** Wall-clock time the Python simulation took in milliseconds */
+    @NotNull
+    @Min(0)
     private Integer simulation_time_ms;
 
     /** Total number of bits processed in the Monte-Carlo run */
+    @NotNull
+    @Min(0)
     private Integer num_bits_simulated;
 
     private PerformanceDto performance;
     private List<String> colors;
+    @NotBlank
     private String colormap_used;
 
     // ─── Getters & Setters ──────────────────────────────────────────────────
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public List<Double> getSnr_db() { return snr_db; }
     public void setSnr_db(List<Double> snr_db) { this.snr_db = snr_db; }

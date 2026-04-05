@@ -1,13 +1,19 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.*;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class MeasurementPointDto {
 
     @JsonProperty("snr_db")
+    @NotNull
+    @Min(0)
     private double snrDb;
 
     @JsonProperty("ber_measured")
+    @NotNull
+    @Min(0)
     private double berMeasured;
 
     @JsonProperty("location")

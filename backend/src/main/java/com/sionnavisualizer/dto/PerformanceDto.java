@@ -1,9 +1,21 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+
 public class PerformanceDto {
+    @NotNull
+    @Min(0)
     private Long duration_ms;
+    @NotBlank
     private String compute_type;
+    @NotNull
+    @Min(0)
     private Double memory_mb;
+    @NotBlank
     private String sionna_version;
 
     public Long getDuration_ms() { return duration_ms; }

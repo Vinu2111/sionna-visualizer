@@ -153,6 +153,17 @@ public class SimulationResult {
 
     // ─── Sharing / access control ────────────────────────────────────────────
 
+    // ─── Experiment Tracking (Day 26) ────────────────────────────────────────
+
+    @Column(columnDefinition = "TEXT")
+    private String note;
+
+    @Column
+    private Boolean starred = false;
+
+    @Column(name = "experiment_id")
+    private Long experimentId;
+
     @Column(unique = true)
     private String shareToken;
 
@@ -288,4 +299,13 @@ public class SimulationResult {
 
     public String getSionnaVersion() { return sionnaVersion; }
     public void setSionnaVersion(String sionnaVersion) { this.sionnaVersion = sionnaVersion; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+
+    public Boolean getStarred() { return starred; }
+    public void setStarred(Boolean starred) { this.starred = starred; }
+
+    public Long getExperimentId() { return experimentId; }
+    public void setExperimentId(Long experimentId) { this.experimentId = experimentId; }
 }

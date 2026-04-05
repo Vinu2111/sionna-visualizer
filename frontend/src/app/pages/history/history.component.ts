@@ -127,7 +127,9 @@ export class HistoryComponent implements OnInit {
   selectSimulation(simulation: SimulationHistoryItem): void {
     this.selectedSimulation = simulation;
 
-    if (simulation.simulationType === 'BEAM_PATTERN' || simulation.simulationType === 'MOD_COMPARISON') {
+    const complexTypes = ['BEAM_PATTERN', 'MOD_COMPARISON', 'PATH_LOSS', 'RAY_DIRECTIONS', 'UE_TRAJECTORY', 'MEASUREMENT_OVERLAY', 'SINR_STEERING', 'CHANNEL_CAPACITY'];
+    if (complexTypes.includes(simulation.simulationType)) {
+      this.lineChartData = { ...this.lineChartData, labels: [], datasets: [ { ...this.lineChartData.datasets[0], data: [] }, { ...this.lineChartData.datasets[1], data: [] } ] };
       return;
     }
 

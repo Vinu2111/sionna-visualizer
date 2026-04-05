@@ -1,9 +1,12 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.*;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class SinrSteeringResultDto {
+    private Long id;
 
     @JsonProperty("steering_results")
     private List<SteeringResultEntryDto> steeringResults;
@@ -29,23 +32,33 @@ public class SinrSteeringResultDto {
     public PerformanceDto getPerformance() { return performance; }
     public void setPerformance(PerformanceDto v) { this.performance = v; }
 
-    // ── Nested classes ────────────────────────────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Nested classes Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
     public static class SteeringResultEntryDto {
         @JsonProperty("steering_angle_deg")
-        private double steeringAngleDeg;
+        @NotNull
+        @Min(0)
+    private double steeringAngleDeg;
 
         @JsonProperty("array_gain_db")
-        private double arrayGainDb;
+        @NotNull
+        @Min(0)
+    private double arrayGainDb;
 
         @JsonProperty("interference_gain_db")
-        private double interferenceGainDb;
+        @NotNull
+        @Min(0)
+    private double interferenceGainDb;
 
         @JsonProperty("sinr_db")
-        private double sinrDb;
+        @NotNull
+        @Min(0)
+    private double sinrDb;
 
         @JsonProperty("efficiency_percent")
-        private double efficiencyPercent;
+        @NotNull
+        @Min(0)
+    private double efficiencyPercent;
 
         @JsonProperty("is_optimal")
         private boolean isOptimal;
@@ -71,13 +84,19 @@ public class SinrSteeringResultDto {
 
     public static class OptimalSteeringDto {
         @JsonProperty("angle_deg")
-        private double angleDeg;
+        @NotNull
+        @Min(0)
+    private double angleDeg;
 
         @JsonProperty("sinr_db")
-        private double sinrDb;
+        @NotNull
+        @Min(0)
+    private double sinrDb;
 
         @JsonProperty("array_gain_db")
-        private double arrayGainDb;
+        @NotNull
+        @Min(0)
+    private double arrayGainDb;
 
         public double getAngleDeg() { return angleDeg; }
         public void setAngleDeg(double v) { this.angleDeg = v; }
@@ -91,19 +110,29 @@ public class SinrSteeringResultDto {
 
     public static class SinrSummaryDto {
         @JsonProperty("max_sinr_db")
-        private double maxSinrDb;
+        @NotNull
+        @Min(0)
+    private double maxSinrDb;
 
         @JsonProperty("min_sinr_db")
-        private double minSinrDb;
+        @NotNull
+        @Min(0)
+    private double minSinrDb;
 
         @JsonProperty("sinr_range_db")
-        private double sinrRangeDb;
+        @NotNull
+        @Min(0)
+    private double sinrRangeDb;
 
         @JsonProperty("num_angles_above_10db")
-        private int numAnglesAbove10db;
+        @NotNull
+        @Min(0)
+    private int numAnglesAbove10db;
 
         @JsonProperty("interference_null_angle")
-        private double interferenceNullAngle;
+        @NotNull
+        @Min(0)
+    private double interferenceNullAngle;
 
         public double getMaxSinrDb() { return maxSinrDb; }
         public void setMaxSinrDb(double v) { this.maxSinrDb = v; }
@@ -120,4 +149,7 @@ public class SinrSteeringResultDto {
         public double getInterferenceNullAngle() { return interferenceNullAngle; }
         public void setInterferenceNullAngle(double v) { this.interferenceNullAngle = v; }
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 }

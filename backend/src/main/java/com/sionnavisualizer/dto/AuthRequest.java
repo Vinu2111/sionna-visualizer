@@ -1,7 +1,14 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class AuthRequest {
+    @NotBlank(message = "Username cannot be empty")
+    @NotBlank
     private String username;
+
+    @NotBlank(message = "Password cannot be empty")
+    @NotBlank
     private String password;
 
     public String getUsername() { return username; }

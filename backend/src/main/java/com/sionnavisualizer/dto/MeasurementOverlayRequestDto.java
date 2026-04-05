@@ -1,5 +1,7 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.*;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import java.util.List;
@@ -10,6 +12,8 @@ public class MeasurementOverlayRequestDto {
     private String simulationType = "AWGN";
 
     @JsonProperty("simulation_id")
+    @NotNull
+    @Min(0)
     private Long simulationId;
 
     @JsonProperty("measurements")

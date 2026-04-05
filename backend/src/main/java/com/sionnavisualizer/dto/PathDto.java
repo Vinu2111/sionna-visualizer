@@ -1,10 +1,25 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+
 public class PathDto {
+    @NotNull
+    @Min(0)
     private Integer pathId;
+    @NotNull
+    @Min(0)
     private Double distanceM;
+    @NotNull
+    @Min(0)
     private Double pathLossDb;
+    @NotBlank
     private String pathType;
+    @NotNull
+    @Min(0)
     private Double delayNs;
 
     public PathDto() {}

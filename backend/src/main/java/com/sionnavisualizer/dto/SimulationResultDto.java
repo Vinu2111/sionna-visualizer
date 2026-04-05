@@ -1,5 +1,11 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -9,45 +15,73 @@ import java.time.LocalDateTime;
  */
 public class SimulationResultDto {
 
+    @NotNull
+
+    @Min(0)
     private Long id;
+    @NotBlank
     private String simulationType;
+    @NotBlank
     private String modulationType;
     private BigDecimal codeRate;
     private BigDecimal snrMin;
     private BigDecimal snrMax;
+    @NotBlank
     private String snrDb;
+    @NotBlank
     private String berTheoretical;
+    @NotBlank
     private String berSimulated;
 
     // Beam pattern fields
+    @NotBlank
     private String beamAngles;
+    @NotBlank
     private String beamPatternDb;
     private BigDecimal steeringAngle;
+    @NotNull
+    @Min(0)
     private Integer numAntennas;
     private BigDecimal frequencyGhz;
     private BigDecimal mainLobeWidth;
     private BigDecimal sideLobeLevel;
 
     // Mod comparison fields
+    @NotBlank
     private String bpskBer;
+    @NotBlank
     private String qpskBer;
+    @NotBlank
     private String qam16Ber;
+    @NotBlank
     private String qam64Ber;
+    @NotBlank
     private String crossoverPoints;
 
+    @NotBlank
+
     private String hardwareUsed;
+    @NotNull
+    @Min(0)
     private Integer simulationTimeMs;
+    @NotBlank
     private String shareToken;
     private Boolean isPublic;
     private LocalDateTime createdAt;
 
     // Performance fields
+    @NotNull
+    @Min(0)
     private Long durationMs;
+    @NotBlank
     private String computeType;
+    @NotNull
+    @Min(0)
     private Double memoryMb;
+    @NotBlank
     private String sionnaVersion;
 
-    // ─── Getters & Setters ──────────────────────────────────────────────────
+    // â”€â”€â”€ Getters & Setters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -138,7 +172,7 @@ public class SimulationResultDto {
     public String getSionnaVersion() { return sionnaVersion; }
     public void setSionnaVersion(String sionnaVersion) { this.sionnaVersion = sionnaVersion; }
 
-    /** Factory method — maps from JPA entity to DTO */
+    /** Factory method â€” maps from JPA entity to DTO */
     public static SimulationResultDto from(com.sionnavisualizer.model.SimulationResult e) {
         SimulationResultDto d = new SimulationResultDto();
         d.setId(e.getId());

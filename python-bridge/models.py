@@ -367,3 +367,44 @@ class SinrSteeringResult(BaseModel):
     optimal_steering: OptimalSteering
     summary: SinrSummary
     performance: Optional[PerformanceMetadata] = None
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Feature 3: CDL/TDL Channel Models
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ChannelModelRequest(BaseModel):
+    channel_model: str = "CDL-A"
+    modulation: str = "QPSK"
+    snr_min: float = -10.0
+    snr_max: float = 40.0
+    snr_steps: int = 25
+    num_antennas_tx: int = 16
+    num_antennas_rx: int = 4
+    carrier_frequency: float = 28.0
+    delay_spread: float = 100.0
+    num_time_steps: int = 1000
+
+class ChannelModelResult(BaseModel):
+    channel_model: str
+    modulation: str
+    snr_db_range: List[float]
+    ber_values: List[float]
+    theoretical_ber: List[float]
+    delay_profile: List[Dict[str, float]]
+    simulation_time_seconds: float
+    num_paths: int
+    performance: Optional[PerformanceMetadata] = None
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Feature 4: SigMF Import
+# ─────────────────────────────────────────────────────────────────────────────
+
+class SigmfAnalysisResult(BaseModel):
+    estimated_snr_db: float
+    ber_estimate: List[float]
+    snr_range: List[float]
+    iq_samples_i: List[float]
+    iq_samples_q: List[float]
+    num_total_samples: int
+    signal_power_dbm: float
+    performance: Optional[PerformanceMetadata] = None

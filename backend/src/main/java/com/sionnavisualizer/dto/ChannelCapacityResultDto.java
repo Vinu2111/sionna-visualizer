@@ -1,17 +1,29 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+
 import java.util.List;
 import java.util.Map;
 
 public class ChannelCapacityResultDto {
+    private Long id;
     private List<Double> snr_db;
     private List<Double> spectral_efficiency;
     private List<Map<String, Object>> capacity_curves;
+    @NotNull
+    @Min(0)
     private double snr_min;
+    @NotNull
+    @Min(0)
     private double snr_max;
     private Map<String, Object> insights;
     private PerformanceDto performance;
     private List<String> colors;
+    @NotBlank
     private String colormap_used;
 
     public ChannelCapacityResultDto() {}
@@ -42,4 +54,7 @@ public class ChannelCapacityResultDto {
 
     public String getColormap_used() { return colormap_used; }
     public void setColormap_used(String colormap_used) { this.colormap_used = colormap_used; }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 }

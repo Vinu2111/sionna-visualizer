@@ -14,7 +14,7 @@ import time
 import traceback
 import tracemalloc
 import importlib.metadata
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import JSONResponse
 from models import (
     SimulationRequest, SimulationResult, 
@@ -26,7 +26,9 @@ from models import (
     RayDirectionRequest, RayDirectionResult,
     UeTrajectoryRequest, UeTrajectoryResult,
     MeasurementOverlayRequest, MeasurementOverlayResult,
-    SinrSteeringRequest, SinrSteeringResult
+    SinrSteeringRequest, SinrSteeringResult,
+    ChannelModelRequest, ChannelModelResult,
+    SigmfAnalysisResult
 )
 from sionna_runner import run_awgn_simulation
 from beam_pattern import compute_ula_beam_pattern
@@ -39,6 +41,13 @@ from ray_directions import compute_ray_directions
 from ue_trajectory import simulate_ue_trajectory
 from measurement_overlay import compute_measurement_overlay
 from sinr_steering import compute_sinr_steering
+from channel_model_simulator import compute_channel_model
+from sigmf_analyzer import analyze_sigmf_payload
+from thz_atmospheric_calculator import (
+    ThzAtmosphericRequest,
+    ThzAtmosphericResponse,
+    handle_thz_calculate
+)
 
 app = FastAPI(
     title="Sionna Visualizer Bridge",
@@ -462,6 +471,34 @@ async def simulate_sinr_steering(request: SinrSteeringRequest):
 # GET /simulate/colormaps — list all available palettes
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# CDL / TDL Channel Models
+# ---------------------------------------------------------------------------
+
+@app.post("/simulate/channel-model", response_model=ChannelModelResult)
+async def simulate_channel_model(request: ChannelModelRequest):
+    """
+    Simulates BER and extracts delay profiles for 3GPP CDL and TDL standard channel models.
+    """
+    try:
+        result = await run_with_performance(
+            compute_channel_model,
+            request.channel_model,
+            request.modulation,
+            request.snr_min,
+            request.snr_max,
+            request.snr_steps,
+            request.num_antennas_tx,
+            request.num_antennas_rx,
+            request.carrier_frequency,
+            request.delay_spread,
+            request.num_time_steps
+        )
+        return ChannelModelResult(**result)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Channel model simulation failed: {str(exc)}")
+
+
 @app.get("/simulate/colormaps")
 async def list_colormaps():
     """
@@ -469,3 +506,45 @@ async def list_colormaps():
     No authentication required.
     """
     return {"colormaps": colormap_service.list_all()}
+
+
+# ---------------------------------------------------------------------------
+# SigMF Signal Analyzer Endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/analyze/sigmf", response_model=SigmfAnalysisResult)
+async def analyze_sigmf(meta_file: UploadFile = File(...), data_file: UploadFile = File(...)):
+    """
+    Parses raw SigMF metadata JSON and binary IQ data blocks extracting real-world signal characteristics natively.
+    """
+    try:
+        meta_content = await meta_file.read()
+        data_content = await data_file.read()
+
+        # Run synchronously avoiding async thread locks during heavy buffer math processes safely
+        result = await anyio.to_thread.run_sync(
+            analyze_sigmf_payload,
+            meta_content,
+            data_content
+        )
+        return SigmfAnalysisResult(**result)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"SigMF analysis failed: {str(exc)}")
+
+# ---------------------------------------------------------------------------
+# THz Atmospheric endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/calculate/thz-atmospheric", response_model=ThzAtmosphericResponse)
+async def calculate_thz_atmospheric(request: ThzAtmosphericRequest):
+    """
+    Simulates THz signal degradation based on ITU-R P.676 (gas) and P.838 (rain) models.
+    """
+    try:
+        result = await anyio.to_thread.run_sync(
+            handle_thz_calculate,
+            request
+        )
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"THz atmospheric calculation failed: {str(exc)}")

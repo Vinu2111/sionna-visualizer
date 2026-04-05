@@ -1,9 +1,16 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class MeasurementOverlayResultDto {
+    private Long id;
 
     @JsonProperty("comparison_points")
     private List<ComparisonPointDto> comparisonPoints;
@@ -12,6 +19,7 @@ public class MeasurementOverlayResultDto {
     private CalibrationSummaryDto calibrationSummary;
 
     @JsonProperty("simulation_type")
+    @NotBlank
     private String simulationType;
 
     @JsonProperty("performance")
@@ -28,4 +36,7 @@ public class MeasurementOverlayResultDto {
 
     public PerformanceDto getPerformance() { return performance; }
     public void setPerformance(PerformanceDto v) { this.performance = v; }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 }

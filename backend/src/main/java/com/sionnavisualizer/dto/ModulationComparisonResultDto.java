@@ -1,20 +1,34 @@
 package com.sionnavisualizer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
+
 import java.util.List;
 import java.util.Map;
 
 public class ModulationComparisonResultDto {
+    private Long id;
     private List<Double> snr_db;
     private List<Double> bpsk;
     private List<Double> qpsk;
     private List<Double> qam16;
     private List<Double> qam64;
+    @NotNull
+    @Min(0)
     private double snr_min;
+    @NotNull
+    @Min(0)
     private double snr_max;
+    @NotNull
+    @Min(0)
     private int snr_steps;
     private Map<String, Object> crossover_points;
     private PerformanceDto performance;
     private List<String> colors;
+    @NotBlank
     private String colormap_used;
 
     public List<Double> getSnr_db() { return snr_db; }
@@ -52,4 +66,7 @@ public class ModulationComparisonResultDto {
 
     public String getColormap_used() { return colormap_used; }
     public void setColormap_used(String colormap_used) { this.colormap_used = colormap_used; }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 }

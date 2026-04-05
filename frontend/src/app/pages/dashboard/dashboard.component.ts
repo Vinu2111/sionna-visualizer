@@ -36,6 +36,7 @@ import {
 } from '../../models/simulation-result.model';
 import { ColormapSelectorComponent } from '../../components/colormap-selector/colormap-selector.component';
 import { UeTrajectoryComponent } from '../../components/ue-trajectory/ue-trajectory.component';
+import { AnomalyDetectionComponent } from '../../components/anomaly-detection/anomaly-detection.component';
 
 /** Custom validator: SNR min must be less than SNR max */
 function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
@@ -72,7 +73,8 @@ function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
     FormsModule,
     RouterModule,
     ColormapSelectorComponent,
-    UeTrajectoryComponent
+    UeTrajectoryComponent,
+    AnomalyDetectionComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -99,6 +101,10 @@ export class DashboardComponent implements OnInit {
   sinrData: SinrSteeringResult | null = null;
   isCalibSimulating = false;
   isSinrSimulating = false;
+
+  // ID of the most recently run BER simulation — drives the anomaly panel
+  lastSimulationId: number | null = null;
+  anomalyAutoAnalyze = false;
   
   // Calibration specific state
   calibInputMode: 'manual' | 'csv' = 'manual';
@@ -667,6 +673,14 @@ export class DashboardComponent implements OnInit {
       next: (result) => {
         this.updateChartData(result);
         this.isSimulating = false;
+        // Store the simulation ID so the anomaly panel can target it
+        // The panel watches for lastSimulationId changes and auto-runs analysis
+        if (result.id) {
+          this.lastSimulationId = result.id;
+          this.anomalyAutoAnalyze = true;
+          // Reset flag after one cycle so future manual re-runs work correctly
+          setTimeout(() => this.anomalyAutoAnalyze = false, 500);
+        }
       },
       error: (err) => {
         console.error('Simulation failed', err);

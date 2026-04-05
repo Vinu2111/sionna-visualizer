@@ -209,7 +209,8 @@ public class SimulationService {
             entity.setIsPublic(true);
 
             simulationResultRepository.save(entity);
-            
+            dto.setId(entity.getId());
+
             putInCache(cacheKey, dto);
 
             // ── Step 5: Return DTO to controller ──────────────────────────────
@@ -274,6 +275,7 @@ public class SimulationService {
             entity.setIsPublic(true);
 
             simulationResultRepository.save(entity);
+            dto.setId(entity.getId());
 
             return dto;
 
@@ -335,6 +337,7 @@ public class SimulationService {
             entity.setIsPublic(true);
 
             simulationResultRepository.save(entity);
+            dto.setId(entity.getId());
 
             return dto;
 
@@ -393,6 +396,7 @@ public class SimulationService {
             entity.setIsPublic(true);
 
             simulationResultRepository.save(entity);
+            dto.setId(entity.getId());
 
             return dto;
 
@@ -526,6 +530,7 @@ public class SimulationService {
             entity.setColormapUsed(dto.getColormap_used() != null ? dto.getColormap_used() : request.getColormap());
 
             simulationResultRepository.save(entity);
+            dto.setId(entity.getId());
             return dto;
 
         } catch (Exception e) {
@@ -559,6 +564,7 @@ public class SimulationService {
             entity.setColormapUsed(dto.getColormap_used() != null ? dto.getColormap_used() : request.getColormap());
 
             simulationResultRepository.save(entity);
+            dto.setId(entity.getId());
             return dto;
 
         } catch (Exception e) {
@@ -592,6 +598,7 @@ public class SimulationService {
             entity.setColormapUsed(dto.getColormapUsed() != null ? dto.getColormapUsed() : request.getColormap());
 
             simulationResultRepository.save(entity);
+            dto.setId(entity.getId());
             return dto;
 
         } catch (Exception e) {
@@ -669,6 +676,7 @@ public class SimulationService {
 
             entity.setSnrDb(objectMapper.writeValueAsString(dto.getComparisonPoints()));
             simulationResultRepository.save(entity);
+            dto.setId(entity.getId());
             return dto;
         } catch (Exception e) {
             logger.error("Measurement overlay failed: {}", e.getMessage());
@@ -703,6 +711,7 @@ public class SimulationService {
 
             entity.setSnrDb(objectMapper.writeValueAsString(dto.getSteeringResults()));
             simulationResultRepository.save(entity);
+            dto.setId(entity.getId());
             return dto;
         } catch (Exception e) {
             logger.error("SINR steering failed: {}", e.getMessage());

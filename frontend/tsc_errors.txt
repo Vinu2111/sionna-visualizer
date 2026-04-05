@@ -1,2 +1,0 @@
-﻿src/app/pages/share/share-view.component.ts(69,28): error TS2339: Property 'getSimulationByShareToken' does not exist on type 'SimulationService'.
-src/app/pages/share/share-view.component.ts(76,15): error TS7006: Parameter 'err' implicitly has an 'any' type.

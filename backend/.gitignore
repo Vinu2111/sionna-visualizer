@@ -1,0 +1,22 @@
+# Maven build output
+target/
+*.jar
+*.war
+
+# Spring Boot properties with secrets
+application-prod.properties
+application-prod.yml
+application-local.properties
+application-local.yml
+
+# IDE
+.idea/
+*.iml
+
+# Logs
+*.log
+*.txt
+!requirements.txt
+
+# Cache
+.cache/

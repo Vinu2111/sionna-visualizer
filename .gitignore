@@ -1,24 +1,36 @@
+# ─── Environment & Secrets ───────────────────────────
+# NEVER commit these files
+.env
+.env.local
+.env.production
+.env.staging
+.env.*
+!.env.example
+
 # ─── Java / Maven ────────────────────────────────────
 target/
 *.class
 *.jar
 *.war
 *.ear
-.mvn/
 !.mvn/wrapper/maven-wrapper.jar
 spring-boot-devtools.jar
+application-prod.properties
+application-local.properties
+application-prod.yml
+application-local.yml
+application-secret.yml
 
 # ─── Python ──────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
-.env
 venv/
 .venv/
+env/
 *.egg-info/
-dist/
-build/
-.pytest_cache/
+*.sigmf-data
+sionna_cache/
 
 # ─── Angular / Node ──────────────────────────────────
 node_modules/
@@ -29,21 +41,25 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# ─── Environment & Secrets ───────────────────────────
-.env
-.env.local
-.env.production
-*.env
-application-local.yml
-application-secret.yml
-
 # ─── IDEs & OS ───────────────────────────────────────
 .idea/
 *.iml
 .vscode/
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # ─── Logs ────────────────────────────────────────────
 logs/
 *.log
+
+# ─── Build & Debug Artifacts ─────────────────────────
+*.txt
+!requirements.txt
+!README.md
+
+# ─── Jupyter ─────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ─── Pytest ──────────────────────────────────────────
+.pytest_cache/

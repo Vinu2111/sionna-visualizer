@@ -22,11 +22,11 @@ public class JwtUtil {
     private String secret;
 
     // Reads the expiration time (24 hours = 86400000ms) specified in application.yml
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration:86400000}")
     private long expiration;
 
     // Refresh expiration time (7 days)
-    @Value("${jwt.refresh-expiration}")
+    @Value("${jwt.refresh-expiration:604800000}")
     private long refreshExpiration;
 
     /**

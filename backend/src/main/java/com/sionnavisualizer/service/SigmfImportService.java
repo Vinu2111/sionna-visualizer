@@ -32,7 +32,7 @@ public class SigmfImportService {
     @Autowired
     private SigmfImportRepository sigmfImportRepository;
 
-    @Value("${python.bridge.url:http://localhost:8000}")
+    @Value("${python-bridge.url:http://localhost:8001/simulate/demo}")
     private String pythonBridgeUrl;
 
     // Synchronously reads the JSON metadata header payload extracting required signal metadata definitions into DTO objects

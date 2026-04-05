@@ -18,7 +18,7 @@ public class ThzService {
     @Autowired
     private ThzScenarioRepository scenarioRepository;
 
-    @Value("${python-bridge.url}")
+    @Value("${python-bridge.url:http://localhost:8001/simulate/demo}")
     private String pythonBridgeUrl;
 
     private WebClient webClient;

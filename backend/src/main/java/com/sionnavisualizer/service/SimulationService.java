@@ -58,7 +58,7 @@ public class SimulationService {
     private static final Logger logger = LoggerFactory.getLogger(SimulationService.class);
 
     /** Base URL for the Python FastAPI bridge — injected from application.yml */
-    @Value("${python-bridge.url}")
+    @Value("${python-bridge.url:http://localhost:8001/simulate/demo}")
     private String PYTHON_BRIDGE_BASE_URL;
 
     private final RestTemplate restTemplate;

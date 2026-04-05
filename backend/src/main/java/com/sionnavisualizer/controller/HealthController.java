@@ -19,7 +19,7 @@ public class HealthController {
     private final DataSource dataSource;
     private final RestTemplate restTemplate;
 
-    @Value("${PYTHON_BRIDGE_URL:http://localhost:8001/simulate/demo}")
+    @Value("${python-bridge.url:http://localhost:8001/simulate/demo}")
     private String pythonBridgeUrl;
 
     public HealthController(DataSource dataSource) {

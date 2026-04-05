@@ -25,7 +25,7 @@ public class ChannelModelService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${python.bridge.url:http://localhost:8000}")
+    @Value("${python-bridge.url:http://localhost:8001/simulate/demo}")
     private String pythonBridgeUrl;
 
     // A predefined valid list of 3GPP models

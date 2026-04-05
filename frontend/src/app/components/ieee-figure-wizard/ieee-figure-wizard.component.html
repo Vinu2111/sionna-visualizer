@@ -1,0 +1,84 @@
+<h2 mat-dialog-title>IEEE / Nature Figure Export Wizard</h2>
+
+<mat-dialog-content class="wizard-content">
+  <form [formGroup]="exportFormGroup">
+    <mat-stepper orientation="horizontal" #stepper (selectionChange)="onStepChange($event)">
+      
+      <!-- Step 1: Journal Style -->
+      <mat-step>
+        <ng-template matStepLabel>Journal Style</ng-template>
+        <div class="step-container">
+          <p>Select the target journal format for your publication:</p>
+          <mat-radio-group formControlName="journalStyle" class="radio-group vertical-radio">
+            <mat-radio-button value="IEEE">
+              <strong>IEEE Style</strong> (Times New Roman, enclosed box, 88mm/180mm)
+            </mat-radio-button>
+            <mat-radio-button value="NATURE">
+              <strong>Nature Style</strong> (Arial, open box, 89mm/183mm)
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+        <div class="step-actions">
+          <button mat-button matStepperNext color="primary">Next</button>
+        </div>
+      </mat-step>
+
+      <!-- Step 2: Export Format -->
+      <mat-step>
+        <ng-template matStepLabel>File Format</ng-template>
+        <div class="step-container">
+          <p>Select the desired vector format:</p>
+          <mat-radio-group formControlName="exportFormat" class="radio-group vertical-radio">
+            <mat-radio-button value="PDF">
+              <strong>PDF</strong> (Recommended for LaTeX / Overleaf)
+            </mat-radio-button>
+            <mat-radio-button value="SVG">
+              <strong>SVG</strong> (Recommended for Adobe Illustrator / Inkscape editing)
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext color="primary">Next</button>
+        </div>
+      </mat-step>
+
+      <!-- Step 3: Preview -->
+      <mat-step>
+        <ng-template matStepLabel>Preview</ng-template>
+        <div class="step-container preview-container">
+          <p>Review the reformatted chart before downloading:</p>
+          <div class="canvas-wrapper">
+             <canvas #previewCanvas></canvas>
+          </div>
+        </div>
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext color="primary">Next</button>
+        </div>
+      </mat-step>
+
+      <!-- Step 4: Download -->
+      <mat-step>
+        <ng-template matStepLabel>Export</ng-template>
+        <div class="step-container">
+          <div class="success-ready">
+            <h3>Ready to Export</h3>
+            <p>Your figure is fully formatted to {{ exportFormGroup.get('journalStyle')?.value }} specs.</p>
+          </div>
+        </div>
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-flat-button color="primary" (click)="exportFigure()">
+            Download {{ exportFormGroup.get('exportFormat')?.value }}
+          </button>
+        </div>
+      </mat-step>
+
+    </mat-stepper>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+</mat-dialog-actions>

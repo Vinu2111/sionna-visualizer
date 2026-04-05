@@ -18,13 +18,16 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Reads the 256-bit secure key specified in application.yml
     @Value("${jwt.secret}")
     private String secret;
 
     // Reads the expiration time (24 hours = 86400000ms) specified in application.yml
     @Value("${jwt.expiration}")
     private long expiration;
+
+    // Refresh expiration time (7 days)
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
 
     /**
      * Converts our secret application key string into a cryptographic Key object
@@ -44,6 +47,15 @@ public class JwtUtil {
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 // The token expires precisely 24 hours after generation
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

@@ -13,14 +13,19 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 /**
  * Intercepts every single HTTP request coming into the Java backend API.
- * This ensures "Are you logged in?" is answered strictly.
+ * Validates the JWT Bearer token and sets SecurityContext if valid.
  */
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtFilter.class);
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
@@ -51,7 +56,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 username = jwtUtil.extractUsername(jwtToken);
             } catch (Exception e) {
                 // If tampering occurred, or the token expired, this exception prevents setting user context
-                System.out.println("Invalid JWT token detected: " + e.getMessage());
+                // SECURITY: Log sanitized warning only — never log token content
+                log.warn("Invalid or expired JWT token on {}: {}", request.getRequestURI(), e.getClass().getSimpleName());
             }
         }
 

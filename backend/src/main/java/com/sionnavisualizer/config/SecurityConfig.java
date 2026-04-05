@@ -54,6 +54,7 @@ public class SecurityConfig {
                     "/api/health/ping",
                     "/v1/api/**"
                 ).permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/gallery/**").permitAll()
                 // All other endpoints natively require strict Authorization Bearer approval
                 .anyRequest().authenticated()
             )

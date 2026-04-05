@@ -3,34 +3,47 @@ server:
 
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sionna_visualizer}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      # "update" mode auto-creates or modifies tables to match our entity classes
-      # Use "create-drop" in tests to reset the schema each time
       ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-    # Prints the actual SQL queries to the console — very helpful for learning/debugging
-    show-sql: true
+    show-sql: false
 
-# JWT configuration parameters
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+# JWT — secret MUST be set via environment variable
 jwt:
-  secret: ${JWT_SECRET:sionna-visualizer-secret-key-2026-sionna-visualizer-secret-key-2026}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
+# Anthropic AI — set via environment variable
+anthropic:
+  api:
+    key: ${ANTHROPIC_API_KEY:NOT_CONFIGURED}
+
+# Python bridge URL
 python-bridge:
   url: ${PYTHON_BRIDGE_URL:http://localhost:8001/simulate/demo}
 
-# Show INFO-level logs for the main app package so we can trace requests
+# CORS
+cors:
+  allowed:
+    origin: ${CORS_ALLOWED_ORIGIN:http://localhost:4200}
+
+# Logging
 logging:
   level:
-    com.sionnavisualizer: INFO
+    root: INFO
+    com.sionnavisualizer: DEBUG
     org.springframework.web: INFO
 
 # Circuit Breaker Configuration

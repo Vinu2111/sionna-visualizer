@@ -6,6 +6,6 @@ scipy==1.11.3
 pydantic==2.4.2
 httpx==0.25.0
 aiofiles==23.2.1
-anyio==3.8.1
-# Downgraded anyio to 3.8.1 to resolve conflict with fastapi 0.104.1
-# which requires anyio < 4.0.0
+anyio==3.7.1
+# Fixed anyio version to 3.7.1 to resolve dependency conflict with fastapi 0.104.1
+# 3.7.1 is available and satisfies the <4.0.0 requirement.

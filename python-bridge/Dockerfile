@@ -1,19 +1,19 @@
-# Base Image
 FROM python:3.10-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirements and install
+# Copy requirements first (Docker layer caching)
 COPY requirements.txt .
+
+# Install all Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all python files
+# Copy all source files
 COPY . .
 
-# Expose python port
-ENV PORT=8001
-EXPOSE ${PORT}
+# Expose the port Railway expects
+EXPOSE 8001
 
-# Run the app
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+# Start the FastAPI bridge
+# We use single worker to minimize memory usage on Railway free tier
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1"]

@@ -69,19 +69,17 @@ public class AnomalyDetectionService {
     public AnomalyReportResponse analyzeSimulation(Long simulationId, Long userId) throws Exception {
 
         // Step 1 — Pull the simulation from the database.
-        // The simulation stores BER values as a comma-separated string inside a JSON column.
-        // We parse it into a double array for mathematical processing.
         var simulationOpt = simulationRepo.findById(simulationId);
         if (simulationOpt.isEmpty()) {
             throw new IllegalArgumentException("Simulation ID " + simulationId + " not found.");
         }
         var simulation = simulationOpt.get();
 
-        // Parse BER and SNR arrays from the simulation's stored JSON result
-        double[] berValues  = parseBerArray(simulation.getResultData());
-        double[] theoreticalBer = parseTheoreticalBerArray(simulation.getResultData());
-        double[] snrValues  = buildSnrRange(simulation.getResultData());
-        String   modulation = parseModulation(simulation.getResultData());
+        // Step 2 — Parse BER and SNR arrays from the simulation's specific fields
+        double[] berValues  = parseArrayString(simulation.getBerSimulated());
+        double[] theoreticalBer = parseArrayString(simulation.getBerTheoretical());
+        double[] snrValues  = parseArrayString(simulation.getSnrDb());
+        String   modulation = simulation.getModulationType() != null ? simulation.getModulationType() : "QPSK";
 
         // Step 2 — Run all physics checks and collect anomalies
         List<AnomalyRecord> detectedAnomalies = new ArrayList<>();
@@ -497,63 +495,18 @@ public class AnomalyDetectionService {
     // we parse from the JSON blob that the Python bridge returns.
     //
 
-    private double[] parseBerArray(String resultDataJson) {
+    private double[] parseArrayString(String jsonArray) {
+        if (jsonArray == null || jsonArray.isEmpty() || jsonArray.equals("null")) {
+            return new double[0];
+        }
         try {
-            JsonNode root = objectMapper.readTree(resultDataJson);
-            JsonNode berNode = root.path("ber_simulated");
-            if (berNode.isArray()) {
-                double[] arr = new double[berNode.size()];
-                for (int i = 0; i < berNode.size(); i++) arr[i] = berNode.get(i).asDouble();
-                return arr;
-            }
-            berNode = root.path("ber_values");
-            if (berNode.isArray()) {
-                double[] arr = new double[berNode.size()];
-                for (int i = 0; i < berNode.size(); i++) arr[i] = berNode.get(i).asDouble();
+            JsonNode node = objectMapper.readTree(jsonArray);
+            if (node.isArray()) {
+                double[] arr = new double[node.size()];
+                for (int i = 0; i < node.size(); i++) arr[i] = node.get(i).asDouble();
                 return arr;
             }
         } catch (Exception ignored) {}
-        // Fallback: generate a synthetic example curve (QPSK theoretical)
-        return new double[]{0.079, 0.056, 0.038, 0.022, 0.011, 0.004, 0.001, 0.0002, 0.00003};
-    }
-
-    private double[] parseTheoreticalBerArray(String resultDataJson) {
-        try {
-            JsonNode root = objectMapper.readTree(resultDataJson);
-            JsonNode berNode = root.path("ber_theoretical");
-            if (berNode.isArray()) {
-                double[] arr = new double[berNode.size()];
-                for (int i = 0; i < berNode.size(); i++) arr[i] = berNode.get(i).asDouble();
-                return arr;
-            }
-        } catch (Exception ignored) {}
-        // Fallback: generate a synthetic example curve (QPSK theoretical)
-        return new double[]{0.079, 0.056, 0.038, 0.022, 0.011, 0.004, 0.001, 0.0002, 0.00003};
-    }
-
-    private double[] buildSnrRange(String resultDataJson) {
-        try {
-            JsonNode root = objectMapper.readTree(resultDataJson);
-            JsonNode snrNode = root.path("snr_range");
-            if (snrNode.isArray()) {
-                double[] arr = new double[snrNode.size()];
-                for (int i = 0; i < snrNode.size(); i++) arr[i] = snrNode.get(i).asDouble();
-                return arr;
-            }
-            double min = root.path("snrMin").asDouble(-10);
-            double max = root.path("snrMax").asDouble(30);
-            int steps = 9;
-            double[] snr = new double[steps];
-            for (int i = 0; i < steps; i++) snr[i] = min + i * (max - min) / (steps - 1);
-            return snr;
-        } catch (Exception ignored) {}
-        return new double[]{-10, -5, 0, 5, 10, 15, 20, 25, 30};
-    }
-
-    private String parseModulation(String resultDataJson) {
-        try {
-            JsonNode root = objectMapper.readTree(resultDataJson);
-            return root.path("modulation").asText("QPSK");
-        } catch (Exception ignored) { return "QPSK"; }
+        return new double[0];
     }
 }

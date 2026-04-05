@@ -6,6 +6,6 @@ scipy==1.11.3
 pydantic==2.4.2
 httpx==0.25.0
 aiofiles==23.2.1
-anyio==4.0.0
-# tensorflow and sionna are usually installed separately in Docker 
-# due to their size/GPU requirements, but we keep core libs pinned here.
+anyio==3.8.1
+# Downgraded anyio to 3.8.1 to resolve conflict with fastapi 0.104.1
+# which requires anyio < 4.0.0

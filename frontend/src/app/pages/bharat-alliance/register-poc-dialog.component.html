@@ -1,0 +1,101 @@
+<h2 mat-dialog-title>Register New Proof of Concept (PoC)</h2>
+<mat-dialog-content style="min-width: 580px; padding-top: 10px;">
+  <mat-stepper orientation="vertical" #stepper linear>
+
+    <!-- STEP 1: Basic Info -->
+    <mat-step [stepControl]="basicForm" label="PoC Basic Information">
+      <form [formGroup]="basicForm" class="step-form">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>PoC Title</mat-label>
+          <input matInput formControlName="title" placeholder="28GHz mmWave Beamforming for Urban 5G-Advanced">
+          <mat-hint align="end">{{ basicForm.get('title')?.value?.length || 0 }} chars</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Technical Description</mat-label>
+          <textarea matInput formControlName="description" rows="4" maxlength="1000" 
+                    placeholder="Describe the core technology, approach, and expected outcomes..."></textarea>
+          <mat-hint align="end">{{ basicForm.get('description')?.value?.length || 0 }}/1000</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Target Use Case</mat-label>
+          <input matInput formControlName="targetUseCase" placeholder="Dense urban hotspot coverage">
+        </mat-form-field>
+        <div class="stepper-actions">
+          <button mat-flat-button color="primary" matStepperNext [disabled]="basicForm.invalid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- STEP 2: Classification -->
+    <mat-step [stepControl]="classificationForm" label="Classification & TRL">
+      <form [formGroup]="classificationForm" class="step-form">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Alliance Track</mat-label>
+          <mat-select formControlName="allianceTrack" (selectionChange)="onTrackChange($event.value)">
+            <mat-option *ngFor="let t of allianceTracks" [value]="t.value">{{ t.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>Starting TRL</mat-label>
+            <mat-select formControlName="currentTrl">
+              <mat-option *ngFor="let t of trlOptions" [value]="t">TRL {{ t }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Target TRL</mat-label>
+            <mat-select formControlName="expectedCompletionTrl">
+              <mat-option *ngFor="let t of [4,5,6,7,8,9]" [value]="t">TRL {{ t }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Target Completion</mat-label>
+            <input matInput [matDatepicker]="dp" formControlName="targetCompletionDate">
+            <mat-datepicker-toggle matIconSuffix [for]="dp"></mat-datepicker-toggle>
+            <mat-datepicker #dp></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div class="stepper-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="classificationForm.invalid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- STEP 3: KPI Setup -->
+    <mat-step label="KPI Targets">
+      <form [formGroup]="kpiForm" class="step-form">
+        <p class="kpi-hint">KPIs have been auto-populated from the Alliance Track template. Edit target values or add custom KPIs.</p>
+        <div formArrayName="kpis" class="kpi-list">
+          <div *ngFor="let kpi of kpis.controls; let i=index" [formGroupName]="i" class="kpi-row">
+            <mat-form-field appearance="outline" class="flex-2">
+              <mat-label>KPI Name</mat-label>
+              <input matInput formControlName="kpiName">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Target</mat-label>
+              <input matInput type="number" formControlName="targetValue">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Unit</mat-label>
+              <input matInput formControlName="unit">
+            </mat-form-field>
+            <button mat-icon-button color="warn" type="button" (click)="removeKpi(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+        <button mat-button color="primary" type="button" (click)="addCustomKpi()">
+          <mat-icon>add</mat-icon> Add Custom KPI
+        </button>
+        <div class="stepper-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-flat-button color="primary" [disabled]="isSaving" (click)="save()">
+            Register PoC
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+  </mat-stepper>
+</mat-dialog-content>

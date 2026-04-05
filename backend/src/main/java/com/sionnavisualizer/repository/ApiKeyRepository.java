@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
     Optional<ApiKey> findByKeyValue(String keyValue);
     List<ApiKey> findByOwnerEmail(String email);
+    List<ApiKey> findByIsActiveTrue();
 }

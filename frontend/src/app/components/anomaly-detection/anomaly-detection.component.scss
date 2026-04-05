@@ -1,0 +1,132 @@
+.anomaly-panel {
+  margin-top: 20px;
+  font-family: inherit;
+}
+
+// ── No-report trigger ─────────────────────────────────────────────────────────
+.no-report {
+  border: 2px dashed #d0d0d0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  background: #fafafa;
+  transition: border-color 0.2s;
+  &:hover { border-color: #7c4dff; }
+
+  .no-report-content {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+
+    .nr-icon { font-size: 36px; width: 36px; height: 36px; color: #7c4dff; flex-shrink: 0; }
+
+    strong { display: block; font-size: 14px; color: #333; }
+    p { margin: 4px 0 0; font-size: 13px; color: #888; }
+
+    .run-btn { margin-left: auto; height: 40px; border-radius: 8px; }
+  }
+}
+
+// ── Analyzing state ────────────────────────────────────────────────────────────
+.analyzing-state {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 20px; background: #f3f0ff; border-radius: 10px;
+  font-size: 14px; color: #5e35b1; font-weight: 500;
+}
+
+// ── Error state ───────────────────────────────────────────────────────────────
+.error-state {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; background: #ffebee; border-radius: 10px;
+  font-size: 14px; color: #c62828;
+  mat-icon { color: #e53935; }
+}
+
+// ── Clear banner ──────────────────────────────────────────────────────────────
+.clear-banner {
+  display: flex; align-items: center; gap: 16px;
+  background: #f1f8e9; border: 1px solid #c5e1a5;
+  border-left: 4px solid #66bb6a; border-radius: 10px; padding: 18px 20px;
+
+  .clear-icon { color: #43a047; font-size: 36px; width: 36px; height: 36px; }
+  .clear-text { flex: 1;
+    strong { display: block; font-size: 15px; color: #2e7d32; }
+    span { font-size: 13px; color: #558b2f; }
+  }
+  .rerun-btn { color: #555; font-size: 12px; }
+}
+
+// ── Report header ─────────────────────────────────────────────────────────────
+.report-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 20px; border-radius: 10px 10px 0 0; margin-bottom: 0;
+  border-left: 4px solid;
+
+  &.warning  { background: #fff8f0; border-color: #ff9800; mat-icon { color: #ff9800; } .rh-text strong { color: #e65100; } }
+  &.critical { background: #fff5f5; border-color: #f44336; mat-icon { color: #f44336; } .rh-text strong { color: #c62828; } }
+
+  .rh-text {
+    flex: 1;
+    strong { display: block; font-size: 15px; }
+    span { font-size: 13px; color: #666; }
+  }
+  .rerun-small { color: #999; }
+}
+
+// ── Anomaly cards ──────────────────────────────────────────────────────────────
+.anomaly-cards {
+  display: flex; flex-direction: column; gap: 14px; margin-top: 14px;
+}
+
+.anomaly-card {
+  border-left: 4px solid; border-radius: 10px; padding: 18px 20px;
+  transition: box-shadow 0.2s;
+  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  // Card header row
+  .card-head {
+    display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;
+    mat-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+    .card-title-group { flex: 1;
+      .severity-label { font-size: 11px; font-weight: 800; letter-spacing: 1px; display: block; margin-bottom: 2px; }
+      .anomaly-title  { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+    }
+    .anomaly-type-chip {
+      font-size: 10px; font-weight: 700; background: rgba(0,0,0,0.07);
+      color: #555; padding: 3px 10px; border-radius: 10px;
+      white-space: nowrap; margin-top: 4px;
+    }
+  }
+
+  .card-desc { font-size: 13px; color: #444; line-height: 1.6; margin: 0 0 14px; }
+
+  .affected-row {
+    display: flex; gap: 24px; margin-bottom: 14px;
+    .affected-val {
+      display: flex; flex-direction: column; gap: 2px;
+      .av-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: #999; }
+      .av-val   { font-size: 15px; font-weight: 800; color: #222; font-family: 'Courier New', monospace; }
+    }
+  }
+
+  .cause-fix { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .cf-row {
+    display: flex; gap: 10px; align-items: flex-start;
+    .cf-icon { font-size: 16px; color: #aaa; flex-shrink: 0; margin-top: 2px; }
+    .cf-label { font-size: 12px; font-weight: 700; color: #777; margin-right: 6px; }
+    .cf-text  { font-size: 13px; color: #444; line-height: 1.5; }
+  }
+  .fix-row .cf-icon { color: #7c4dff; }
+
+  .ai-preview {
+    display: flex; gap: 10px; background: rgba(124,77,255,0.06);
+    border: 1px solid rgba(124,77,255,0.15); border-radius: 8px;
+    padding: 12px; margin-bottom: 14px;
+    mat-icon { color: #7c4dff; font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    p { margin: 0; font-size: 13px; color: #444; line-height: 1.6; }
+  }
+
+  .card-actions {
+    display: flex; gap: 10px; justify-content: flex-end;
+    .dismiss-btn { font-size: 12px; height: 34px; color: #999; }
+    .ai-btn { font-size: 13px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, #7c4dff, #651fff); }
+  }
+}

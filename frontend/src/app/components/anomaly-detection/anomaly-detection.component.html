@@ -1,0 +1,132 @@
+<div class="anomaly-panel">
+
+  <!-- NO REPORT YET: show the "Run Check" trigger button -->
+  <div class="no-report" *ngIf="!report && !isAnalyzing">
+    <div class="no-report-content">
+      <mat-icon class="nr-icon">biotech</mat-icon>
+      <div>
+        <strong>BER Anomaly Detection</strong>
+        <p>Automatically check your BER curve for physics violations and simulation errors.</p>
+      </div>
+      <button mat-flat-button color="primary" (click)="runAnalysis()" class="run-btn">
+        <mat-icon>search</mat-icon> Run Anomaly Check
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING STATE -->
+  <div class="analyzing-state" *ngIf="isAnalyzing">
+    <mat-spinner diameter="28"></mat-spinner>
+    <span>Running physics-based anomaly analysis...</span>
+  </div>
+
+  <!-- ERROR STATE -->
+  <div class="error-state" *ngIf="error && !isAnalyzing">
+    <mat-icon>error_outline</mat-icon> {{ error }}
+    <button mat-button color="primary" (click)="runAnalysis()">Retry</button>
+  </div>
+
+  <!-- ALL CLEAR: green banner -->
+  <div class="clear-banner" *ngIf="report && isClear">
+    <mat-icon class="clear-icon">check_circle</mat-icon>
+    <div class="clear-text">
+      <strong>BER Curve Analysis — All Clear</strong>
+      <span>Your simulation results look physically valid. No anomalies detected.</span>
+    </div>
+    <button mat-button (click)="runAnalysis()" class="rerun-btn">
+      <mat-icon>refresh</mat-icon> Re-check
+    </button>
+  </div>
+
+  <!-- ANOMALY REPORT: header + cards -->
+  <div class="anomaly-report" *ngIf="report && !isClear">
+
+    <!-- Report header banner -->
+    <div class="report-header" [ngClass]="report.overallStatus.toLowerCase()">
+      <mat-icon>{{ getStatusIcon() }}</mat-icon>
+      <div class="rh-text">
+        <strong>BER Anomaly Detection</strong>
+        <span>{{ visibleAnomalies.length }} issue(s) found in your BER curve — review before submitting results</span>
+      </div>
+      <button mat-button (click)="runAnalysis()" class="rerun-small">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+
+    <!-- Individual anomaly cards -->
+    <div class="anomaly-cards">
+      <div class="anomaly-card"
+           *ngFor="let a of visibleAnomalies"
+           [style.border-left-color]="getSeverityConfig(a.severity).border"
+           [style.background]="getSeverityConfig(a.severity).bg">
+
+        <!-- Card header -->
+        <div class="card-head">
+          <mat-icon [style.color]="getSeverityConfig(a.severity).iconColor">
+            {{ getSeverityConfig(a.severity).icon }}
+          </mat-icon>
+          <div class="card-title-group">
+            <span class="severity-label"
+                  [style.color]="getSeverityConfig(a.severity).iconColor">
+              {{ getSeverityConfig(a.severity).label }}
+            </span>
+            <strong class="anomaly-title">{{ a.title }}</strong>
+          </div>
+          <span class="anomaly-type-chip">{{ a.anomalyType }}</span>
+        </div>
+
+        <!-- Description -->
+        <p class="card-desc">{{ a.description }}</p>
+
+        <!-- Affected values (if known) -->
+        <div class="affected-row" *ngIf="a.affectedSnrPoint != null || a.affectedBerValue != null">
+          <div class="affected-val" *ngIf="a.affectedSnrPoint != null">
+            <span class="av-label">Affected SNR</span>
+            <span class="av-val">{{ a.affectedSnrPoint }} dB</span>
+          </div>
+          <div class="affected-val" *ngIf="a.affectedBerValue != null">
+            <span class="av-label">BER at that point</span>
+            <span class="av-val">{{ a.affectedBerValue | number:'1.2-6' }}</span>
+          </div>
+        </div>
+
+        <!-- Cause + Fix -->
+        <div class="cause-fix">
+          <div class="cf-row">
+            <mat-icon class="cf-icon">help_outline</mat-icon>
+            <div>
+              <span class="cf-label">Likely cause:</span>
+              <span class="cf-text">{{ a.likelyCause }}</span>
+            </div>
+          </div>
+          <div class="cf-row fix-row">
+            <mat-icon class="cf-icon">build_circle</mat-icon>
+            <div>
+              <span class="cf-label">Suggested fix:</span>
+              <span class="cf-text">{{ a.suggestedFix }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI explanation preview (if already fetched) -->
+        <div class="ai-preview" *ngIf="a.aiExplanation">
+          <mat-icon>auto_awesome</mat-icon>
+          <p>{{ a.aiExplanation | slice:0:200 }}{{ a.aiExplanation.length > 200 ? '...' : '' }}</p>
+        </div>
+
+        <!-- Card actions -->
+        <div class="card-actions">
+          <button mat-stroked-button (click)="dismiss(a.anomalyId)" class="dismiss-btn">
+            Dismiss
+          </button>
+          <button mat-flat-button color="accent" (click)="askAiToExplain(a)" class="ai-btn">
+            <mat-icon>auto_awesome</mat-icon>
+            {{ a.aiExplanation ? 'View AI Explanation' : 'Ask AI to Explain' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

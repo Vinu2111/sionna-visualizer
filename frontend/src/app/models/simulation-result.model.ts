@@ -10,6 +10,7 @@ export interface PerformanceMetadata {
 }
 
 export interface SimulationResult {
+  id?: number;
   snr_db: number[];
   ber_theoretical: number[];
   ber_simulated: number[];
@@ -93,6 +94,7 @@ export interface BeamPatternRequest {
 }
 
 export interface BeamPatternResult {
+  id?: number;
   angles: number[];
   pattern_db: number[];
   steering_angle: number;
@@ -120,6 +122,7 @@ export interface ModulationComparisonRequest {
 }
 
 export interface ModulationComparisonResult {
+  id?: number;
   snr_db: number[];
   bpsk: number[];
   qpsk: number[];
@@ -158,6 +161,7 @@ export interface ChannelCapacityRequest {
 }
 
 export interface ChannelCapacityResult {
+  id?: number;
   snr_db: number[];
   spectral_efficiency: number[];
   capacity_curves: ChannelCapacityCurve[];
@@ -192,6 +196,7 @@ export interface PathLossSummaryDto {
 }
 
 export interface PathLossResult {
+  id?: number;
   paths: PathDto[];
   summary: PathLossSummaryDto;
   performance?: PerformanceMetadata;
@@ -248,6 +253,7 @@ export interface RayDirectionSummary {
 }
 
 export interface RayDirectionResult {
+  id?: number;
   paths: RayDirectionPath[];
   tx_position: number[];
   rx_position: number[];
@@ -287,6 +293,7 @@ export interface UeTrajectorySummary {
 }
 
 export interface UeTrajectoryResult {
+  id?: number;
   waypoints: UeWaypoint[];
   tx_position: number[];
   trajectory_type: string;
@@ -334,6 +341,7 @@ export interface CalibrationSummary {
 }
 
 export interface MeasurementOverlayResult {
+  id?: number;
   comparison_points: ComparisonPoint[];
   calibration_summary: CalibrationSummary;
   simulation_type: string;

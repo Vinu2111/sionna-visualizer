@@ -11,6 +11,21 @@
       <button mat-button routerLink="/compare" routerLinkActive="active-link" (click)="drawer.close()">
         <mat-icon style="margin-right: 8px;">compare_arrows</mat-icon> Compare
       </button>
+      <button mat-button routerLink="/dashboard/nl-simulation" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">auto_awesome</mat-icon> AI Simulation
+      </button>
+      <button mat-button routerLink="/dashboard/thz-atmospheric" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">waves</mat-icon> THz Atmospheric
+      </button>
+      <button mat-button routerLink="/dashboard/ttdf" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">account_balance</mat-icon> TTDF
+      </button>
+      <button mat-button routerLink="/dashboard/bharat-alliance" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">hexagon</mat-icon> Bharat 6G
+      </button>
+      <button mat-button routerLink="/workspace" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">group_work</mat-icon> Workspace
+      </button>
       <button mat-button routerLink="/api-docs" routerLinkActive="active-link" (click)="drawer.close()">
         <mat-icon style="margin-right: 8px;">code</mat-icon> API
       </button>
@@ -54,6 +69,27 @@
           <button mat-button routerLink="/compare" routerLinkActive="active-link">
             Compare
           </button>
+          <button mat-button routerLink="/dashboard/nl-simulation" routerLinkActive="active-link"
+                  style="background: linear-gradient(135deg,#7c4dff22,#651fff11); border-radius: 6px;">
+            <mat-icon style="font-size:16px;margin-right:4px;">auto_awesome</mat-icon> AI Simulation
+          </button>
+          <button mat-button [matMenuTriggerFor]="researchMenu" routerLinkActive="active-link">
+            Research Tools <mat-icon>arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #researchMenu="matMenu">
+            <button mat-menu-item routerLink="/dashboard/ttdf">
+              <mat-icon>account_balance</mat-icon> TTDF Dashboard
+            </button>
+            <button mat-menu-item routerLink="/dashboard/bharat-alliance">
+              <mat-icon>hexagon</mat-icon> Bharat 6G Alliance
+            </button>
+            <button mat-menu-item routerLink="/workspace">
+              <mat-icon>group_work</mat-icon> Team Workspace
+            </button>
+            <button mat-menu-item routerLink="/dashboard/thz-atmospheric">
+              <mat-icon>waves</mat-icon> THz Atmospheric Simulator
+            </button>
+          </mat-menu>
         </ng-container>
         
         <ng-container *ngIf="!authService.isLoggedIn()">

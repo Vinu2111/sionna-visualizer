@@ -10,6 +10,11 @@ services:
       POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SPRING_DATASOURCE_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -22,6 +27,11 @@ services:
       - "8001:8001"
     environment:
       PORT: 8001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -41,6 +51,11 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION}
       PYTHON_BRIDGE_URL: ${PYTHON_BRIDGE_URL}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
 
   frontend:
     build:
@@ -51,6 +66,11 @@ services:
       - backend
     ports:
       - "4200:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

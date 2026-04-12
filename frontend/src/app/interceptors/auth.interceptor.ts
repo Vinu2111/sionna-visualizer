@@ -52,6 +52,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             .join(' | ');
         }
         snackBar.open(errorMsg, "Close", { duration: 7000 });
+      } else if (error.status === 500) {
+        snackBar.open("Internal server error. Please try again later.", "Close", { duration: 5000, panelClass: ['error-snackbar'] });
       }
       return throwError(() => error);
     })

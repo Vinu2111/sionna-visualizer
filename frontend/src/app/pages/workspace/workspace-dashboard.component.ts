@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -22,7 +24,8 @@ import { InviteMemberDialogComponent } from './invite-member-dialog.component';
   templateUrl: './workspace-dashboard.component.html',
   styleUrls: ['./workspace-dashboard.component.scss']
 })
-export class WorkspaceDashboardComponent implements OnInit {
+export class WorkspaceDashboardComponent implements OnInit, OnDestroy {
+  destroy$ = new Subject<void>();
 
   workspaces: Workspace[] = [];
   activeWorkspace: Workspace | null = null;
@@ -34,12 +37,17 @@ export class WorkspaceDashboardComponent implements OnInit {
       private dialog: MatDialog
   ) {}
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngOnInit() {
       this.loadWorkspaces();
   }
 
   loadWorkspaces() {
-      this.workspaceService.getUserWorkspaces().subscribe(ws => {
+      this.workspaceService.getUserWorkspaces().pipe(takeUntil(this.destroy$)).subscribe(ws => {
           this.workspaces = ws;
           if (ws.length > 0) {
               this.selectWorkspace(ws[0]);
@@ -55,21 +63,21 @@ export class WorkspaceDashboardComponent implements OnInit {
 
   loadMembers() {
       if(!this.activeWorkspace) return;
-      this.workspaceService.getWorkspaceMembers(this.activeWorkspace.workspaceId).subscribe(
+      this.workspaceService.getWorkspaceMembers(this.activeWorkspace.workspaceId).pipe(takeUntil(this.destroy$)).subscribe(
           data => this.members = data
       );
   }
 
   loadFeed() {
       if(!this.activeWorkspace) return;
-      this.workspaceService.getWorkspaceFeed(this.activeWorkspace.workspaceId).subscribe(
+      this.workspaceService.getWorkspaceFeed(this.activeWorkspace.workspaceId).pipe(takeUntil(this.destroy$)).subscribe(
           data => this.feed = data
       );
   }
 
   openCreateWorkspace() {
       const db = this.dialog.open(CreateWorkspaceDialogComponent, { width: '500px' });
-      db.afterClosed().subscribe(res => { if(res) this.loadWorkspaces(); });
+      db.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(res => { if(res) this.loadWorkspaces(); });
   }
 
   openInviteMember() {
@@ -78,7 +86,7 @@ export class WorkspaceDashboardComponent implements OnInit {
           width: '500px', 
           data: { workspaceId: this.activeWorkspace.workspaceId }
       });
-      db.afterClosed().subscribe(res => { if(res) this.loadMembers(); });
+      db.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(res => { if(res) this.loadMembers(); });
   }
 
   canInvite(): boolean {

@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -38,7 +40,8 @@ import { ExportDialogComponent } from '../../components/export-dialog/export-dia
   templateUrl: './history.component.html',
   styleUrl: './history.component.scss'
 })
-export class HistoryComponent implements OnInit {
+export class HistoryComponent implements OnInit, OnDestroy {
+  destroy$ = new Subject<void>();
   simulationHistory: SimulationHistoryItem[] = [];
   selectedSimulation: SimulationHistoryItem | null = null;
   isLoading = true;
@@ -101,13 +104,18 @@ export class HistoryComponent implements OnInit {
     private exportService: ExportService
   ) {}
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngOnInit(): void {
     this.fetchHistory();
   }
 
   fetchHistory(): void {
     this.isLoading = true;
-    this.simulationService.getAllSimulations().subscribe({
+    this.simulationService.getAllSimulations().pipe(takeUntil(this.destroy$)).subscribe({
       next: (history) => {
         this.simulationHistory = history;
         this.isLoading = false;
@@ -148,7 +156,7 @@ export class HistoryComponent implements OnInit {
   }
 
   shareSimulation(id: number): void {
-    this.simulationService.getShareLink(id).subscribe({
+    this.simulationService.getShareLink(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         this.dialog.open(ShareLinkDialogComponent, {
           width: '500px',
@@ -217,7 +225,7 @@ export class HistoryComponent implements OnInit {
       data: { simulations: items }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         this.snackBar.open(`Started bulk export for ${items.length} items...`, 'OK', { duration: 3000 });
       }

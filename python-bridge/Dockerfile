@@ -16,4 +16,4 @@ EXPOSE 8001
 
 # Start the FastAPI bridge
 # We use single worker to minimize memory usage on Railway free tier
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8001} --workers 1"]

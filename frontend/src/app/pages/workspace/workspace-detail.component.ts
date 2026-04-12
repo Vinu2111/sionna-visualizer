@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -21,7 +23,8 @@ import { Comment, Annotation, Version } from './workspace.interfaces';
   templateUrl: './workspace-detail.component.html',
   styleUrls: ['./workspace-detail.component.scss']
 })
-export class WorkspaceDetailComponent implements OnInit, AfterViewInit {
+export class WorkspaceDetailComponent implements OnInit, AfterViewInit, OnDestroy {
+  destroy$ = new Subject<void>();
   
   simulationId!: number;
   comments: Comment[] = [];
@@ -42,6 +45,11 @@ export class WorkspaceDetailComponent implements OnInit, AfterViewInit {
       private workspaceService: WorkspaceService
   ) {}
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngOnInit() {
       this.simulationId = Number(this.route.snapshot.paramMap.get('id'));
       this.loadData();
@@ -52,12 +60,12 @@ export class WorkspaceDetailComponent implements OnInit, AfterViewInit {
   }
 
   loadData() {
-      this.workspaceService.getSimulationComments(this.simulationId).subscribe(c => this.comments = c);
-      this.workspaceService.getAnnotations(this.simulationId).subscribe(a => {
+      this.workspaceService.getSimulationComments(this.simulationId).pipe(takeUntil(this.destroy$)).subscribe(c => this.comments = c);
+      this.workspaceService.getAnnotations(this.simulationId).pipe(takeUntil(this.destroy$)).subscribe(a => {
           this.annotations = a;
           this.renderChart(); // Re-render to inject pins natively securely securely
       });
-      this.workspaceService.getVersionHistory(this.simulationId).subscribe(v => this.versions = v);
+      this.workspaceService.getVersionHistory(this.simulationId).pipe(takeUntil(this.destroy$)).subscribe(v => this.versions = v);
   }
 
   // Parses mock theoretical geometry entirely mirroring standard single-dashboard securely cleanly
@@ -118,7 +126,7 @@ export class WorkspaceDetailComponent implements OnInit, AfterViewInit {
                       const txt = prompt(`Add annotation to SNR: ${this.activeSNR}dB. Note:`);
                       if(txt) {
                           this.workspaceService.addAnnotation(this.simulationId, this.activeSNR, this.activeBER, txt)
-                              .subscribe(() => this.loadData());
+                              .pipe(takeUntil(this.destroy$)).subscribe(() => this.loadData());
                       }
                   }
               },
@@ -134,7 +142,7 @@ export class WorkspaceDetailComponent implements OnInit, AfterViewInit {
   postComment() {
       if(!this.newCommentText.trim()) return;
       this.workspaceService.addComment(this.simulationId, this.newCommentText, this.replyingTo || undefined)
-          .subscribe(() => {
+          .pipe(takeUntil(this.destroy$)).subscribe(() => {
              this.newCommentText = '';
              this.replyingTo = null;
              this.loadData();
@@ -142,6 +150,6 @@ export class WorkspaceDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveVersion() {
-      this.workspaceService.saveVersion(this.simulationId).subscribe(() => this.loadData());
+      this.workspaceService.saveVersion(this.simulationId).pipe(takeUntil(this.destroy$)).subscribe(() => this.loadData());
   }
 }

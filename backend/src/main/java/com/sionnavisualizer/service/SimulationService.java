@@ -644,6 +644,7 @@ public class SimulationService {
                 baseUrl = baseUrl.substring(0, baseUrl.length() - "/simulate".length());
             }
             String endpoint = baseUrl + "/simulate/colormaps";
+            logger.info("Attempting to fetch colormaps from: {}", endpoint);
             return restTemplate.getForObject(endpoint, Object.class);
         } catch (Exception e) {
             logger.error("Failed to fetch colormaps: {}", e.getMessage());

@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
@@ -79,7 +81,8 @@ function snrRangeValidator(control: AbstractControl): ValidationErrors | null {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
+  destroy$ = new Subject<void>();
   simulationData: SimulationResult | null = null;
   beamData: BeamPatternResult | null = null;
   modData: ModulationComparisonResult | null = null;
@@ -600,6 +603,11 @@ export class DashboardComponent implements OnInit {
 
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngOnInit(): void {
     this.fetchSimulationData();
     this.loadApiKeys();
@@ -619,7 +627,7 @@ export class DashboardComponent implements OnInit {
       ? `Connecting to simulation engine... (attempt ${this.retryAttempt} of ${MAX_RETRIES})`
       : 'Connecting to simulation engine...';
 
-    this.simulationService.getDemoSimulation().subscribe({
+    this.simulationService.getDemoSimulation().pipe(takeUntil(this.destroy$)).subscribe({
       next: (result: any) => {
         // If engine is warming up, it returns { status: 'demo_unavailable' }
         if (result && result.status === 'demo_unavailable') {
@@ -669,7 +677,7 @@ export class DashboardComponent implements OnInit {
       colormap: formVal.colormap
     };
 
-    this.simulationService.runNewSimulation(request).subscribe({
+    this.simulationService.runNewSimulation(request).pipe(takeUntil(this.destroy$)).subscribe({
       next: (result) => {
         this.updateChartData(result);
         this.isSimulating = false;
@@ -728,7 +736,7 @@ export class DashboardComponent implements OnInit {
       colormap: vals.colormap
     };
 
-    this.simulationService.runBeamPattern(req).subscribe({
+    this.simulationService.runBeamPattern(req).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         this.beamData = res;
         this.radarChartData = {
@@ -765,7 +773,7 @@ export class DashboardComponent implements OnInit {
       colormap: this.modForm.value.colormap
     };
 
-    this.simulationService.runModulationComparison(req).subscribe({
+    this.simulationService.runModulationComparison(req).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         this.modData = res;
         this.modChartData = {
@@ -806,7 +814,7 @@ export class DashboardComponent implements OnInit {
       colormap: this.capForm.value.colormap
     };
 
-    this.simulationService.runChannelCapacity(req).subscribe({
+    this.simulationService.runChannelCapacity(req).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: ChannelCapacityResult) => {
         this.capData = res;
         
@@ -860,7 +868,7 @@ export class DashboardComponent implements OnInit {
   }
 
   loadApiKeys() {
-    this.http.get<any[]>(`${environment.apiUrl}/api/keys/my-keys`).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/keys/my-keys`).pipe(takeUntil(this.destroy$)).subscribe({
       next: (keys) => this.apiKeys = keys,
       error: (err) => console.error('Error loading API keys', err)
     });
@@ -868,7 +876,7 @@ export class DashboardComponent implements OnInit {
 
   generateApiKey() {
     if (!this.newKeyDescription) return;
-    this.http.post<any>(`${environment.apiUrl}/api/keys/generate`, { description: this.newKeyDescription }).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/api/keys/generate`, { description: this.newKeyDescription }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         this.snackBar.open('Generated new API key successfully.', 'Close', { duration: 3000 });
         this.newKeyDescription = '';
@@ -880,7 +888,7 @@ export class DashboardComponent implements OnInit {
 
   revokeApiKey(keyValue: string) {
     this.isRevoking = true;
-    this.http.delete(`${environment.apiUrl}/api/keys/${keyValue}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/api/keys/${keyValue}`).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.snackBar.open('API key revoked.', 'Close', { duration: 3000 });
         this.loadApiKeys();
@@ -912,7 +920,7 @@ export class DashboardComponent implements OnInit {
       parameters: params
     };
 
-    this.simulationService.runEstimate(req).subscribe({
+    this.simulationService.runEstimate(req).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         this.estimate = res;
         this.isEstimating = false;
@@ -987,7 +995,7 @@ export class DashboardComponent implements OnInit {
       colormap: vals.colormap
     };
 
-    this.simulationService.runPathLoss(req).subscribe({
+    this.simulationService.runPathLoss(req).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         this.pathLossData = res;
         
@@ -1048,7 +1056,7 @@ export class DashboardComponent implements OnInit {
       colormap: vals.colormap
     };
 
-    this.simulationService.runRayDirections(req).subscribe({
+    this.simulationService.runRayDirections(req).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: RayDirectionResult) => {
         this.rayData = res;
         
@@ -1319,7 +1327,7 @@ export class DashboardComponent implements OnInit {
       measurements: this.measurementRows
     };
 
-    this.simulationService.runMeasurementOverlay(request).subscribe({
+    this.simulationService.runMeasurementOverlay(request).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         this.calibData = res;
         this.updateCalibCharts(res);
@@ -1340,7 +1348,7 @@ export class DashboardComponent implements OnInit {
       simulation_type: 'MEASUREMENT_OVERLAY',
       parameters: { ...this.calibForm.value, points: this.measurementRows.length }
     };
-    this.simulationService.runEstimate(req).subscribe({
+    this.simulationService.runEstimate(req).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => { this.estimate = res; this.isEstimating = false; },
       error: () => { this.isEstimating = false; this.snackBar.open('Estimate failed', 'OK', {duration:2000}); }
     });
@@ -1425,7 +1433,7 @@ export class DashboardComponent implements OnInit {
       steering_angles: this.sinrSteeringAngles
     };
 
-    this.simulationService.runSinrSteering(request).subscribe({
+    this.simulationService.runSinrSteering(request).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         this.sinrData = res;
         this.updateSinrCharts(res);
@@ -1446,7 +1454,7 @@ export class DashboardComponent implements OnInit {
       simulation_type: 'SINR_STEERING',
       parameters: { ...this.sinrForm.value, angles: this.sinrSteeringAngles.length }
     };
-    this.simulationService.runEstimate(req).subscribe({
+    this.simulationService.runEstimate(req).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => { this.estimate = res; this.isEstimating = false; },
       error: () => { this.isEstimating = false; this.snackBar.open('Estimate failed', 'OK', {duration:2000}); }
     });

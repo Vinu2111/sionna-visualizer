@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -26,7 +28,8 @@ import { AddMilestoneDialogComponent } from './add-milestone-dialog.component';
   templateUrl: './ttdf-dashboard.component.html',
   styleUrls: ['./ttdf-dashboard.component.scss']
 })
-export class TtdfDashboardComponent implements OnInit {
+export class TtdfDashboardComponent implements OnInit, OnDestroy {
+  destroy$ = new Subject<void>();
 
   project!: TtdfProject;
   milestones: Milestone[] = [];
@@ -57,13 +60,18 @@ export class TtdfDashboardComponent implements OnInit {
       private dialog: MatDialog
   ) {}
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngOnInit() {
       this.loadData();
   }
 
   loadData() {
-      this.ttdfService.getProject().subscribe(p => this.project = p);
-      this.ttdfService.getMilestones().subscribe(m => this.milestones = m);
+      this.ttdfService.getProject().pipe(takeUntil(this.destroy$)).subscribe(p => this.project = p);
+      this.ttdfService.getMilestones().pipe(takeUntil(this.destroy$)).subscribe(m => this.milestones = m);
   }
 
   getCompletedMilestonesCount(): number {
@@ -78,13 +86,13 @@ export class TtdfDashboardComponent implements OnInit {
 
   updateTrl(level: number) {
       if (confirm(`Confirm advancing project to TRL ${level}?`)) {
-          this.ttdfService.updateTrl(level).subscribe(() => this.loadData());
+          this.ttdfService.updateTrl(level).pipe(takeUntil(this.destroy$)).subscribe(() => this.loadData());
       }
   }
 
   openAddMilestone() {
       const d = this.dialog.open(AddMilestoneDialogComponent, { width: '600px' });
-      d.afterClosed().subscribe(res => { if(res) this.loadData(); });
+      d.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(res => { if(res) this.loadData(); });
   }
 
   linkSimulation(milestone: Milestone) {
@@ -92,13 +100,13 @@ export class TtdfDashboardComponent implements OnInit {
       const simId = prompt("Enter Simulation ID to link as proof natively:");
       if(simId) {
           this.ttdfService.linkSimulationToMilestone(milestone.milestoneId, Number(simId))
-              .subscribe(() => this.loadData());
+              .pipe(takeUntil(this.destroy$)).subscribe(() => this.loadData());
       }
   }
 
   generateReport() {
       this.isGeneratingReport = true;
-      this.ttdfService.generateReport(this.reportOptions).subscribe({
+      this.ttdfService.generateReport(this.reportOptions).pipe(takeUntil(this.destroy$)).subscribe({
           next: (blob) => {
               const url = window.URL.createObjectURL(blob);
               const a = document.createElement('a');

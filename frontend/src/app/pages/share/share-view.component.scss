@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+.share-page {
+  min-height: 100vh;
+  background-color: #030712;
+  color: #eeeeee;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+}
+
+.public-banner {
+  background-color: #0d1117;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #8b5cf6, #0ea5e9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+    margin-left: auto;
+  }
+}
+
+.content-body {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+/* ── 404 State ────────────────────────────────────────────────────────────── */
+.not-found-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 24px;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    height: 64px;
+    width: 64px;
+    color: rgba(139, 92, 246, 0.3);
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #eeeeee;
+    margin: 0;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.95rem;
+    margin: 0;
+    max-width: 400px;
+  }
+
+  button {
+    margin-top: 8px;
+    padding: 10px 28px !important;
+    border-radius: 8px !important;
+  }
+}
+
+/* ── Chart Box ─────────────────────────────────────────────────────────────── */
+.chart-box {
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(139, 92, 246, 0.1) !important;
+  border-radius: 12px !important;
+  transition: border-color 0.2s ease;
+
+  &:hover { border-color: rgba(139, 92, 246, 0.25) !important; }
+
+  mat-card-title { color: #eeeeee; font-size: 1rem; }
+  mat-card-subtitle { color: rgba(255,255,255,0.45); }
+
+  .canvas-wrapper {
+    height: 380px;
+    margin-top: 16px;
+  }
+}
+
+/* ── Specs Card ───────────────────────────────────────────────────────────── */
+.specs-card {
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(139, 92, 246, 0.1) !important;
+  border-radius: 12px !important;
+
+  mat-card-title { color: #eeeeee; font-size: 1rem; }
+
+  .meta-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    li {
+      background-color: rgba(139, 92, 246, 0.05);
+      border: 1px solid rgba(139, 92, 246, 0.1);
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.9rem;
+
+      strong {
+        color: #8b5cf6;
+        margin-right: 6px;
+      }
+    }
+  }
+}
+
+/* ── CTA Banner ────────────────────────────────────────────────────────────── */
+.cta-banner {
+  background: linear-gradient(135deg, rgba(139, 92, 246,0.05) 0%, rgba(0,191,255,0.05) 100%);
+  padding: 48px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid rgba(139, 92, 246, 0.15);
+
+  h2 {
+    color: #ffffff;
+    margin-top: 0;
+    margin-bottom: 24px;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  button {
+    font-size: 1rem !important;
+    padding: 12px 32px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* ── Export Buttons ──────────────────────────────────────────────────────── */
+.export-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.export-btn {
+  border: 1px solid rgba(139, 92, 246, 0.4) !important;
+  color: #8b5cf6 !important;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  border-radius: 6px !important;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    margin-right: 6px;
+  }
+
+  &:hover {
+    background-color: rgba(139, 92, 246, 0.1) !important;
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.15);
+  }
+}
+

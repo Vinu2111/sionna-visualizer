@@ -1,0 +1,178 @@
+<div class="page-container">
+  
+  <!-- Header Title Block seamlessly integrating -->
+  <div class="header">
+    <h1>CDL / TDL Channel Models</h1>
+    <p>3GPP Standard Realistic Channel Simulation</p>
+  </div>
+
+  <div class="main-layout">
+    
+    <!-- SECTION 1: Parameter Selection Panel strictly mapped left -->
+    <div class="param-panel">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Configuration</mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <form [formGroup]="form">
+            
+            <div class="form-group">
+              <label>Channel Model</label>
+              <mat-button-toggle-group formControlName="channelModel" class="model-toggles">
+                <div class="toggle-row">
+                  <mat-button-toggle value="CDL-A">CDL-A</mat-button-toggle>
+                  <mat-button-toggle value="CDL-B">CDL-B</mat-button-toggle>
+                  <mat-button-toggle value="CDL-C">CDL-C</mat-button-toggle>
+                </div>
+                <div class="toggle-row mt-2">
+                  <mat-button-toggle value="TDL-A">TDL-A</mat-button-toggle>
+                  <mat-button-toggle value="TDL-B">TDL-B</mat-button-toggle>
+                  <mat-button-toggle value="TDL-C">TDL-C</mat-button-toggle>
+                </div>
+              </mat-button-toggle-group>
+            </div>
+
+            <div class="form-group">
+              <label>Modulation</label>
+              <mat-button-toggle-group formControlName="modulation">
+                <mat-button-toggle value="BPSK">BPSK</mat-button-toggle>
+                <mat-button-toggle value="QPSK">QPSK</mat-button-toggle>
+                <mat-button-toggle value="16QAM">16QAM</mat-button-toggle>
+                <mat-button-toggle value="64QAM">64QAM</mat-button-toggle>
+              </mat-button-toggle-group>
+            </div>
+
+            <div class="form-row">
+              <div class="half">
+                <label>TX Antennas</label>
+                <mat-select formControlName="numAntennasTx">
+                  <mat-option [value]="1">1</mat-option>
+                  <mat-option [value]="2">2</mat-option>
+                  <mat-option [value]="4">4</mat-option>
+                  <mat-option [value]="8">8</mat-option>
+                  <mat-option [value]="16">16</mat-option>
+                </mat-select>
+              </div>
+              <div class="half">
+                <label>RX Antennas</label>
+                <mat-select formControlName="numAntennasRx">
+                  <mat-option [value]="1">1</mat-option>
+                  <mat-option [value]="2">2</mat-option>
+                  <mat-option [value]="4">4</mat-option>
+                  <mat-option [value]="8">8</mat-option>
+                  <mat-option [value]="16">16</mat-option>
+                </mat-select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Carrier Frequency (GHz)</label>
+              <mat-select formControlName="carrierFrequency">
+                <mat-option [value]="2.4">2.4 GHz</mat-option>
+                <mat-option [value]="5.0">5 GHz</mat-option>
+                <mat-option [value]="28.0">28 GHz</mat-option>
+                <mat-option [value]="39.0">39 GHz</mat-option>
+                <mat-option [value]="60.0">60 GHz</mat-option>
+              </mat-select>
+            </div>
+
+            <div class="form-group">
+              <label>Delay Spread: {{form.get('delaySpread')?.value}} ns</label>
+              <mat-slider min="10" max="1000" step="10">
+                <input matSliderThumb formControlName="delaySpread">
+              </mat-slider>
+            </div>
+
+            <button mat-flat-button color="primary" class="full-width-btn" (click)="runSimulation()" [disabled]="isLoading">
+              <mat-spinner diameter="20" *ngIf="isLoading" class="btn-spinner"></mat-spinner> 
+              {{ isLoading ? 'Computing...' : 'Run Channel Simulation' }}
+            </button>
+            
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- SECTION 2: Chart Blocks rendering natively dynamically -->
+    <div class="results-area" *ngIf="currentResult">
+      
+      <div class="charts-row">
+        
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>BER Performance — {{ currentResult.channelModel }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <canvas #berCanvas></canvas>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="chart-card">
+          <mat-card-header>
+             <mat-card-title>Multipath Delay Profile</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+             <canvas #delayCanvas></canvas>
+             <p class="chart-subtitle">
+                Each bar represents a signal path arriving at a different time. More bars = more multipath complexity = harder to decode.
+             </p>
+          </mat-card-content>
+        </mat-card>
+
+      </div>
+
+      <!-- SECTION 3: Information summary dashboard blocks immediately reflecting arrays safely -->
+      <div class="info-cards">
+        <mat-card class="info-box">
+          <div class="box-content">
+            <mat-icon color="primary">settings_input_antenna</mat-icon>
+            <div>
+              <strong>{{ currentResult.channelModel }} Selected</strong>
+              <span>{{ modelDescriptionText }}</span>
+            </div>
+          </div>
+        </mat-card>
+
+        <mat-card class="info-box">
+           <div class="box-content">
+            <mat-icon color="accent">scatter_plot</mat-icon>
+            <div>
+              <strong>{{ currentResult.numPaths }} Paths</strong>
+              <span>Unique multipath components detected</span>
+            </div>
+          </div>
+        </mat-card>
+
+        <mat-card class="info-box">
+           <div class="box-content">
+            <mat-icon>timer</mat-icon>
+            <div>
+              <strong>{{ currentResult.simulationTimeSeconds | number:'1.2-2' }}s</strong>
+              <span>Simulation Compute Time</span>
+            </div>
+          </div>
+        </mat-card>
+        
+        <mat-card class="info-box">
+           <div class="box-content">
+            <mat-icon style="color: #4caf50;">trending_up</mat-icon>
+            <div>
+              <strong>Performance Loss</strong>
+              <span>BER penalty relative to AWGN baseline applied.</span>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+      
+    </div>
+
+    <!-- Empty purely visible placeholder -->
+    <div class="results-placeholder" *ngIf="!currentResult && !isLoading">
+      <mat-icon class="placeholder-icon">insights</mat-icon>
+      <p>Configure channel parameters and click <strong>Run Channel Simulation</strong> to generate 3GPP standards models.</p>
+    </div>
+
+  </div>
+</div>

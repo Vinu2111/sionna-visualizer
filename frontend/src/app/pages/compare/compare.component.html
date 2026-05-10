@@ -1,0 +1,220 @@
+<div class="compare-container">
+
+  <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1>Simulation Comparison</h1>
+      <p class="subtitle">Select any two saved simulations to compare them side by side</p>
+    </div>
+    <button mat-stroked-button class="share-btn"
+            *ngIf="comparisonResult"
+            (click)="shareComparison()"
+            matTooltip="Copy comparison URL to clipboard">
+      <mat-icon>link</mat-icon> Share This Comparison
+    </button>
+  </div>
+
+  <!-- ── EMPTY STATE (no history yet) ───────────────────────────────────── -->
+  <div class="empty-state" *ngIf="!isLoadingHistory && history.length < 2">
+    <mat-icon>compare_arrows</mat-icon>
+    <h2>Nothing to compare yet</h2>
+    <p>Run at least 2 simulations to use the comparison tool.</p>
+    <button mat-raised-button color="primary" routerLink="/dashboard">Run a Simulation</button>
+  </div>
+
+  <!-- ── LOADING HISTORY ────────────────────────────────────────────────── -->
+  <div class="loading-bar-wrap" *ngIf="isLoadingHistory">
+    <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+  </div>
+
+  <!-- ── MAIN CONTENT (has history) ─────────────────────────────────────── -->
+  <ng-container *ngIf="!isLoadingHistory && history.length >= 2">
+
+    <!-- ─────────────────────────────────────────────────────────────────
+         SECTION A — Selection Panel
+         ───────────────────────────────────────────────────────────────── -->
+    <mat-card class="selection-card">
+      <mat-card-content>
+        <div class="selector-row">
+
+          <div class="selector-col teal-border">
+            <div class="selector-label">
+              <span class="dot teal"></span> Simulation A
+            </div>
+            <mat-form-field appearance="outline" style="width:100%;">
+              <mat-label>Select Simulation A</mat-label>
+              <mat-select [(ngModel)]="selectedId1">
+                <mat-option *ngFor="let sim of history" [value]="sim.id">
+                  {{ historyLabel(sim) }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <mat-icon class="versus-icon">compare_arrows</mat-icon>
+
+          <div class="selector-col coral-border">
+            <div class="selector-label">
+              <span class="dot coral"></span> Simulation B
+            </div>
+            <mat-form-field appearance="outline" style="width:100%;">
+              <mat-label>Select Simulation B</mat-label>
+              <mat-select [(ngModel)]="selectedId2">
+                <mat-option *ngFor="let sim of history" [value]="sim.id">
+                  {{ historyLabel(sim) }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <button mat-raised-button color="primary" class="compare-btn"
+                  (click)="runComparison()"
+                  [disabled]="!selectedId1 || !selectedId2 || isComparing">
+            <span *ngIf="!isComparing">Compare</span>
+            <mat-spinner *ngIf="isComparing" diameter="20"></mat-spinner>
+          </button>
+
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ─────────────────────────────────────────────────────────────────
+         SECTION B — Overlay Chart
+         ───────────────────────────────────────────────────────────────── -->
+    <ng-container *ngIf="comparisonResult">
+
+      <!-- BER/SNR overlay -->
+      <mat-card class="chart-card" *ngIf="comparisonResult.comparison_metadata.can_overlay && comparisonResult.comparison_metadata.type1 === 'BER_SNR'">
+        <mat-card-header>
+          <mat-card-title>Overlay Chart — BER vs SNR</mat-card-title>
+          <mat-card-subtitle>Teal = Simulation A · Coral = Simulation B · Dashed = Theoretical · Solid = Simulated</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-wrapper">
+            <canvas baseChart [data]="berChartData" [options]="berChartOptions" type="line"></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Beam Pattern overlay -->
+      <mat-card class="chart-card" *ngIf="comparisonResult.comparison_metadata.can_overlay && comparisonResult.comparison_metadata.type1 === 'BEAM_PATTERN'">
+        <mat-card-header>
+          <mat-card-title>Overlay Chart — Beam Pattern</mat-card-title>
+          <mat-card-subtitle>Teal = Simulation A · Coral = Simulation B</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-wrapper">
+            <canvas baseChart [data]="beamChartData" [options]="beamChartOptions" type="line"></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Mod comparison note -->
+      <mat-card class="info-card" *ngIf="comparisonResult.comparison_metadata.can_overlay && comparisonResult.comparison_metadata.type1 === 'MOD_COMPARISON'">
+        <mat-card-content>
+          <mat-icon>info</mat-icon>
+          <p>Modulation comparison results are already multi-curve. View each simulation individually for the full chart. Key metrics are shown below.</p>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Mixed types note -->
+      <mat-card class="info-card" *ngIf="!comparisonResult.comparison_metadata.same_type">
+        <mat-card-content>
+          <mat-icon>merge_type</mat-icon>
+          <p>These simulations are different types ({{ comparisonResult.comparison_metadata.type1 }} vs {{ comparisonResult.comparison_metadata.type2 }}) and cannot be overlaid on the same chart. Key metrics are shown below.</p>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ────────────────────────────────────────────────────────────────
+           SECTION C — Side-by-Side Metrics
+           ──────────────────────────────────────────────────────────────── -->
+      <div class="metrics-grid">
+
+        <!-- Sim A metrics -->
+        <mat-card class="metrics-card teal-top">
+          <mat-card-header>
+            <mat-card-title>
+              <span class="dot teal" style="margin-right:8px;"></span> Simulation A
+            </mat-card-title>
+            <mat-card-subtitle>{{ formatDate(comparisonResult.simulation1.createdAt) }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="metrics-list">
+              <div class="metric-row">
+                <span class="metric-label">Type</span>
+                <span class="metric-chip teal-chip">{{ comparisonResult.simulation1.simulationType }}</span>
+              </div>
+              <ng-container *ngIf="comparisonResult.simulation1.simulationType === 'BER_SNR'">
+                <div class="metric-row"><span class="metric-label">Modulation</span><span class="metric-value">{{ comparisonResult.simulation1.modulationType }}</span></div>
+                <div class="metric-row"><span class="metric-label">Code Rate</span><span class="metric-value">{{ comparisonResult.simulation1.codeRate | number:'1.2-2' }}</span></div>
+                <div class="metric-row"><span class="metric-label">SNR Range</span><span class="metric-value">{{ comparisonResult.simulation1.snrMin }} → {{ comparisonResult.simulation1.snrMax }} dB</span></div>
+              </ng-container>
+              <ng-container *ngIf="comparisonResult.simulation1.simulationType === 'BEAM_PATTERN'">
+                <div class="metric-row"><span class="metric-label">Antennas</span><span class="metric-value">{{ comparisonResult.simulation1.numAntennas }}</span></div>
+                <div class="metric-row"><span class="metric-label">Frequency</span><span class="metric-value">{{ comparisonResult.simulation1.frequencyGhz }} GHz</span></div>
+                <div class="metric-row"><span class="metric-label">Steering Angle</span><span class="metric-value">{{ comparisonResult.simulation1.steeringAngle }}°</span></div>
+                <div class="metric-row"><span class="metric-label">Main Lobe Width</span><span class="metric-value">{{ comparisonResult.simulation1.mainLobeWidth | number:'1.1-1' }}°</span></div>
+                <div class="metric-row"><span class="metric-label">Side Lobe Level</span><span class="metric-value">{{ comparisonResult.simulation1.sideLobeLevel | number:'1.2-2' }} dB</span></div>
+              </ng-container>
+              <div class="metric-row"><span class="metric-label">Hardware</span><span class="metric-value">{{ comparisonResult.simulation1.hardwareUsed }}</span></div>
+              <div class="metric-row"><span class="metric-label">Compute</span><span class="metric-value">{{ comparisonResult.simulation1.simulationTimeMs }} ms</span></div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Sim B metrics -->
+        <mat-card class="metrics-card coral-top">
+          <mat-card-header>
+            <mat-card-title>
+              <span class="dot coral" style="margin-right:8px;"></span> Simulation B
+            </mat-card-title>
+            <mat-card-subtitle>{{ formatDate(comparisonResult.simulation2.createdAt) }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="metrics-list">
+              <div class="metric-row">
+                <span class="metric-label">Type</span>
+                <span class="metric-chip coral-chip">{{ comparisonResult.simulation2.simulationType }}</span>
+              </div>
+              <ng-container *ngIf="comparisonResult.simulation2.simulationType === 'BER_SNR'">
+                <div class="metric-row"><span class="metric-label">Modulation</span><span class="metric-value">{{ comparisonResult.simulation2.modulationType }}</span></div>
+                <div class="metric-row"><span class="metric-label">Code Rate</span><span class="metric-value">{{ comparisonResult.simulation2.codeRate | number:'1.2-2' }}</span></div>
+                <div class="metric-row"><span class="metric-label">SNR Range</span><span class="metric-value">{{ comparisonResult.simulation2.snrMin }} → {{ comparisonResult.simulation2.snrMax }} dB</span></div>
+              </ng-container>
+              <ng-container *ngIf="comparisonResult.simulation2.simulationType === 'BEAM_PATTERN'">
+                <div class="metric-row"><span class="metric-label">Antennas</span><span class="metric-value">{{ comparisonResult.simulation2.numAntennas }}</span></div>
+                <div class="metric-row"><span class="metric-label">Frequency</span><span class="metric-value">{{ comparisonResult.simulation2.frequencyGhz }} GHz</span></div>
+                <div class="metric-row"><span class="metric-label">Steering Angle</span><span class="metric-value">{{ comparisonResult.simulation2.steeringAngle }}°</span></div>
+                <div class="metric-row"><span class="metric-label">Main Lobe Width</span><span class="metric-value">{{ comparisonResult.simulation2.mainLobeWidth | number:'1.1-1' }}°</span></div>
+                <div class="metric-row"><span class="metric-label">Side Lobe Level</span><span class="metric-value">{{ comparisonResult.simulation2.sideLobeLevel | number:'1.2-2' }} dB</span></div>
+              </ng-container>
+              <div class="metric-row"><span class="metric-label">Hardware</span><span class="metric-value">{{ comparisonResult.simulation2.hardwareUsed }}</span></div>
+              <div class="metric-row"><span class="metric-label">Compute</span><span class="metric-value">{{ comparisonResult.simulation2.simulationTimeMs }} ms</span></div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- ── Winner Card ──────────────────────────────────────────────────── -->
+      <ng-container *ngIf="getWinner(comparisonResult) as winner">
+        <mat-card class="winner-card" [ngClass]="{
+          'winner-a': winner.label === 'Sim A',
+          'winner-b': winner.label === 'Sim B',
+          'winner-na': winner.label === 'N/A' || winner.label === 'Tie'
+        }">
+          <mat-card-content>
+            <div class="winner-inner">
+              <mat-icon class="winner-icon">emoji_events</mat-icon>
+              <div>
+                <div class="winner-title">{{ winner.label === 'N/A' || winner.label === 'Tie' ? winner.label : '🏆 ' + winner.label + ' Wins' }}</div>
+                <div class="winner-reason">{{ winner.reason }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </ng-container>
+
+    </ng-container>
+  </ng-container>
+
+</div>

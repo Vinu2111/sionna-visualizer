@@ -1,0 +1,77 @@
+<div class="dialog-container">
+
+  <!-- Dialog Header -->
+  <div class="dialog-header" [style.border-bottom-color]="getSeverityConfig().border">
+    <div class="dh-left">
+      <mat-icon [style.color]="getSeverityConfig().iconColor" class="dh-icon">
+        {{ getSeverityConfig().icon }}
+      </mat-icon>
+      <div>
+        <div class="dh-severity" [style.color]="getSeverityConfig().iconColor">
+          {{ getSeverityConfig().label }} — {{ anomaly.anomalyType }}
+        </div>
+        <h2 class="dh-title">{{ anomaly.title }}</h2>
+      </div>
+    </div>
+    <button mat-icon-button (click)="dialogRef.close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Anomaly context summary -->
+  <div class="context-section">
+    <p class="context-desc">{{ anomaly.description }}</p>
+    <div class="context-vals" *ngIf="anomaly.affectedSnrPoint != null || anomaly.affectedBerValue != null">
+      <div class="cv-item" *ngIf="anomaly.affectedSnrPoint != null">
+        <span class="cv-label">Affected SNR</span>
+        <span class="cv-val">{{ anomaly.affectedSnrPoint }} dB</span>
+      </div>
+      <div class="cv-item" *ngIf="anomaly.affectedBerValue != null">
+        <span class="cv-label">BER at that point</span>
+        <span class="cv-val mono">{{ anomaly.affectedBerValue | number:'1.2-6' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Explanation Panel -->
+  <div class="ai-section">
+    <div class="ai-label">
+      <mat-icon>auto_awesome</mat-icon>
+      <span>Claude AI Explanation</span>
+    </div>
+
+    <!-- Loading state -->
+    <div class="ai-loading" *ngIf="isLoading">
+      <mat-spinner diameter="24"></mat-spinner>
+      <span>Claude AI is analysing this anomaly...</span>
+    </div>
+
+    <!-- Explanation text -->
+    <div class="ai-text" *ngIf="!isLoading && explanation">
+      {{ explanation }}
+    </div>
+  </div>
+
+  <!-- Suggested fix code block -->
+  <div class="fix-block">
+    <div class="fix-label">
+      <mat-icon>build_circle</mat-icon> Suggested Fix
+    </div>
+    <div class="fix-text">{{ anomaly.suggestedFix }}</div>
+  </div>
+
+  <!-- Dialog Actions -->
+  <div class="dialog-actions">
+    <button mat-stroked-button (click)="copyExplanation()" [disabled]="!explanation">
+      <mat-icon>{{ copied ? 'check' : 'content_copy' }}</mat-icon>
+      {{ copied ? 'Copied!' : 'Copy Explanation' }}
+    </button>
+    <button mat-stroked-button (click)="fetchExplanation()" [disabled]="isLoading">
+      <mat-icon>refresh</mat-icon> Re-ask Claude
+    </button>
+    <button mat-flat-button color="primary" (click)="dialogRef.close()">
+      Done
+    </button>
+  </div>
+
+</div>

@@ -1,0 +1,182 @@
+<div class="ttdf-container" *ngIf="project">
+
+    <!-- SECTION 1: Project Header Card specific to Indian Govt standard -->
+    <mat-card class="project-header">
+        <div class="proj-main">
+            <div class="p-title-area">
+                <div class="labels">
+                    <span class="badge">TTDF PROJECT</span>
+                    <span class="id">Grant ID: {{ project.ttdfGrantId || 'PENDING' }}</span>
+                </div>
+                <h1>{{ project.title }}</h1>
+                <div class="pi-info">
+                    <mat-icon>person</mat-icon> <strong>PI:</strong> {{ project.piName || 'Not Assigned' }} · 
+                    <mat-icon>account_balance</mat-icon> <strong>Institution:</strong> {{ project.institution || 'Not Assigned' }}
+                </div>
+            </div>
+            
+            <div class="p-trl-box">
+                <div class="t-val" [style.color]="getTrlColor(project.currentTrl)">{{ project.currentTrl }}</div>
+                <div class="t-lbl">Current TRL</div>
+            </div>
+        </div>
+
+        <div class="proj-footer">
+            <div class="f-item"><strong>Grant Amount:</strong><br>₹ {{ project.grantAmountLakhs || 0 }} Lakhs</div>
+            <div class="f-item"><strong>Duration:</strong><br>{{ project.startDate | date }} to {{ project.endDate | date }}</div>
+            <div class="f-bar-area">
+                <div class="lbl">Technology Readiness Level Progress (TRL 1-9)</div>
+                <mat-progress-bar mode="determinate" [value]="(project.currentTrl / 9) * 100" [color]="project.currentTrl >= 7 ? 'primary' : 'warn'"></mat-progress-bar>
+            </div>
+        </div>
+    </mat-card>
+
+    <!-- SECTION 2: KPI Summary Row -->
+    <div class="kpi-grid">
+        <mat-card class="k-card">
+            <div class="k-val">{{ getCompletedMilestonesCount() }} / {{ milestones.length }}</div>
+            <div class="k-lbl">Milestones Achieved</div>
+            <mat-progress-bar mode="determinate" [value]="(getCompletedMilestonesCount() / milestones.length) * 100 || 0"></mat-progress-bar>
+        </mat-card>
+        
+        <mat-card class="k-card">
+            <div class="k-val">1.2e-4</div>
+            <div class="k-lbl">Latest BER Performance <mat-icon class="up">arrow_upward</mat-icon></div>
+            <div class="k-sub">Target exceeded in core module</div>
+        </mat-card>
+
+        <mat-card class="k-card status-warn">
+            <div class="k-val">14 Days</div>
+            <div class="k-lbl">Next Milestone Due</div>
+            <div class="k-sub">Month 6 Validation Stage</div>
+        </mat-card>
+
+        <mat-card class="k-card">
+            <div class="k-val">Due Jan 15</div>
+            <div class="k-lbl">Quarterly Progress Report</div>
+             <div class="k-sub">Pending submission to USOF</div>
+        </mat-card>
+    </div>
+
+    <div class="main-sections">
+        
+        <div class="content-col">
+            <!-- SECTION 4: TRL Tracker -->
+            <mat-card class="trl-card">
+                <h3>Technology Readiness Level Tracker</h3>
+                <div class="stepper">
+                    <div class="step" *ngFor="let t of trlLevels; let i = index" 
+                         [class.active]="i + 1 === project.currentTrl"
+                         [class.completed]="i + 1 < project.currentTrl">
+                        <div class="node" (click)="updateTrl(i + 1)">{{ t.num }}</div>
+                        <div class="name">{{ t.name }}</div>
+                    </div>
+                </div>
+            </mat-card>
+
+            <!-- SECTION 3: Milestone Timeline -->
+            <mat-card class="timeline-card">
+                <div class="card-head">
+                    <h3>Project Milestones</h3>
+                    <button mat-button color="primary" (click)="openAddMilestone()"><mat-icon>add</mat-icon> Add Milestone</button>
+                </div>
+
+                <div class="timeline">
+                    <div class="t-line-spine"></div>
+
+                    <div class="ms-node" *ngFor="let m of milestones">
+                        <div class="m-left">
+                            <strong>Month {{ m.monthNumber }}</strong>
+                            <span>{{ m.dueDate | date:'MMM yyyy' }}</span>
+                        </div>
+                        <div class="m-center">
+                            <div class="status-circle" [ngClass]="m.status.toLowerCase()">
+                                <mat-icon *ngIf="m.status === 'COMPLETED'">check</mat-icon>
+                            </div>
+                        </div>
+                        <div class="m-right">
+                            <div class="m-content">
+                                <h4>{{ m.title }} <span class="badge {{ m.status.toLowerCase() }}">{{ m.status }}</span></h4>
+                                <p>{{ m.description }}</p>
+                                
+                                <div class="kpi-targets" *ngIf="m.kpis.length > 0">
+                                    <div class="kpt" *ngFor="let k of m.kpis">
+                                        <div class="kt-name">{{ k.kpiName }}</div>
+                                        <div class="kt-vals">
+                                            <span>Target: {{ k.targetValue }} {{ k.unit }}</span>
+                                            <span *ngIf="k.actualValue">Actual: {{ k.actualValue }} {{ k.unit }}</span>
+                                        </div>
+                                        <div class="kt-stat">{{ k.status }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="m-actions">
+                                    <button mat-stroked-button *ngIf="!m.linkedSimulationId" (click)="linkSimulation(m)">
+                                        <mat-icon>link</mat-icon> Link Simulation Results
+                                    </button>
+                                    <button mat-flat-button color="accent" *ngIf="m.linkedSimulationId">
+                                        <mat-icon>visibility</mat-icon> View Linked M#{{ m.linkedSimulationId }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div class="empty-state" *ngIf="milestones.length === 0">
+                        No milestones defined yet. DoT requires structured KPIs natively.
+                    </div>
+                </div>
+            </mat-card>
+        </div>
+
+        <div class="side-col">
+            <!-- SECTION 5: Report Generator mapped to specific USOF structures cleanly -->
+            <mat-card class="report-card">
+                <h3>Generate DoT Progress Report</h3>
+                
+                <div class="r-sec">
+                    <label>Report Type</label>
+                    <mat-radio-group [(ngModel)]="reportOptions.reportType" class="vert-radio">
+                        <mat-radio-button value="MONTHLY">Monthly Progress Report</mat-radio-button>
+                        <mat-radio-button value="QUARTERLY">Quarterly Progress Report (QPR)</mat-radio-button>
+                        <mat-radio-button value="FINAL">Final Project Completion Report</mat-radio-button>
+                    </mat-radio-group>
+                </div>
+
+                <div class="r-sec">
+                    <label>Reporting Period</label>
+                    <div class="date-row">
+                        <mat-form-field appearance="outline">
+                            <input matInput [matDatepicker]="fp" placeholder="From">
+                            <mat-datepicker-toggle matIconSuffix [for]="fp"></mat-datepicker-toggle>
+                            <mat-datepicker #fp></mat-datepicker>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <input matInput [matDatepicker]="tp" placeholder="To">
+                            <mat-datepicker-toggle matIconSuffix [for]="tp"></mat-datepicker-toggle>
+                            <mat-datepicker #tp></mat-datepicker>
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <div class="r-sec">
+                    <label>Include Sections</label>
+                    <div class="checks">
+                        <mat-checkbox checked disabled>Executive Summary</mat-checkbox>
+                        <mat-checkbox checked disabled>Milestone Status Table</mat-checkbox>
+                        <mat-checkbox checked disabled>Linked Simulation Charts</mat-checkbox>
+                        <mat-checkbox checked>Technology Readiness Update</mat-checkbox>
+                        <mat-checkbox checked>Next Quarter Targets</mat-checkbox>
+                        <mat-checkbox checked disabled>USOF Annexure Guidelines</mat-checkbox>
+                    </div>
+                </div>
+
+                <button mat-flat-button color="primary" class="gen-btn" [disabled]="isGeneratingReport" (click)="generateReport()">
+                    <mat-icon>{{ isGeneratingReport ? 'hourglass_empty' : 'picture_as_pdf' }}</mat-icon> 
+                    {{ isGeneratingReport ? 'Compiling Parameters...' : 'Generate Official Report' }}
+                </button>
+            </mat-card>
+        </div>
+    </div>
+</div>

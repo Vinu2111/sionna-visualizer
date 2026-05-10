@@ -1,0 +1,12 @@
+<h2 mat-dialog-title>Share Simulation Result</h2>
+<mat-dialog-content>
+  <p>Anyone with this link can view this simulation result — no login required.</p>
+  <mat-form-field appearance="outline" class="url-copy-field">
+    <mat-label>Shareable Link</mat-label>
+    <input matInput [value]="data.shareUrl" readonly />
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+  <button mat-raised-button color="primary" (click)="copyLink()">Copy Link</button>
+</mat-dialog-actions>

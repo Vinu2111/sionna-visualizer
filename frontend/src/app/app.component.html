@@ -1,0 +1,116 @@
+<mat-sidenav-container class="app-sidenav-container">
+  <mat-sidenav #drawer class="app-sidenav" fixedInViewport [mode]="'over'" position="start">
+    <mat-toolbar color="primary">Menu</mat-toolbar>
+    <div class="drawer-nav-links" *ngIf="authService.isLoggedIn()">
+      <button mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">dashboard</mat-icon> Dashboard
+      </button>
+      <button mat-button routerLink="/history" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">history</mat-icon> History
+      </button>
+      <button mat-button routerLink="/compare" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">compare_arrows</mat-icon> Compare
+      </button>
+      <button mat-button routerLink="/dashboard/nl-simulation" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">auto_awesome</mat-icon> AI Simulation
+      </button>
+      <button mat-button routerLink="/dashboard/thz-atmospheric" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">waves</mat-icon> THz Atmospheric
+      </button>
+      <button mat-button routerLink="/dashboard/ttdf" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">account_balance</mat-icon> TTDF
+      </button>
+      <button mat-button routerLink="/dashboard/bharat-alliance" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">hexagon</mat-icon> Bharat 6G
+      </button>
+      <button mat-button routerLink="/workspace" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">group_work</mat-icon> Workspace
+      </button>
+      <button mat-button routerLink="/api-docs" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">code</mat-icon> API
+      </button>
+
+      <button mat-button color="warn" *ngIf="authService.isLoggedIn()" (click)="logout(); drawer.close()">
+        <mat-icon style="margin-right: 8px;">logout</mat-icon> Logout
+      </button>
+    </div>
+    
+    <div class="drawer-nav-links" *ngIf="!authService.isLoggedIn()">
+      <button mat-button routerLink="/login" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">login</mat-icon> Login
+      </button>
+      <button mat-button routerLink="/api-docs" routerLinkActive="active-link" (click)="drawer.close()">
+        <mat-icon style="margin-right: 8px;">code</mat-icon> API
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="main-toolbar">
+      <!-- Hamburger menu button (mobile only) -->
+      <button mat-icon-button class="mobile-menu-btn" (click)="drawer.toggle()" aria-label="Toggle menu">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <!-- Brand / Logo -->
+      <span class="brand-text" routerLink="/">Sionna Visualizer</span>
+
+      <span class="spacer"></span>
+
+      <!-- Desktop Navigation conditionally rendered -->
+      <div class="nav-links desktop-only">
+        <ng-container *ngIf="authService.isLoggedIn()">
+          <button mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">
+            Dashboard
+          </button>
+          <button mat-button routerLink="/history" routerLinkActive="active-link">
+            History
+          </button>
+          <button mat-button routerLink="/compare" routerLinkActive="active-link">
+            Compare
+          </button>
+          <button mat-button routerLink="/dashboard/nl-simulation" routerLinkActive="active-link"
+                  style="background: linear-gradient(135deg,#7c4dff22,#651fff11); border-radius: 6px;">
+            <mat-icon style="font-size:16px;margin-right:4px;">auto_awesome</mat-icon> AI Simulation
+          </button>
+          <button mat-button [matMenuTriggerFor]="researchMenu" routerLinkActive="active-link">
+            Research Tools <mat-icon>arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #researchMenu="matMenu">
+            <button mat-menu-item routerLink="/dashboard/ttdf">
+              <mat-icon>account_balance</mat-icon> TTDF Dashboard
+            </button>
+            <button mat-menu-item routerLink="/dashboard/bharat-alliance">
+              <mat-icon>hexagon</mat-icon> Bharat 6G Alliance
+            </button>
+            <button mat-menu-item routerLink="/workspace">
+              <mat-icon>group_work</mat-icon> Team Workspace
+            </button>
+            <button mat-menu-item routerLink="/dashboard/thz-atmospheric">
+              <mat-icon>waves</mat-icon> THz Atmospheric Simulator
+            </button>
+          </mat-menu>
+        </ng-container>
+        
+        <ng-container *ngIf="!authService.isLoggedIn()">
+          <button mat-button routerLink="/login" routerLinkActive="active-link">
+            Login
+          </button>
+        </ng-container>
+
+        <button mat-button routerLink="/api-docs" routerLinkActive="active-link" style="margin-left: 8px;">
+          <mat-icon style="margin-right: 4px;">code</mat-icon> API
+        </button>
+
+        <button mat-stroked-button color="warn" *ngIf="authService.isLoggedIn()" (click)="logout()" style="margin-left: 1rem;">
+          Logout
+        </button>
+      </div>
+    </mat-toolbar>
+
+    <!-- Routed Component Body seamlessly loads here conditionally! -->
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

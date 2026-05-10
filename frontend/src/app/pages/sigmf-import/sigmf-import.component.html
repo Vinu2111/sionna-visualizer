@@ -1,0 +1,122 @@
+<div class="page-container">
+  
+  <div class="header">
+    <h1>SigMF Signal Import</h1>
+    <p>Overlay real hardware captures on simulation results</p>
+  </div>
+
+  <!-- SECTION 1: Upload Panel natively spanning upper boundaries completely securely -->
+  <mat-card class="upload-card">
+    <mat-card-header>
+        <mat-card-title>Hardware Capture Import</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      
+      <div class="upload-zones">
+        
+        <div class="drop-zone" [class.success]="metaFile">
+           <mat-icon *ngIf="!metaFile">description</mat-icon>
+           <mat-icon class="success-i" *ngIf="metaFile">check_circle</mat-icon>
+           <strong>Upload .sigmf-meta file</strong>
+           <span *ngIf="!metaFile">Drag and drop or click to upload JSON constraints</span>
+           <span *ngIf="metaFile">{{ metaFile.name }}</span>
+           <input type="file" accept=".sigmf-meta,.json" (change)="onMetaFileSelected($event)" title="meta">
+        </div>
+
+        <div class="drop-zone" [class.success]="dataFile">
+           <mat-icon *ngIf="!dataFile">memory</mat-icon>
+           <mat-icon class="success-i" *ngIf="dataFile">check_circle</mat-icon>
+           <strong>Upload .sigmf-data file</strong>
+           <span *ngIf="!dataFile">Drag and drop or click to upload binary IQ samples</span>
+           <span *ngIf="dataFile">{{ dataFile.name }} ({{ (dataFile.size / 1024 / 1024).toFixed(2) }} MB)</span>
+           <input type="file" accept=".sigmf-data,.bin" (change)="onDataFileSelected($event)" title="data">
+        </div>
+
+      </div>
+
+      <form [formGroup]="form" class="selector-form">
+          <mat-select formControlName="simulationId" placeholder="Select simulation to compare against">
+              <mat-option *ngFor="let sim of simulations" [value]="sim.id">{{ sim.name }}</mat-option>
+          </mat-select>
+
+          <button mat-flat-button color="primary" [disabled]="!canSubmit() || isUploading" (click)="uploadAndAnalyze()">
+             <mat-icon *ngIf="!isUploading">cloud_upload</mat-icon>
+             {{ isUploading ? 'Processing Hardware Data...' : 'Import and Analyze' }}
+          </button>
+      </form>
+
+      <mat-progress-bar mode="indeterminate" *ngIf="isUploading"></mat-progress-bar>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- SECTION 2: Metadata purely loaded pre-processing structurally via native browser objects -->
+  <mat-card class="meta-card" *ngIf="parsedMetadata && !currentResult">
+       <mat-card-header>
+           <mat-card-title>Detected Hardware Metadata</mat-card-title>
+       </mat-card-header>
+       <mat-card-content>
+          <div class="meta-grid">
+              <div class="meta-item"><span>Sample Rate:</span> <strong>{{ parsedMetadata.sampleRate / 1000000 | number:'1.2-2' }} MHz</strong></div>
+              <div class="meta-item"><span>Center Frequency:</span> <strong>{{ parsedMetadata.centerFrequency / 1000000000 | number:'1.2-2' }} GHz</strong></div>
+              <div class="meta-item"><span>Data Type:</span> <strong>{{ parsedMetadata.dataType }}</strong></div>
+              <div class="meta-item"><span>Hardware:</span> <strong>{{ parsedMetadata.hardware || 'Unknown' }}</strong></div>
+              <div class="meta-item"><span>Description:</span> <strong>{{ parsedMetadata.description || 'N/A' }}</strong></div>
+          </div>
+       </mat-card-content>
+  </mat-card>
+
+  <!-- SECTION 3 & 4: Charts Block populated specifically securely bypassing view encapsulation cleanly -->
+  <div class="results-area" *ngIf="currentResult">
+    
+    <div class="charts-row">
+       <mat-card class="chart-card overlay-chart">
+          <mat-card-header>
+             <mat-card-title>Real Hardware vs Sionna Simulation</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+             <canvas #overlayCanvas></canvas>
+          </mat-card-content>
+       </mat-card>
+
+       <mat-card class="chart-card iq-chart">
+          <mat-card-header>
+             <mat-card-title>IQ Constellation Diagram</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+             <canvas #iqCanvas></canvas>
+             <p class="chart-subtitle">Each dot is one symbol. Tight clusters = clean signal. Spread clusters = noise or interference.</p>
+          </mat-card-content>
+       </mat-card>
+    </div>
+
+    <!-- Info Metrics cleanly reporting native JSON extraction mapping directly below visual boundaries -->
+    <div class="info-cards">
+        <mat-card class="info-box">
+           <div>
+            <strong>{{ currentResult.metadata.centerFrequency / 1000000000 | number:'1.2-2' }} GHz</strong>
+            <span>Measured Center Frequency</span>
+           </div>
+        </mat-card>
+        <mat-card class="info-box">
+           <div>
+            <strong>{{ currentResult.metadata.sampleRate / 1000000 | number:'1.2-2' }} MHz</strong>
+            <span>Sample Rate</span>
+           </div>
+        </mat-card>
+        <mat-card class="info-box">
+           <div>
+            <strong>{{ currentResult.estimatedSnrDb | number:'1.1-1' }} dB</strong>
+            <span>Estimated Hardware SNR</span>
+           </div>
+        </mat-card>
+        <mat-card class="info-box match-box">
+           <div>
+            <strong>{{ currentResult.berMatchPercentage | number:'1.1-1' }}%</strong>
+            <span>BER Simulation Match Score</span>
+           </div>
+        </mat-card>
+    </div>
+
+  </div>
+
+</div>

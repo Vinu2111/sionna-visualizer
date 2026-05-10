@@ -1,0 +1,31 @@
+<div class="colormap-container">
+  <label class="section-label">Chart Colormap</label>
+  <div class="colormap-grid" *ngIf="!loading">
+    <div 
+      *ngFor="let cm of colormaps" 
+      class="colormap-item"
+      [class.active]="cm.id === selectedId"
+      (click)="onSelect(cm.id)"
+      [title]="cm.label"
+    >
+      <div class="colormap-preview">
+        <div 
+          *ngFor="let color of cm.preview" 
+          class="color-stripe"
+          [style.backgroundColor]="color"
+        ></div>
+      </div>
+      <span class="colormap-name">{{ cm.label }}</span>
+      <div class="check-icon" *ngIf="cm.id === selectedId">
+        <svg xmlns="http://www.w3.org/2000/svg" height="14" viewBox="0 -960 960 960" width="14" fill="currentColor">
+          <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Loading palettes...</span>
+  </div>
+</div>

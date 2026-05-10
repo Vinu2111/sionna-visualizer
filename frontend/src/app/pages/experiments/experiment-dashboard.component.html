@@ -1,0 +1,148 @@
+<div class="page-container">
+  
+    <!-- SECTION 1: Top Action Bar mapping seamlessly -->
+    <div class="top-bar">
+        <div class="search-wrapper">
+            <mat-icon>search</mat-icon>
+            <input type="text" placeholder="Search tags, notes, experiments, parameters..."
+                   [ngModel]="filters.searchQuery" (ngModelChange)="onSearchChange($event)">
+            <span class="count">{{ simulations.length }} results found</span>
+        </div>
+        
+        <div class="actions">
+            <button mat-flat-button color="accent" *ngIf="selectedSims.size > 0" (click)="openBulkTag()">
+                <mat-icon>local_offer</mat-icon> Tag Selected ({{ selectedSims.size }})
+            </button>
+            <button mat-flat-button color="primary" (click)="openNewExperiment()">
+                <mat-icon>add</mat-icon> New Experiment
+            </button>
+        </div>
+    </div>
+  
+    <div class="layout-grid">
+        
+        <!-- SECTION 2: Sidebar mapping dynamic logic specifically -->
+        <div class="sidebar">
+            <h3>My Experiments</h3>
+            
+            <div class="nav-list">
+                <div class="nav-item" [class.active]="activeFilterType === 'all'" (click)="setFilter('all')">
+                    <mat-icon>dashboard</mat-icon> All Simulations
+                </div>
+                <div class="nav-item" [class.active]="activeFilterType === 'starred'" (click)="setFilter('starred')">
+                    <mat-icon style="color: #ffc107;">star</mat-icon> Starred
+                </div>
+                <!-- Mock mapping tracking internal bounds securely -->
+                <div class="nav-item">
+                    <mat-icon>label_off</mat-icon> Untagged
+                </div>
+            </div>
+  
+            <div class="divider"></div>
+            
+            <div class="nav-list">
+                <div class="nav-item exp-item" 
+                     *ngFor="let e of experiments" 
+                     [class.active]="activeFilterType === 'experiment' && filters.experimentId === e.experimentId"
+                     (click)="setFilter('experiment', e.experimentId)">
+                    <span class="dot" [style.backgroundColor]="e.color"></span>
+                    <span class="name">{{ e.name }}</span>
+                </div>
+            </div>
+        </div>
+  
+        <!-- SECTION 3: Main Layout isolating data grids mapping safely -->
+        <div class="main-content">
+  
+            <mat-card class="sim-card" *ngFor="let sim of simulations">
+                <div class="top-row">
+                    <div class="left-group">
+                        <mat-checkbox [checked]="selectedSims.has(sim.simulationId)" 
+                                      (change)="toggleSelection(sim.simulationId)">
+                        </mat-checkbox>
+                        <mat-icon class="star-btn" [class.active]="sim.starred" (click)="toggleStar(sim)">
+                            {{ sim.starred ? 'star' : 'star_border' }}
+                        </mat-icon>
+                        <span class="id">#{{ sim.simulationId }}</span>
+                        <span class="chip model-chip">{{ sim.channelModel }}</span>
+                        <span class="chip mod-chip">{{ sim.modulation }}</span>
+                    </div>
+                    
+                    <div class="right-group">
+                         <!-- Visual Menu binding generic properties natively seamlessly safely -->
+                         <button mat-icon-button title="View Details" routerLink="/dashboard" [queryParams]="{simId: sim.simulationId}">
+                             <mat-icon>visibility</mat-icon>
+                         </button>
+                         <button mat-icon-button title="Add to Experiment" [matMenuTriggerFor]="expMenu">
+                             <mat-icon>create_new_folder</mat-icon>
+                         </button>
+                         <mat-menu #expMenu="matMenu">
+                             <button mat-menu-item *ngFor="let e of experiments" (click)="assignExperiment(sim, e)">
+                                 <mat-icon [style.color]="e.color">folder</mat-icon> {{ e.name }}
+                             </button>
+                         </mat-menu>
+                         <span class="time">Simulation recorded recently</span>
+                    </div>
+                </div>
+  
+                <div class="middle-row">
+                    <div class="metric"><span>Frequency:</span> <strong>{{ sim.frequencyGhz }} GHz</strong></div>
+                    <div class="metric"><span>BER @ 20dB:</span> <strong>{{ sim.berAt20db | number:'1.2-5' }}</strong></div>
+                    <div class="metric"><span>Time:</span> <strong>{{ sim.simulationTimeSeconds }}s</strong></div>
+                    
+                    <div class="exp-badge" *ngIf="sim.experimentId" (click)="setFilter('experiment', sim.experimentId)">
+                        <span class="dot" [style.backgroundColor]="sim.experimentColor"></span>
+                        {{ sim.experimentName }}
+                    </div>
+                </div>
+  
+                <div class="bottom-row">
+                    <div class="tags-area">
+                        <mat-chip-set>
+                            <mat-chip class="tag-chip" *ngFor="let t of sim.tags">
+                                {{ t }}
+                                <button matChipRemove (click)="removeTag(sim, t)"><mat-icon>cancel</mat-icon></button>
+                            </mat-chip>
+                        </mat-chip-set>
+                        
+                        <div class="inline-tag-add">
+                            <mat-icon>add</mat-icon>
+                            <input #tagInput type="text" placeholder="Add tag..." 
+                                   (keyup.enter)="addInlineTag(sim, tagInput)"
+                                   (keyup.escape)="tagInput.value = ''">
+                        </div>
+                    </div>
+  
+                    <button mat-icon-button class="note-btn" [class.has-note]="sim.note" (click)="toggleNote(sim.simulationId)" title="Simulation Notes">
+                        <mat-icon>edit_note</mat-icon>
+                    </button>
+                </div>
+  
+                <!-- Automatic auto-saving abstract mapping logically binding on BLUR cleanly -->
+                <div class="note-area" *ngIf="expandedNotes.has(sim.simulationId)">
+                    <textarea [(ngModel)]="sim.note" (blur)="saveNote(sim)" 
+                              placeholder="Add simulation notes, convergence issues, parameter specific reasons here. (Auto-saves cleanly when you click away)"></textarea>
+                </div>
+            </mat-card>
+            
+            <div class="empty-state" *ngIf="simulations.length === 0">
+                <mat-icon>search_off</mat-icon>
+                <h3>No simulations found tracking your request</h3>
+            </div>
+        </div>
+  
+        <!-- SECTION 4: Tag Cloud safely isolating global frequency tracking dynamically -->
+        <div class="tag-cloud-panel">
+            <h3>Popular Tags</h3>
+            <div class="cloud">
+                <span class="cloud-tag" *ngFor="let t of tagCloud" 
+                      [ngStyle]="getTagStyle(t.count)"
+                      (click)="filterByTag(t.tag)">
+                    #{{ t.tag }}
+                </span>
+                <div class="empty-cloud" *ngIf="tagCloud.length === 0">No tags utilized yet securely tracking bounds natively.</div>
+            </div>
+        </div>
+  
+    </div>
+  </div>

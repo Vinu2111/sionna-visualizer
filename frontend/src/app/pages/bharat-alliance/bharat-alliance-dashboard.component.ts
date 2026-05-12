@@ -28,6 +28,8 @@ import { RegisterPocDialogComponent } from './register-poc-dialog.component';
 })
 export class BharatAllianceDashboardComponent implements OnInit {
 
+  Math = Math;
+
   organization!: AllianceOrganization;
   pocs: Poc[] = [];
   activePocDetail: PocDetail | null = null;

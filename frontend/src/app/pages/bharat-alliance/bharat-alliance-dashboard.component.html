@@ -129,7 +129,7 @@
               <td mat-cell *matCellDef="let s">{{ s.modulation || 'QPSK' }}</td>
             </ng-container>
             <ng-container matColumnDef="berAt20db">
-              <th mat-header-cell *matHeaderCellDef>BERBER@20dB#64;20dB</th>
+              <th mat-header-cell *matHeaderCellDef>BER&#64;20dB</th>
               <td mat-cell *matCellDef="let s">{{ s.berAt20db | number:'1.2-6' }}</td>
             </ng-container>
             <ng-container matColumnDef="linkedAt">
@@ -165,7 +165,7 @@
 
         <!-- Sub-section D: Quarterly Status -->
         <div class="sub-section">
-          <h4>Quarterly Submission Status ({{ activePocDetail.quarterlyStatus[0]?.year }})</h4>
+          <h4>Quarterly Submission Status ({{ activePocDetail.quarterlyStatus[0].year }})</h4>
           <div class="quarters">
             <div class="q-item" *ngFor="let q of activePocDetail.quarterlyStatus">
               <div class="q-label">{{ q.quarter }}</div>

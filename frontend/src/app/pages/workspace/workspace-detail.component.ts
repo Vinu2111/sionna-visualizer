@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
+import { MatChipsModule } from '@angular/material/chips';
 import Chart from 'chart.js/auto';
 import { WorkspaceService } from './workspace.service';
 import { Comment, Annotation, Version } from './workspace.interfaces';
@@ -18,7 +19,7 @@ import { Comment, Annotation, Version } from './workspace.interfaces';
   standalone: true,
   imports: [
     CommonModule, FormsModule, MatCardModule, MatButtonModule,
-    MatIconModule, MatTabsModule, MatInputModule
+    MatIconModule, MatTabsModule, MatInputModule, MatChipsModule
   ],
   templateUrl: './workspace-detail.component.html',
   styleUrls: ['./workspace-detail.component.scss']

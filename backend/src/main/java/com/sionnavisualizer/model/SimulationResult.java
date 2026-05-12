@@ -308,7 +308,6 @@ public class SimulationResult {
 
     public Long getExperimentId() { return experimentId; }
     public void setExperimentId(Long experimentId) { this.experimentId = experimentId; }
-}
 
     // SDK tracking fields added for F15
     private boolean trackedViaSdk = false;
@@ -321,3 +320,4 @@ public class SimulationResult {
     public void setSdkVersion(String sdkVersion) { this.sdkVersion = sdkVersion; }
     public String getSdkLanguage() { return sdkLanguage; }
     public void setSdkLanguage(String sdkLanguage) { this.sdkLanguage = sdkLanguage; }
+}

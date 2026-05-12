@@ -31,7 +31,7 @@ export class AnomalyResultDialogComponent implements OnInit {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: AnomalyDialogData,
-    private dialogRef: MatDialogRef<AnomalyResultDialogComponent>,
+    public dialogRef: MatDialogRef<AnomalyResultDialogComponent>,
     private anomalyService: AnomalyDetectionService
   ) {
     this.anomaly = data.anomaly;

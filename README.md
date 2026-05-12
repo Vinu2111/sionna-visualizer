@@ -35,9 +35,9 @@ Turn raw Sionna output into publication-ready charts, share results via a single
 | Layer | URL |
 |---|---|
 | **Frontend** | [sionna-visualizer.vercel.app](https://sionna-visualizer.vercel.app) |
-| **Backend API** | [sionna-visualizer-production-50ae.up.railway.app/api](https://sionna-visualizer-production-50ae.up.railway.app/api) |
-| **API Docs** | [sionna-visualizer-production-50ae.up.railway.app/api-docs](https://sionna-visualizer-production-50ae.up.railway.app/api-docs) |
-| **Health Check** | [sionna-visualizer-production-50ae.up.railway.app/actuator/health](https://sionna-visualizer-production-50ae.up.railway.app/actuator/health) |
+| **Backend API** | [sionna-backend.onrender.com/api](https://sionna-backend.onrender.com/api) |
+| **API Docs** | [sionna-backend.onrender.com/api-docs](https://sionna-backend.onrender.com/api-docs) |
+| **Health Check** | [sionna-backend.onrender.com/actuator/health](https://sionna-backend.onrender.com/actuator/health) |
 
 ---
 
@@ -107,6 +107,32 @@ Turn raw Sionna output into publication-ready charts, share results via a single
 | **AI Anomaly Detection on BER** | Physics-based + AI analysis of BER curves to detect errors automatically |
 | **THz Atmospheric Sliders** | ITU-R P.676/P.838 physics model for THz link budget with interactive sliders |
 
+## Python SDK
+
+Install the SDK and visualize any simulation 
+with one line of code:
+
+```bash
+pip install sionna-visualizer
+```
+
+```python
+import sionna_visualizer as sv
+sv.init(api_key="your-api-key")
+
+url = sv.track_ber(
+    snr_range=list(range(-10, 31)),
+    ber_values=[...your simulation output...],
+    modulation="QPSK",
+    frequency_ghz=28.0,
+    title="My 28 GHz Simulation"
+)
+print(f"View results: {url}")
+```
+
+Get your free API key at:
+[sionna-visualizer.vercel.app/api-docs](https://sionna-visualizer.vercel.app/api-docs)
+
 ---
 
 ## Architecture
@@ -143,8 +169,9 @@ Turn raw Sionna output into publication-ready charts, share results via a single
 | **Backend** | Java 17, Spring Boot 3, Spring Security, JWT, Hibernate, Flyway |
 | **Bridge** | Python 3.10, FastAPI, NVIDIA Sionna SDK, NumPy, SciPy |
 | **AI** | Anthropic Claude API (natural language + anomaly detection) |
-| **Database** | PostgreSQL with 19 Flyway migrations |
-| **Deployment** | Railway (backend + Python + DB), Vercel (frontend) |
+| **Database** | Supabase (PostgreSQL) with 19 Flyway migrations |
+| **Deployment** | Render (backend + Python), Supabase (database), Vercel (frontend) |
+| **SDK** | Python package, PyPI |
 | **DevOps** | Docker, docker-compose, GitHub auto-deploy |
 
 ---
@@ -212,13 +239,13 @@ Frontend runs at `http://localhost:4200`
 
 ## API Documentation
 
-Full documentation available at [`/api-docs`](https://sionna-visualizer-production-50ae.up.railway.app/api-docs)
+Full documentation available at [`/api-docs`](https://sionna-backend.onrender.com/api-docs)
 
 ### Example API Calls
 
 **Run an AWGN simulation:**
 ```bash
-curl -X POST https://sionna-visualizer-production-50ae.up.railway.app/api/public/simulate \
+curl -X POST https://sionna-backend.onrender.com/api/public/simulate \
   -H "X-API-Key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{"modulationType": "QPSK", "snrMin": 0, "snrMax": 20, "snrSteps": 21}'
@@ -226,14 +253,14 @@ curl -X POST https://sionna-visualizer-production-50ae.up.railway.app/api/public
 
 **Get simulation estimate (no API key needed):**
 ```bash
-curl -X POST https://sionna-visualizer-production-50ae.up.railway.app/api/simulations/estimate \
+curl -X POST https://sionna-backend.onrender.com/api/simulations/estimate \
   -H "Content-Type: application/json" \
   -d '{"simulation_type": "AWGN", "parameters": {"modulation": "QPSK", "snr_steps": 21}}'
 ```
 
 **List available colormaps (no API key needed):**
 ```bash
-curl https://sionna-visualizer-production-50ae.up.railway.app/api/simulations/colormaps
+curl https://sionna-backend.onrender.com/api/simulations/colormaps
 ```
 
 **Python SDK example:**
@@ -241,7 +268,7 @@ curl https://sionna-visualizer-production-50ae.up.railway.app/api/simulations/co
 import requests
 
 response = requests.post(
-    "https://sionna-visualizer-production-50ae.up.railway.app/api/public/simulate",
+    "https://sionna-backend.onrender.com/api/public/simulate",
     headers={"X-API-Key": "your-api-key"},
     json={"modulationType": "QPSK", "snrMin": 0, "snrMax": 20, "snrSteps": 21}
 )
@@ -255,12 +282,13 @@ print(f"BER at 10 dB: {result['simulatedBer'][10]:.2e}")
 
 | Variable | Description | Example |
 |---|---|---|
-| `SPRING_DATASOURCE_URL` | PostgreSQL JDBC connection string | `jdbc:postgresql://localhost:5432/sionna_visualizer` |
-| `SPRING_DATASOURCE_USERNAME` | Database username | `postgres` |
+| `SUPABASE_URL` | Supabase project URL | `https://xyz.supabase.co` |
+| `SPRING_DATASOURCE_URL` | PostgreSQL JDBC connection string | `jdbc:postgresql://aws-0-eu-central-1.pooler.supabase.com:6543/postgres` |
+| `SPRING_DATASOURCE_USERNAME` | Database username | `postgres.your_project` |
 | `SPRING_DATASOURCE_PASSWORD` | Database password | `your_secure_password` |
 | `JWT_SECRET` | Secret key for JWT signing (64+ chars) | `openssl rand -hex 32` |
 | `JWT_EXPIRATION` | JWT token expiry in milliseconds | `86400000` (24 hours) |
-| `PYTHON_BRIDGE_URL` | FastAPI bridge URL | `http://localhost:8001/simulate/demo` |
+| `PYTHON_BRIDGE_URL` | FastAPI bridge URL | `https://sionna-python.onrender.com/simulate/demo` |
 | `ANTHROPIC_API_KEY` | Claude AI API key for NL simulation | `sk-ant-...` |
 | `CORS_ALLOWED_ORIGIN` | Frontend URL for CORS | `https://sionna-visualizer.vercel.app` |
 
@@ -270,20 +298,26 @@ See `.env.example` for the complete template.
 
 ## Deployment
 
-### Deploy Backend to Railway
+### Database Setup on Supabase
 
-1. Create a new Railway project at [railway.app](https://railway.app)
-2. Add a **PostgreSQL** plugin — Railway provisions the database automatically
-3. Connect your GitHub repo → Railway auto-detects Spring Boot
-4. Set environment variables in Railway dashboard:
-   - `SPRING_DATASOURCE_URL` — from Railway PostgreSQL plugin
-   - `SPRING_DATASOURCE_USERNAME` — from Railway PostgreSQL plugin
-   - `SPRING_DATASOURCE_PASSWORD` — from Railway PostgreSQL plugin
+1. Create a new project on [Supabase](https://supabase.com)
+2. Get your connection details from Database Settings > URI
+3. Flyway migrations will automatically run when the Spring Boot backend starts
+
+### Deploy Backend to Render
+
+1. Create a new Web Service at [Render](https://render.com)
+2. Connect your GitHub repo → Render auto-detects Java/Maven
+3. Set environment variables in Render dashboard:
+   - `SPRING_DATASOURCE_URL` — from Supabase
+   - `SPRING_DATASOURCE_USERNAME` — from Supabase
+   - `SPRING_DATASOURCE_PASSWORD` — from Supabase
+   - `SUPABASE_URL` — from Supabase project settings
    - `JWT_SECRET` — generate a strong random string
-   - `PYTHON_BRIDGE_URL` — your Python bridge Railway URL
+   - `PYTHON_BRIDGE_URL` — your Python bridge Render URL
    - `ANTHROPIC_API_KEY` — your Claude API key
    - `CORS_ALLOWED_ORIGIN` — your Vercel frontend URL
-5. Deploy — Railway builds and runs `./mvnw spring-boot:run`
+4. Deploy — Render builds and runs `./mvnw spring-boot:run`
 
 ### Deploy Frontend to Vercel
 
@@ -294,13 +328,12 @@ See `.env.example` for the complete template.
 
 `vercel.json` is already configured for SPA routing.
 
-### Deploy Python Bridge to Railway
+### Deploy Python Bridge to Render
 
-1. Add a new service in your Railway project
+1. Create a new Web Service in Render
 2. Point to the `python-bridge/` directory
-3. Railway auto-detects the `Dockerfile`
-4. Set `PORT=8001` environment variable
-5. Deploy
+3. Render auto-detects the `Dockerfile`
+4. Deploy
 
 ---
 
@@ -380,7 +413,7 @@ We welcome contributions! Here's how:
 
 **Vinayak Gote** — Java Backend Developer at Wipro, Pune, India
 
-Computer Engineering, SPPU 2024 · CGPA 8.56 · 2nd Rank in B.E.
+Computer Engineering, SPPU 2024 · CGPA 9.30 · 2nd Rank in B.E.
 
 NVIDIA AI Aerial / 6G Developer Program Member · AWS Certified Cloud Practitioner
 
@@ -408,4 +441,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-*Built with NVIDIA Sionna · Deployed on Railway + Vercel · 61 features · 2026*
+*Built with NVIDIA Sionna · Deployed on Render + Supabase + Vercel · 61 features + F15 SDK · 2026*

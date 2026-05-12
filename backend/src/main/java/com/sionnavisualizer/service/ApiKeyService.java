@@ -59,3 +59,16 @@ public class ApiKeyService {
         apiKeyRepository.save(key);
     }
 }
+
+    // Added for SDK authentication — F15
+    public ApiKey getActiveApiKey(String keyValue) {
+        return apiKeyRepository.findByKeyValue(keyValue)
+            .filter(k -> k.isActive())
+            .orElse(null);
+    }
+
+    // Added for SDK usage tracking — F15
+    public void incrementUsage(ApiKey apiKey) {
+        apiKey.setUsageCount(apiKey.getUsageCount() + 1);
+        apiKeyRepository.save(apiKey);
+    }

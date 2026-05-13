@@ -21,6 +21,8 @@ import java.util.List;
 public class SimulationDto {
     private Long id;
 
+    /** Source of the simulation data (e.g. "python_bridge", "java_math_engine") */
+    private String source;
 
     /** SNR values tested, in dB (e.g. [-5.0, -3.33, ..., 20.0]) */
     private List<Double> snr_db;
@@ -59,6 +61,9 @@ public class SimulationDto {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 
     public List<Double> getSnr_db() { return snr_db; }
     public void setSnr_db(List<Double> snr_db) { this.snr_db = snr_db; }

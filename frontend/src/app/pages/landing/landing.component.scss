@@ -1,62 +1,181 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+// ─── Design Tokens ───────────────────────────────────────────────────────────
+$bg-deep: #0a0a1a;
+$bg-dark: #0d1117;
+$bg-card: #111827;
+$teal: #00C2CB;
+$purple: #7C3AED;
+$white: #ffffff;
+$grey-light: rgba(255, 255, 255, 0.6);
+$grey-dim: rgba(255, 255, 255, 0.4);
+$border-subtle: rgba(0, 194, 203, 0.12);
+$border-glow: rgba(0, 194, 203, 0.4);
+
+// ─── KEYFRAMES ───────────────────────────────────────────────────────────────
+
+// Animation 1: Floating particles
+@keyframes float-up {
+  0% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(90vh) scale(1);
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-10vh) scale(0.5);
+    opacity: 0;
+  }
+}
+
+// Animation 2: Fade in up on scroll
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Animation 3: Gradient shift for hero text
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+// Animation 7: Pulse glow on buttons
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 194, 203, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(0, 194, 203, 0.4); }
+}
+
+// ─── GLOBAL CONTAINER ────────────────────────────────────────────────────────
 .landing-container {
   display: flex;
   flex-direction: column;
-  color: #eeeeee;
-  min-height: calc(100vh - 64px);
+  color: $white;
+  min-height: 100vh;
   font-family: 'Inter', sans-serif;
-  background-color: #030712;
+  background-color: $bg-deep;
+  overflow-x: hidden;
 }
 
-/* ── HERO ──────────────────────────────────────────────────────────────────── */
+// ─── FADE SECTION ────────────────────────────────────────────────────────────
+.fade-section {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ─── SECTION HEADER ──────────────────────────────────────────────────────────
+.section-header {
+  text-align: center;
+  margin-bottom: 56px;
+
+  h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: $white;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: $grey-light;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 1: HERO
+// ═══════════════════════════════════════════════════════════════════════════════
 .hero-section {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 120px 24px;
-  background: radial-gradient(ellipse at center top, rgba(139, 92, 246, 0.08) 0%, transparent 70%),
-              linear-gradient(180deg, #030712 0%, #0d1117 100%);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  padding: 140px 24px 100px;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at center top, rgba($purple, 0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, rgba($teal, 0.06) 0%, transparent 50%),
+              linear-gradient(180deg, $bg-deep 0%, $bg-dark 100%);
+  overflow: hidden;
+}
+
+// Particles
+.particles-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  animation: float-up linear infinite;
+  opacity: 0;
+}
+
+.hero-content {
+  max-width: 860px;
+  z-index: 2;
   position: relative;
 }
 
 .hero-badge {
   display: inline-block;
-  padding: 6px 16px;
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  padding: 6px 20px;
+  background: rgba($teal, 0.08);
+  border: 1px solid rgba($teal, 0.35);
   border-radius: 100px;
-  font-size: 0.8rem;
-  letter-spacing: 1px;
-  color: #8b5cf6;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: $teal;
   text-transform: uppercase;
-  margin-bottom: 28px;
-}
-
-.hero-content {
-  max-width: 820px;
+  margin-bottom: 32px;
 }
 
 .headline {
   font-size: 4rem;
   font-weight: 800;
   margin-bottom: 24px;
-  background: linear-gradient(135deg, #ffffff 0%, #8b5cf6 60%, #0ea5e9 100%);
+  color: $white;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, $teal, $purple, $teal);
+  background-size: 200% 200%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  line-height: 1.15;
-  letter-spacing: -1px;
+  animation: gradient-shift 4s ease infinite;
 }
 
 .subline {
   font-size: 1.25rem;
   font-weight: 300;
   margin-bottom: 48px;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.6;
+  color: $grey-light;
+  line-height: 1.7;
 }
 
 .cta-buttons {
@@ -64,148 +183,411 @@
   justify-content: center;
   gap: 16px;
   flex-wrap: wrap;
+  margin-bottom: 48px;
 }
 
+// Animation 4: Button hover effects
 .btn-primary {
   font-size: 1rem;
   font-weight: 600;
-  padding: 12px 32px !important;
-  border-radius: 8px !important;
-  background: linear-gradient(135deg, #8b5cf6, #0ea5e9) !important;
-  color: #030712 !important;
+  padding: 14px 36px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, $teal, darken($teal, 10%)) !important;
+  color: $bg-deep !important;
   letter-spacing: 0.3px;
+  border: none;
+  cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba($teal, 0.4);
   }
 }
 
 .btn-secondary {
   font-size: 1rem;
   font-weight: 500;
-  padding: 12px 32px !important;
-  border-radius: 8px !important;
-  border-color: rgba(139, 92, 246, 0.5) !important;
-  color: #8b5cf6 !important;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  padding: 14px 36px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba($white, 0.3) !important;
+  color: $white !important;
+  background: transparent !important;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    background-color: rgba(139, 92, 246, 0.05) !important;
-    border-color: #8b5cf6 !important;
+    transform: scale(1.05);
+    border-color: $white !important;
+    box-shadow: 0 0 20px rgba($white, 0.1);
   }
 }
 
-/* ── FEATURES ──────────────────────────────────────────────────────────────── */
-.features-section {
+.stats-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: $grey-dim;
+}
+
+.stat-dot {
+  color: rgba($teal, 0.4);
+}
+
+.stat-number {
+  color: $teal;
+  font-weight: 700;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 2: LIVE DEMO
+// ═══════════════════════════════════════════════════════════════════════════════
+.demo-section {
   padding: 96px 40px;
-  background-color: #0d1117;
+  background: $bg-dark;
+  border-top: 1px solid $border-subtle;
 }
 
-.features-header {
-  text-align: center;
-  margin-bottom: 64px;
-
-  h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 12px;
-  }
-
-  p {
-    font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.5);
-  }
-}
-
-.features-grid {
+.demo-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: 320px 1fr;
+  gap: 40px;
+  max-width: 1100px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.demo-controls {
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: 16px;
+  padding: 28px;
+}
+
+.control-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: $grey-light;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  margin-top: 20px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.chip-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mod-chip {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba($teal, 0.2);
+  background: transparent;
+  color: $grey-light;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+
+  &:hover {
+    border-color: $teal;
+    color: $teal;
+  }
+
+  &.active {
+    background: rgba($teal, 0.15);
+    border-color: $teal;
+    color: $teal;
+    font-weight: 600;
+  }
+}
+
+.slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.range-slider {
+  width: 100%;
+  accent-color: $teal;
+  cursor: pointer;
+}
+
+.run-btn {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, $teal, darken($teal, 10%));
+  color: $bg-deep;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover:not(:disabled) {
+    transform: scale(1.03);
+    box-shadow: 0 0 24px rgba($teal, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.demo-chart {
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: 16px;
+  padding: 24px;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  canvas {
+    width: 100% !important;
+    max-height: 400px;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 3: HOW IT WORKS
+// ═══════════════════════════════════════════════════════════════════════════════
+.howto-section {
+  padding: 96px 40px;
+  background: $bg-deep;
+}
+
+.howto-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   max-width: 1100px;
   margin: 0 auto;
 }
 
-.feature-card {
-  background-color: #030712 !important;
-  border: 1px solid rgba(139, 92, 246, 0.1) !important;
-  border-radius: 16px !important;
-  padding: 8px;
-  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+.howto-card {
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: 16px;
+  padding: 36px 28px;
+  text-align: center;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
-    border-color: rgba(139, 92, 246, 0.35) !important;
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.08);
-  }
-
-  mat-card-content {
-    padding: 28px !important;
+    transform: translateY(-8px);
+    border-color: $border-glow;
+    box-shadow: 0 16px 48px rgba($teal, 0.08);
   }
 
   h3 {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 600;
-    color: #ffffff;
-    margin: 16px 0 10px;
+    color: $white;
+    margin: 16px 0 12px;
   }
 
   p {
-    font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.9rem;
+    color: $grey-light;
     line-height: 1.7;
     margin: 0;
   }
 }
 
-.feature-icon-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
-  background: rgba(139, 92, 246, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.howto-icon {
+  font-size: 2.5rem;
+  margin-bottom: 4px;
+}
 
-  mat-icon {
-    font-size: 28px;
-    height: 28px;
-    width: 28px;
-    color: #8b5cf6;
+.code-block {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba($teal, 0.1);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: left;
+  overflow-x: auto;
+  margin: 0;
+
+  code {
+    font-family: 'Fira Code', 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: $teal;
+    line-height: 1.6;
+    white-space: pre;
   }
 }
 
-/* ── STATS BAR ─────────────────────────────────────────────────────────────── */
-.stats-bar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-  padding: 28px 24px;
-  background-color: #030712;
-  border-top: 1px solid rgba(139, 92, 246, 0.08);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.08);
-  flex-wrap: wrap;
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 4: FEATURES GRID
+// ═══════════════════════════════════════════════════════════════════════════════
+.features-section {
+  padding: 96px 40px;
+  background: $bg-dark;
+  border-top: 1px solid $border-subtle;
 }
 
-.stat-pill {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.5px;
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.divider {
-  color: rgba(139, 92, 246, 0.4);
-  font-size: 1.2rem;
+// Animation 5: Feature cards hover
+.feature-card {
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: 16px;
+  padding: 32px 28px;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-8px);
+    border-color: $border-glow;
+    box-shadow: 0 16px 48px rgba($teal, 0.08);
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $white;
+    margin: 12px 0 10px;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: $grey-light;
+    line-height: 1.7;
+    margin: 0;
+  }
 }
 
-/* ── FOOTER ─────────────────────────────────────────────────────────────────── */
+.feature-emoji {
+  font-size: 2rem;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 5: SOCIAL PROOF
+// ═══════════════════════════════════════════════════════════════════════════════
+.proof-section {
+  padding: 96px 40px;
+  background: $bg-deep;
+}
+
+.proof-card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: 20px;
+  padding: 56px 48px;
+  text-align: center;
+}
+
+.proof-quote {
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: $white;
+  font-style: italic;
+  line-height: 1.8;
+  margin: 0 0 24px;
+  border: none;
+  padding: 0;
+}
+
+.proof-stats {
+  font-size: 0.9rem;
+  color: $grey-dim;
+  margin-bottom: 32px;
+}
+
+.github-star-btn {
+  display: inline-block;
+  padding: 12px 32px;
+  border-radius: 10px;
+  border: 1px solid rgba($teal, 0.4);
+  background: rgba($teal, 0.08);
+  color: $teal;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    background: rgba($teal, 0.15);
+    box-shadow: 0 0 24px rgba($teal, 0.2);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 6: FINAL CTA
+// ═══════════════════════════════════════════════════════════════════════════════
+.cta-section {
+  padding: 96px 40px;
+  background: linear-gradient(135deg, darken($teal, 25%), darken($teal, 15%), $teal);
+  text-align: center;
+
+  h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: $white;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: rgba($white, 0.8);
+    margin-bottom: 36px;
+  }
+}
+
+.cta-btn {
+  padding: 16px 48px !important;
+  border-radius: 10px !important;
+  background: $white !important;
+  color: $bg-deep !important;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FOOTER
+// ═══════════════════════════════════════════════════════════════════════════════
 .landing-footer {
-  padding: 56px 24px;
-  background-color: #080b14;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 48px 24px;
+  background: darken($bg-deep, 2%);
+  border-top: 1px solid rgba($white, 0.05);
   text-align: center;
 }
 
@@ -215,20 +597,14 @@
 }
 
 .footer-brand {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 6px;
+  font-size: 0.95rem;
+  color: $grey-light;
+  margin-bottom: 16px;
 
   strong {
-    color: #8b5cf6;
+    color: $teal;
     font-weight: 600;
   }
-}
-
-.footer-subtitle {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.35);
-  margin-bottom: 20px;
 }
 
 .footer-links {
@@ -237,45 +613,73 @@
   gap: 12px;
   align-items: center;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: $grey-dim;
 
   a {
-    color: rgba(139, 92, 246, 0.7);
+    color: rgba($teal, 0.7);
     text-decoration: none;
     transition: color 0.2s ease;
 
     &:hover {
-      color: #8b5cf6;
+      color: $teal;
     }
   }
 }
 
-/* ── MOBILE RESPONSIVE ─────────────────────────────────────────────────────── */
+// ═══════════════════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ═══════════════════════════════════════════════════════════════════════════════
 @media (max-width: 768px) {
   .headline {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
+    letter-spacing: -0.5px;
   }
 
   .hero-section {
-    padding: 80px 20px;
+    padding: 100px 20px 60px;
+    min-height: auto;
   }
 
-  .features-section {
-    padding: 60px 20px;
+  .subline {
+    font-size: 1rem;
+    br { display: none; }
   }
 
-  .stats-bar {
-    gap: 8px;
+  .demo-container {
+    grid-template-columns: 1fr;
   }
 
-  .divider {
+  .howto-grid,
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-section,
+  .howto-section,
+  .features-section,
+  .proof-section,
+  .cta-section {
+    padding: 64px 20px;
+  }
+
+  .proof-card {
+    padding: 36px 24px;
+  }
+
+  .proof-quote {
+    font-size: 1.1rem;
+  }
+
+  .stats-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-dot {
     display: none;
   }
 
-  .stat-pill {
-    background: rgba(139, 92, 246, 0.05);
-    border: 1px solid rgba(139, 92, 246, 0.1);
-    border-radius: 100px;
-    padding: 4px 12px;
+  .section-header h2 {
+    font-size: 1.6rem;
   }
 }

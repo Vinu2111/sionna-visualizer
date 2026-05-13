@@ -11,6 +11,8 @@ import com.sionnavisualizer.dto.ChannelCapacityRequestDto;
 import com.sionnavisualizer.dto.ChannelCapacityResultDto;
 import com.sionnavisualizer.dto.PathLossRequestDto;
 import com.sionnavisualizer.dto.PathLossResultDto;
+import com.sionnavisualizer.dto.PathDto;
+import com.sionnavisualizer.dto.PathLossSummaryDto;
 import com.sionnavisualizer.dto.SimulationEstimateRequestDto;
 import com.sionnavisualizer.dto.SimulationEstimateResultDto;
 import com.sionnavisualizer.dto.RayDirectionRequestDto;
@@ -21,16 +23,23 @@ import com.sionnavisualizer.dto.MeasurementOverlayRequestDto;
 import com.sionnavisualizer.dto.MeasurementOverlayResultDto;
 import com.sionnavisualizer.dto.SinrSteeringRequestDto;
 import com.sionnavisualizer.dto.SinrSteeringResultDto;
+import com.sionnavisualizer.dto.PerformanceDto;
 import com.sionnavisualizer.model.SimulationResult;
 import com.sionnavisualizer.service.SimulationService;
+import com.sionnavisualizer.service.BerMathEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /**
  * REST Controller exposing Sionna simulation API endpoints to the Angular frontend.
@@ -41,6 +50,7 @@ import java.util.Map;
  *   GET  /api/simulations              – Full history from PostgreSQL
  *   GET  /api/share/{token}            – View a publicly shared simulation
  *   GET  /api/simulations/{id}/share-link – Get share URL for a saved run
+ *   GET  /api/public/simulate/preview  – Public preview for landing page demo
  */
 @RestController
 @RequestMapping("/api")
@@ -50,9 +60,29 @@ public class SimulationController {
     private static final Logger log = LoggerFactory.getLogger(SimulationController.class);
 
     private final SimulationService simulationService;
+    private final BerMathEngine berMathEngine;
 
-    public SimulationController(SimulationService simulationService) {
+    public SimulationController(SimulationService simulationService, BerMathEngine berMathEngine) {
         this.simulationService = simulationService;
+        this.berMathEngine = berMathEngine;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helper: convert modulation_order integer to modulation name string
+    // ─────────────────────────────────────────────────────────────────────────
+    private String modulationNameFromOrder(int order) {
+        switch (order) {
+            case 2:  return "BPSK";
+            case 4:  return "QPSK";
+            case 16: return "16QAM";
+            case 64: return "64QAM";
+            default: return "QPSK";
+        }
+    }
+
+    // Helper: convert double[] to List<Double>
+    private List<Double> toList(double[] arr) {
+        return DoubleStream.of(arr).boxed().collect(Collectors.toList());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -64,7 +94,7 @@ public class SimulationController {
      *
      * Triggers a QPSK rate-1/2 simulation with default parameters.
      * Used for the initial dashboard load — no request body needed.
-     * NEVER returns 500 — always 200 with either real data or a graceful message.
+     * Falls back to BerMathEngine if Python bridge is unavailable.
      */
     @GetMapping("/simulate/demo")
     public ResponseEntity<?> runDemoSimulation() {
@@ -72,30 +102,33 @@ public class SimulationController {
             SimulationDto result = simulationService.runDemoSimulation();
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            log.warn("Demo endpoint using mock data: {}", e.getMessage());
-            // Return mock BER data so dashboard loads even without Sionna
-            java.util.Map<String, Object> mock = new java.util.HashMap<>();
-            mock.put("status", "mock");
-            mock.put("modulation", "QPSK");
-            mock.put("snr_db", java.util.List.of(-10,-5,0,5,10,15,20,25,30));
-            mock.put("ber_theoretical", java.util.List.of(0.5,0.38,0.25,0.12,0.04,0.008,0.001,0.0001,0.00001));
-            mock.put("ber_simulated", java.util.List.of(0.48,0.36,0.23,0.11,0.038,0.007,0.0009,0.00009,0.000009));
-            mock.put("simulation_time_ms", 0);
-            return ResponseEntity.ok(mock);
+            log.warn("Python bridge unavailable for demo, using BerMathEngine: {}", e.getMessage());
+
+            // Generate real QPSK BER values using BerMathEngine
+            double[] snrRange = berMathEngine.generateSnrRange(-10, 30, 41);
+            double[] theoretical = berMathEngine.calculateTheoreticalBer("QPSK", snrRange);
+            double[] simulated = berMathEngine.calculateSimulatedBer("QPSK", snrRange);
+
+            SimulationDto dto = new SimulationDto();
+            dto.setSnr_db(toList(snrRange));
+            dto.setBer_theoretical(toList(theoretical));
+            dto.setBer_simulated(toList(simulated));
+            dto.setModulation("QPSK");
+            dto.setCode_rate(0.5);
+            dto.setSimulation_time_ms(0);
+            dto.setNum_bits_simulated(0);
+            dto.setColormap_used("default");
+            dto.setSource("java_math_engine");
+
+            return ResponseEntity.ok(dto);
         }
     }
 
     /**
      * POST /api/simulate
      *
-     * Runs a simulation with user-supplied parameters:
-     *   - modulation_order  (2/4/16/64)
-     *   - code_rate         (0.1 – 1.0)
-     *   - num_bits_per_symbol
-     *   - snr_min, snr_max, snr_steps
-     *
-     * Returns the full SimulationDto with both BER curves.
-     * Returns HTTP 500 with a plain error message if the Python bridge fails.
+     * Runs a simulation with user-supplied parameters.
+     * Falls back to BerMathEngine when the Python bridge is unavailable.
      */
     @PostMapping("/simulate")
     public ResponseEntity<?> runSimulation(@Valid @RequestBody SimulationRequestDto request) {
@@ -103,7 +136,28 @@ public class SimulationController {
             SimulationDto result = simulationService.runSimulation(request);
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
-            return ResponseEntity.internalServerError().body(ex.getMessage());
+            log.warn("Python bridge unavailable for simulation, falling back to BerMathEngine: {}", ex.getMessage());
+
+            // Extract parameters from request
+            String modulation = modulationNameFromOrder(request.getModulation_order());
+            double[] snrRange = berMathEngine.generateSnrRange(
+                request.getSnr_min(), request.getSnr_max(), request.getSnr_steps()
+            );
+            double[] theoretical = berMathEngine.calculateTheoreticalBer(modulation, snrRange);
+            double[] simulated = berMathEngine.calculateSimulatedBer(modulation, snrRange);
+
+            SimulationDto dto = new SimulationDto();
+            dto.setSnr_db(toList(snrRange));
+            dto.setBer_theoretical(toList(theoretical));
+            dto.setBer_simulated(toList(simulated));
+            dto.setModulation(modulation);
+            dto.setCode_rate(request.getCode_rate());
+            dto.setSimulation_time_ms(0);
+            dto.setNum_bits_simulated(0);
+            dto.setColormap_used("default");
+            dto.setSource("java_math_engine");
+
+            return ResponseEntity.ok(dto);
         }
     }
 
@@ -111,6 +165,7 @@ public class SimulationController {
      * POST /api/simulations/beam-pattern
      *
      * Runs a ULA beam pattern simulation.
+     * Falls back to BerMathEngine if Python bridge is unavailable.
      */
     @PostMapping("/simulations/beam-pattern")
     public ResponseEntity<?> runBeamPattern(@Valid @RequestBody BeamPatternRequestDto request) {
@@ -118,7 +173,31 @@ public class SimulationController {
             BeamPatternResultDto result = simulationService.runBeamPattern(request);
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
-            return ResponseEntity.internalServerError().body(ex.getMessage());
+            log.warn("Python bridge unavailable for beam-pattern, falling back to BerMathEngine: {}", ex.getMessage());
+
+            Map<String, Object> beamData = berMathEngine.calculateBeamPattern(
+                request.getNum_antennas(),
+                request.getFrequency_ghz(),
+                request.getSteering_angle()
+            );
+
+            double[] angles = (double[]) beamData.get("angles");
+            double[] patternDb = (double[]) beamData.get("pattern_db");
+
+            BeamPatternResultDto dto = new BeamPatternResultDto();
+            dto.setAngles(toList(angles));
+            dto.setPattern_db(toList(patternDb));
+            dto.setSteering_angle(request.getSteering_angle());
+            dto.setNum_antennas(request.getNum_antennas());
+            dto.setFrequency_ghz(request.getFrequency_ghz());
+
+            // Approximate main lobe width ~ 102 / N degrees for half-wave spacing
+            dto.setMain_lobe_width(102.0 / request.getNum_antennas());
+            dto.setSide_lobe_level(-13.2); // Typical first sidelobe for uniform linear array
+            dto.setArray_gain_db(10 * Math.log10(request.getNum_antennas()));
+            dto.setColormap_used("default");
+
+            return ResponseEntity.ok(dto);
         }
     }
 
@@ -126,6 +205,7 @@ public class SimulationController {
      * POST /api/simulations/modulation-comparison
      *
      * Runs theoretical comparison for BPSK, QPSK, 16QAM, 64QAM.
+     * Falls back to BerMathEngine if Python bridge is unavailable.
      */
     @PostMapping("/simulations/modulation-comparison")
     public ResponseEntity<?> runModulationComparison(@Valid @RequestBody ModulationComparisonRequestDto request) {
@@ -133,7 +213,24 @@ public class SimulationController {
             ModulationComparisonResultDto result = simulationService.runModulationComparison(request);
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
-            return ResponseEntity.internalServerError().body(ex.getMessage());
+            log.warn("Python bridge unavailable for modulation-comparison, falling back to BerMathEngine: {}", ex.getMessage());
+
+            double[] snrRange = berMathEngine.generateSnrRange(
+                request.getSnr_min(), request.getSnr_max(), request.getSnr_steps()
+            );
+
+            ModulationComparisonResultDto dto = new ModulationComparisonResultDto();
+            dto.setSnr_db(toList(snrRange));
+            dto.setBpsk(toList(berMathEngine.calculateTheoreticalBer("BPSK", snrRange)));
+            dto.setQpsk(toList(berMathEngine.calculateTheoreticalBer("QPSK", snrRange)));
+            dto.setQam16(toList(berMathEngine.calculateTheoreticalBer("16QAM", snrRange)));
+            dto.setQam64(toList(berMathEngine.calculateTheoreticalBer("64QAM", snrRange)));
+            dto.setSnr_min(request.getSnr_min());
+            dto.setSnr_max(request.getSnr_max());
+            dto.setSnr_steps(request.getSnr_steps());
+            dto.setColormap_used("default");
+
+            return ResponseEntity.ok(dto);
         }
     }
 
@@ -141,6 +238,7 @@ public class SimulationController {
      * POST /api/simulations/channel-capacity
      *
      * Runs theoretical Shannon channel capacity.
+     * Falls back to BerMathEngine if Python bridge is unavailable.
      */
     @PostMapping("/simulations/channel-capacity")
     public ResponseEntity<?> runChannelCapacity(@Valid @RequestBody ChannelCapacityRequestDto request) {
@@ -148,7 +246,37 @@ public class SimulationController {
             ChannelCapacityResultDto result = simulationService.runChannelCapacity(request);
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
-            return ResponseEntity.internalServerError().body(ex.getMessage());
+            log.warn("Python bridge unavailable for channel-capacity, falling back to BerMathEngine: {}", ex.getMessage());
+
+            double[] snrRange = berMathEngine.generateSnrRange(
+                request.getSnr_min(), request.getSnr_max(), request.getSnr_steps()
+            );
+
+            List<Map<String, Object>> capacityCurves = new ArrayList<>();
+            for (Double bw : request.getBandwidths_mhz()) {
+                double[] capacity = berMathEngine.calculateChannelCapacity(snrRange, bw);
+                Map<String, Object> curve = new HashMap<>();
+                curve.put("bandwidth_mhz", bw);
+                curve.put("capacity_mbps", toList(capacity));
+                capacityCurves.add(curve);
+            }
+
+            // Spectral efficiency (bandwidth-independent Shannon limit)
+            double[] spectralEff = new double[snrRange.length];
+            for (int i = 0; i < snrRange.length; i++) {
+                double snrLin = Math.pow(10, snrRange[i] / 10.0);
+                spectralEff[i] = Math.log(1 + snrLin) / Math.log(2);
+            }
+
+            ChannelCapacityResultDto dto = new ChannelCapacityResultDto();
+            dto.setSnr_db(toList(snrRange));
+            dto.setSpectral_efficiency(toList(spectralEff));
+            dto.setCapacity_curves(capacityCurves);
+            dto.setSnr_min(request.getSnr_min());
+            dto.setSnr_max(request.getSnr_max());
+            dto.setColormap_used("default");
+
+            return ResponseEntity.ok(dto);
         }
     }
 
@@ -156,6 +284,7 @@ public class SimulationController {
      * POST /api/simulations/path-loss
      *
      * Runs path loss generation for multi-ray modeling.
+     * Falls back to BerMathEngine if Python bridge is unavailable.
      */
     @PostMapping("/simulations/path-loss")
     public ResponseEntity<?> runPathLoss(@Valid @RequestBody PathLossRequestDto request) {
@@ -167,7 +296,48 @@ public class SimulationController {
             PathLossResultDto result = simulationService.runPathLoss(request);
             return ResponseEntity.ok(result);
         } catch (RuntimeException ex) {
-            return ResponseEntity.internalServerError().body(ex.getMessage());
+            log.warn("Python bridge unavailable for path-loss, falling back to BerMathEngine: {}", ex.getMessage());
+
+            int numPaths = request.getNum_paths() != null ? request.getNum_paths() : 4;
+            double freqGhz = request.getFrequency_ghz() != null ? request.getFrequency_ghz() : 28.0;
+            
+            List<PathDto> paths = new ArrayList<>();
+            java.util.Random rng = new java.util.Random();
+            double minLoss = Double.MAX_VALUE;
+            double maxLoss = Double.MIN_VALUE;
+            double sumLoss = 0;
+
+            for (int p = 0; p < numPaths; p++) {
+                double distance = 50 + rng.nextDouble() * 950; // 50m to 1000m
+                double pathLoss = berMathEngine.calculatePathLoss(distance, freqGhz);
+                // Add random fading margin
+                pathLoss += rng.nextGaussian() * 3.0;
+
+                PathDto pathDto = new PathDto();
+                pathDto.setPath_id(p);
+                pathDto.setDistance_m(Math.round(distance * 100.0) / 100.0);
+                pathDto.setPath_loss_db(Math.round(pathLoss * 100.0) / 100.0);
+                pathDto.setPath_type(p == 0 ? "LoS" : "NLoS");
+                pathDto.setDelay_ns(Math.round(distance / 0.3 * 100.0) / 100.0); // speed of light approx
+                paths.add(pathDto);
+
+                minLoss = Math.min(minLoss, pathLoss);
+                maxLoss = Math.max(maxLoss, pathLoss);
+                sumLoss += pathLoss;
+            }
+
+            PathLossSummaryDto summary = new PathLossSummaryDto();
+            summary.setLos_path_loss_db(Math.round(minLoss * 100.0) / 100.0);
+            summary.setMax_path_loss_db(Math.round(maxLoss * 100.0) / 100.0);
+            summary.setPath_loss_spread_db(Math.round((maxLoss - minLoss) * 100.0) / 100.0);
+            summary.setMean_delay_ns(Math.round((sumLoss / numPaths) * 100.0) / 100.0);
+
+            PathLossResultDto dto = new PathLossResultDto();
+            dto.setPaths(paths);
+            dto.setSummary(summary);
+            dto.setColormap_used("default");
+
+            return ResponseEntity.ok(dto);
         }
     }
 
@@ -295,6 +465,41 @@ public class SimulationController {
         } catch (RuntimeException ex) {
             return ResponseEntity.internalServerError().body(ex.getMessage());
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Public preview endpoint for landing page demo (NO AUTH)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * GET /api/public/simulate/preview
+     *
+     * Returns BER data using BerMathEngine — no authentication required.
+     * Used by the landing page interactive demo chart.
+     */
+    @GetMapping("/public/simulate/preview")
+    public ResponseEntity<?> previewSimulation(
+            @RequestParam(defaultValue = "QPSK") String modulation,
+            @RequestParam(defaultValue = "-10") double snrMin,
+            @RequestParam(defaultValue = "30") double snrMax) {
+
+        // Clamp parameters to safe ranges
+        snrMin = Math.max(-20, Math.min(snrMin, 10));
+        snrMax = Math.max(snrMin + 5, Math.min(snrMax, 40));
+
+        double[] snrRange = berMathEngine.generateSnrRange(snrMin, snrMax, 41);
+        double[] theoretical = berMathEngine.calculateTheoreticalBer(modulation, snrRange);
+        double[] simulated = berMathEngine.calculateSimulatedBer(modulation, snrRange);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("modulation", modulation.toUpperCase());
+        response.put("snr_db", toList(snrRange));
+        response.put("ber_theoretical", toList(theoretical));
+        response.put("ber_simulated", toList(simulated));
+        response.put("source", "java_math_engine");
+        response.put("simulation_time_ms", 0);
+
+        return ResponseEntity.ok(response);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

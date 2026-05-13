@@ -57,6 +57,7 @@ public class SecurityConfig {
                     "/api/simulations/colormaps",
                     "/api/simulations/estimate",
                     "/api/share/**",
+                    "/api/public/**",
                     "/api/health",
                     "/api/health/ping",
                     "/v1/api/**"

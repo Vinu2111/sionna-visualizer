@@ -1,84 +1,186 @@
 <div class="landing-container">
-  <!-- ── HERO SECTION ─────────────────────────────────────────────────────── -->
-  <section class="hero-section">
-    <div class="hero-content">
-      <div class="hero-badge">NVIDIA Sionna · 6G · Real Signal Processing</div>
-      <h1 class="headline">The missing visual layer<br>for NVIDIA Sionna</h1>
-      <p class="subline">Run 6G simulations. See results instantly. Share with one link.</p>
-      
+
+  <!-- ── SECTION 1: HERO WITH ANIMATED PARTICLES ────────────────────────── -->
+  <section class="hero-section" id="hero">
+    <!-- Floating particles background -->
+    <div class="particles-container">
+      <span *ngFor="let p of particles" class="particle"
+        [style.left.%]="p.x"
+        [style.width.px]="p.size"
+        [style.height.px]="p.size"
+        [style.animationDuration.s]="p.speed"
+        [style.animationDelay.s]="p.delay"
+        [style.background]="p.color">
+      </span>
+    </div>
+
+    <div class="hero-content fade-section">
+      <div class="hero-badge">NVIDIA SIONNA · 6G · OPEN SOURCE</div>
+
+      <h1 class="headline">
+        The missing visual layer<br>
+        for <span class="gradient-text">NVIDIA Sionna</span>
+      </h1>
+
+      <p class="subline">
+        Run 6G simulations. See results instantly.<br>
+        Share with one link. No setup required.
+      </p>
+
       <div class="cta-buttons">
         <button mat-raised-button class="btn-primary" routerLink="/register">
           Get Started — It's Free
         </button>
-        <button mat-stroked-button class="btn-secondary" routerLink="/login">
-          Sign In
-        </button>
+        <a mat-stroked-button class="btn-secondary"
+           href="https://github.com/Vinu2111/sionna-visualizer" target="_blank" rel="noopener">
+          View on GitHub
+        </a>
+      </div>
+
+      <div class="stats-row">
+        <span class="stat-item"><span class="stat-number" [attr.data-target]="61">0</span> Features</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-item"><span class="stat-number" [attr.data-target]="19">0</span> DB Migrations</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-item">Live on Vercel + Render</span>
+        <span class="stat-dot">·</span>
+        <span class="stat-item">MIT License</span>
       </div>
     </div>
   </section>
 
-  <!-- ── FEATURES SECTION ──────────────────────────────────────────────────── -->
-  <section class="features-section">
-    <div class="features-header">
-      <h2>Everything you need to visualize 6G research</h2>
-      <p>Three powerful simulation types, all in your browser.</p>
+  <!-- ── SECTION 2: LIVE INTERACTIVE DEMO ───────────────────────────────── -->
+  <section class="demo-section fade-section" id="demo">
+    <div class="section-header">
+      <h2>See It In Action</h2>
+      <p>No login required. Change parameters and watch the chart update.</p>
     </div>
+
+    <div class="demo-container">
+      <!-- Left: Mini control panel -->
+      <div class="demo-controls">
+        <label class="control-label">Modulation</label>
+        <div class="chip-group">
+          <button *ngFor="let mod of modulationOptions"
+                  class="mod-chip"
+                  [class.active]="selectedModulation === mod"
+                  (click)="selectModulation(mod)">
+            {{ mod }}
+          </button>
+        </div>
+
+        <label class="control-label">SNR Range: {{ snrMin }} dB — {{ snrMax }} dB</label>
+        <div class="slider-group">
+          <input type="range" [min]="-20" [max]="10" [(ngModel)]="snrMin"
+                 (input)="onSliderChange()" class="range-slider">
+          <input type="range" [min]="10" [max]="40" [(ngModel)]="snrMax"
+                 (input)="onSliderChange()" class="range-slider">
+        </div>
+
+        <button class="run-btn" (click)="runPreview()" [disabled]="isLoading">
+          {{ isLoading ? 'Calculating...' : 'Run Simulation' }}
+        </button>
+      </div>
+
+      <!-- Right: Live Chart -->
+      <div class="demo-chart">
+        <canvas id="previewChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 3: HOW IT WORKS ────────────────────────────────────────── -->
+  <section class="howto-section fade-section" id="howto">
+    <div class="section-header">
+      <h2>Three ways to use Sionna Visualizer</h2>
+    </div>
+
+    <div class="howto-grid">
+      <div class="howto-card">
+        <div class="howto-icon">🌐</div>
+        <h3>Run from Browser</h3>
+        <p>Enter parameters, click Run.<br>
+           See BER curves, beam patterns,<br>
+           and channel capacity charts instantly.</p>
+      </div>
+
+      <div class="howto-card">
+        <div class="howto-icon">🐍</div>
+        <h3>One Line of Code</h3>
+        <pre class="code-block"><code>pip install sionna-visualizer
+
+import sionna_visualizer as sv
+url = sv.track_ber(
+  snr_range=snr,
+  ber_values=ber,
+  modulation="QPSK"
+)</code></pre>
+      </div>
+
+      <div class="howto-card">
+        <div class="howto-icon">⚡</div>
+        <h3>Public REST API</h3>
+        <pre class="code-block"><code [innerHTML]="curlExample"></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 4: FEATURES GRID ───────────────────────────────────────── -->
+  <section class="features-section fade-section" id="features">
+    <div class="section-header">
+      <h2>Everything a 6G researcher needs</h2>
+    </div>
+
     <div class="features-grid">
-      <mat-card class="feature-card">
-        <mat-card-content>
-          <div class="feature-icon-wrap">
-            <mat-icon>show_chart</mat-icon>
-          </div>
-          <h3>Real 6G Simulations</h3>
-          <p>AWGN, beam patterns, and modulation comparison powered by real signal processing mathematics — no approximations.</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="feature-card">
-        <mat-card-content>
-          <div class="feature-icon-wrap">
-            <mat-icon>share</mat-icon>
-          </div>
-          <h3>Share with One Link</h3>
-          <p>Every simulation generates a public URL instantly. Share results with colleagues anywhere in the world — no login required to view.</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="feature-card">
-        <mat-card-content>
-          <div class="feature-icon-wrap">
-            <mat-icon>history</mat-icon>
-          </div>
-          <h3>Full History</h3>
-          <p>Every simulation saved permanently to PostgreSQL. Compare results across sessions and track your research progress.</p>
-        </mat-card-content>
-      </mat-card>
+      <div class="feature-card" *ngFor="let feat of features">
+        <div class="feature-emoji">{{ feat.icon }}</div>
+        <h3>{{ feat.title }}</h3>
+        <p>{{ feat.description }}</p>
+      </div>
     </div>
   </section>
 
-  <!-- ── STATS BAR ─────────────────────────────────────────────────────────── -->
-  <section class="stats-bar">
-    <span class="stat-pill">3 Simulation Types</span>
-    <span class="divider">·</span>
-    <span class="stat-pill">Real 6G Mathematics</span>
-    <span class="divider">·</span>
-    <span class="stat-pill">Powered by NVIDIA Sionna</span>
-    <span class="divider">·</span>
-    <span class="stat-pill">Free to Use</span>
+  <!-- ── SECTION 5: SOCIAL PROOF ────────────────────────────────────────── -->
+  <section class="proof-section fade-section" id="proof">
+    <div class="proof-card">
+      <blockquote class="proof-quote">
+        "Mentioned by Merlin Nimier-David,<br>
+         NVIDIA Sionna core maintainer, in a<br>
+         GitHub discussion thread"
+      </blockquote>
+      <p class="proof-stats">
+        61 features · 4 technology layers · Open source · MIT License
+      </p>
+      <a class="github-star-btn" href="https://github.com/Vinu2111/sionna-visualizer"
+         target="_blank" rel="noopener">
+        Star on GitHub ⭐
+      </a>
+    </div>
   </section>
 
-  <!-- ── FOOTER ────────────────────────────────────────────────────────────── -->
+  <!-- ── SECTION 6: FINAL CTA ───────────────────────────────────────────── -->
+  <section class="cta-section fade-section" id="cta">
+    <h2>Start visualizing your 6G simulations today</h2>
+    <p>Free forever. No credit card. Open source.</p>
+    <button mat-raised-button class="cta-btn" routerLink="/register">
+      Get Started Now
+    </button>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
   <footer class="landing-footer">
     <div class="footer-content">
-      <p class="footer-brand">Built by <strong>Vinayak</strong> · Pune, India</p>
-      <p class="footer-subtitle">NVIDIA AI Aerial / 6G Developer Program Member</p>
+      <p class="footer-brand">Built by <strong>Vinayak Gote</strong> · Wipro · NVIDIA AI Aerial Developer</p>
       <div class="footer-links">
-        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/Vinu2111/sionna-visualizer" target="_blank" rel="noopener">GitHub</a>
+        <span>·</span>
+        <a href="https://linkedin.com/in/vinayakgote" target="_blank" rel="noopener">LinkedIn</a>
         <span>·</span>
         <a href="https://hashnode.com" target="_blank" rel="noopener">Hashnode</a>
         <span>·</span>
-        <a href="https://twitter.com" target="_blank" rel="noopener">Twitter</a>
+        <a routerLink="/api-docs">API Docs</a>
       </div>
     </div>
   </footer>
+
 </div>

@@ -6,6 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -18,7 +20,8 @@ import { GalleryItem, GalleryFilters, GalleryPage } from './gallery.interfaces';
   standalone: true,
   imports: [
     CommonModule, RouterModule, MatCardModule, MatButtonModule,
-    MatIconModule, MatChipsModule, MatPaginatorModule, FormsModule
+    MatIconModule, MatChipsModule, MatPaginatorModule, FormsModule,
+    MatSelectModule, MatFormFieldModule
   ],
   templateUrl: './public-gallery.component.html',
   styleUrls: ['./public-gallery.component.scss']

@@ -87,7 +87,7 @@
   
                 <div class="middle-row">
                     <div class="metric"><span>Frequency:</span> <strong>{{ sim.frequencyGhz }} GHz</strong></div>
-                    <div class="metric"><span>BER @ 20dB:</span> <strong>{{ sim.berAt20db | number:'1.2-5' }}</strong></div>
+                    <div class="metric"><span>BER &#64; 20dB:</span> <strong>{{ sim.berAt20db | number:'1.2-5' }}</strong></div>
                     <div class="metric"><span>Time:</span> <strong>{{ sim.simulationTimeSeconds }}s</strong></div>
                     
                     <div class="exp-badge" *ngIf="sim.experimentId" (click)="setFilter('experiment', sim.experimentId)">

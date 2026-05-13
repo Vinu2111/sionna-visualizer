@@ -58,6 +58,36 @@ export const routes: Routes = [
                 .then(m => m.BharatAllianceDashboardComponent)
     },
 
+    // Public Gallery — browsable without login
+    {
+        path: 'gallery',
+        loadComponent: () =>
+            import('./pages/gallery/public-gallery.component')
+                .then(m => m.PublicGalleryComponent)
+    },
+    {
+        path: 'gallery/:id',
+        loadComponent: () =>
+            import('./pages/gallery/gallery-detail.component')
+                .then(m => m.GalleryDetailComponent)
+    },
+    {
+        path: 'gallery/publish/:simulationId',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./pages/gallery/publish-simulation.component')
+                .then(m => m.PublishSimulationComponent)
+    },
+
+    // Experiment Dashboard — tag, star, note management
+    {
+        path: 'dashboard/experiments',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./pages/experiments/experiment-dashboard.component')
+                .then(m => m.ExperimentDashboardComponent)
+    },
+
     // Collaborative Team Workspace
     {
         path: 'workspace',

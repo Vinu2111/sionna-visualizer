@@ -858,6 +858,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  // FIX 4: Snackbar feedback when SNR points slider changes in Compare tab
+  onSnrPointsChange(value: number): void {
+    this.snackBar.open(
+      `SNR resolution set to ${value} points`,
+      'OK',
+      {
+        duration: 2000,
+        horizontalPosition: 'end',
+        verticalPosition: 'bottom',
+        panelClass: ['snackbar-teal']
+      }
+    );
+  }
+
   private showError(msg: string): void {
     this.snackBar.open(msg, 'Dismiss', {
       duration: 5000,

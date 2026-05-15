@@ -444,9 +444,11 @@
 
               <div class="slider-row">
                 <div class="slider-field">
-                  <span class="slider-label">Number of Points ({{ modForm.get('snrSteps')?.value }})</span>
+                  <span class="slider-label">Number of Points ({{ modForm.get('snrSteps')?.value }})
+                    <span class="value-badge">{{ modForm.get('snrSteps')?.value }} pts</span>
+                  </span>
                   <mat-slider min="20" max="100" step="5" discrete style="width: 100%;">
-                    <input matSliderThumb formControlName="snrSteps">
+                    <input matSliderThumb formControlName="snrSteps" (valueChange)="onSnrPointsChange($event)">
                   </mat-slider>
                 </div>
               </div>

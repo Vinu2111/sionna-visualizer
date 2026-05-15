@@ -4,9 +4,18 @@ html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Global Consistent Color Tokens & Theming
+   FIX 6.3: Consistent Color System — CSS variables used everywhere
    ───────────────────────────────────────────────────────────────────────── */
 :root {
+  --primary: #00C2CB;
+  --primary-dim: rgba(0, 194, 203, 0.12);
+  --accent: #7C3AED;
+  --dark: #0a0a1a;
+  --card: #132236;
+  --text: #F0F4F8;
+  --text-dim: #8899A6;
+
+  /* Legacy tokens preserved for existing components */
   --primary-color: #8b5cf6;
   --secondary-color: #0ea5e9;
   --error-color: #f43f5e;
@@ -85,9 +94,9 @@ body { font-size: 14px; }
   letter-spacing: 0.5px !important;
 }
 
-/* Page Transitions */
+/* FIX 6.2: Smooth page transitions */
 router-outlet ~ * {
-  animation: fadeIn 200ms ease-in-out;
+  animation: fadeIn 300ms ease-in-out;
   display: block;
 }
 
@@ -102,7 +111,7 @@ router-outlet ~ * {
   }
 }
 
-/* Base form spacing for mobile */
+/* FIX 6.4: Base form spacing for mobile */
 @media (max-width: 768px) {
   .sim-form {
     display: flex;
@@ -116,6 +125,7 @@ router-outlet ~ * {
   .mat-mdc-tab-labels {
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -145,6 +155,38 @@ router-outlet ~ * {
   color: #fff !important;
   
   .mat-mdc-button .mdc-button__label { 
+    color: #fff !important;
+  }
+}
+
+/* FIX 4.3: Teal snackbar for SNR points feedback */
+.snackbar-teal {
+  background-color: #00C2CB !important;
+  color: #000000 !important;
+  font-weight: 600;
+  
+  .mat-mdc-button .mdc-button__label {
+    color: #000000 !important;
+  }
+  
+  .mdc-button__label {
+    color: #000000 !important;
+  }
+}
+
+/* FIX 6.1: Loading states — generic spinner-inside-button support */
+.mat-mdc-raised-button[disabled],
+.mat-mdc-flat-button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success snackbar */
+.success-snackbar {
+  background-color: #10b981 !important;
+  color: #fff !important;
+  
+  .mat-mdc-button .mdc-button__label {
     color: #fff !important;
   }
 }

@@ -1,50 +1,156 @@
-<div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header class="login-header">
-      <mat-card-title>Sionna Visualizer</mat-card-title>
-      <mat-card-subtitle>{{ isRegistering ? 'Create a secure new account' : 'Welcome back' }}</mat-card-subtitle>
-    </mat-card-header>
+<div class="login-page" [@slideIn]>
 
-    <mat-card-content>
-      <!-- Conditionally render security issues actively! -->
-      <div *ngIf="errorMessage" class="alert error">{{ errorMessage }}</div>
-      <div *ngIf="successMessage" class="alert success">{{ successMessage }}</div>
+  <!-- LEFT BRANDING PANEL — hidden on mobile -->
+  <aside class="branding-panel">
+    <div class="brand-content">
+      <h1 class="brand-title">Sionna Visualizer</h1>
+      <p class="brand-tagline">The missing visual layer for NVIDIA Sionna</p>
 
-      <!-- Utilizing native Angular Reactive Form Models -->
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Username</mat-label>
-          <input matInput formControlName="username" type="text" placeholder="Enter username" />
-          <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
-            Username is required
-          </mat-error>
-        </mat-form-field>
+      <div class="brand-features">
+        <div class="feature-item">
+          <span class="check">✓</span> Run 6G simulations in your browser
+        </div>
+        <div class="feature-item">
+          <span class="check">✓</span> Share results with one URL
+        </div>
+        <div class="feature-item">
+          <span class="check">✓</span> Free forever — open source
+        </div>
+      </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <input matInput formControlName="password" type="password" placeholder="Min 6 characters" />
-          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-            Password is required
-          </mat-error>
-          <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
-            Password must be at least 6 characters
-          </mat-error>
-        </mat-form-field>
+      <!-- Static BER curve SVG -->
+      <svg class="ber-curve-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="berGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#00C2CB" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#7C3AED" stop-opacity="0.8"/>
+          </linearGradient>
+        </defs>
+        <polyline
+          fill="none"
+          stroke="url(#berGrad)"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          points="10,15 30,16 50,18 70,22 90,30 110,45 130,65 150,80 170,88 190,92"/>
+        <polyline
+          fill="none"
+          stroke="#00C2CB"
+          stroke-width="1.5"
+          stroke-dasharray="4,3"
+          stroke-linecap="round"
+          points="10,12 30,13 50,16 70,20 90,28 110,42 130,62 150,78 170,87 190,91"/>
+        <text x="95" y="99" fill="#00C2CB" font-size="7" text-anchor="middle" opacity="0.5">SNR (dB) →</text>
+      </svg>
+    </div>
+  </aside>
 
-        <button mat-raised-button color="primary" type="submit" class="submit-btn" [disabled]="loginForm.invalid || isLoading">
-          <span *ngIf="!isLoading">{{ isRegistering ? 'Register' : 'Login' }}</span>
-          <mat-spinner *ngIf="isLoading" diameter="20" class="btn-spinner"></mat-spinner>
-        </button>
-      </form>
-    </mat-card-content>
+  <!-- RIGHT FORM PANEL -->
+  <main class="form-panel">
 
-    <mat-card-footer>
-      <div class="toggle-mode">
-        <span>{{ isRegistering ? 'Already registered?' : 'Don\'t have an account?' }}</span>
-        <button mat-button color="accent" (click)="toggleMode()">
-          {{ isRegistering ? 'Sign In' : 'Create account' }}
+    <!-- Mobile-only logo -->
+    <h1 class="mobile-brand">Sionna Visualizer</h1>
+
+    <!-- Tab Switcher -->
+    <div class="tab-switcher">
+      <button class="tab-btn" [class.active]="!isRegistering" (click)="setMode(false)">Sign In</button>
+      <button class="tab-btn" [class.active]="isRegistering" (click)="setMode(true)">Create Account</button>
+      <div class="tab-indicator" [class.register]="isRegistering"></div>
+    </div>
+
+    <!-- Error / Success messages with fade animation -->
+    <div class="alert error" *ngIf="errorMessage" [@fadeAlert]>
+      <mat-icon>error_outline</mat-icon>
+      {{ errorMessage }}
+    </div>
+    <div class="alert success" *ngIf="successMessage" [@fadeAlert]>
+      <mat-icon>check_circle</mat-icon>
+      {{ successMessage }}
+    </div>
+
+    <!-- ═══════ SIGN IN FORM ═══════ -->
+    <form *ngIf="!isRegistering" [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form" [@formSlide]>
+      <div class="input-group">
+        <mat-icon class="field-icon">person_outline</mat-icon>
+        <input type="text" formControlName="username" placeholder="Enter your email or username" autocomplete="username" />
+      </div>
+      <mat-error *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')" class="field-error">
+        Username is required
+      </mat-error>
+
+      <div class="input-group">
+        <mat-icon class="field-icon">lock_outline</mat-icon>
+        <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Enter your password" autocomplete="current-password" />
+        <button type="button" class="toggle-pw" (click)="showPassword = !showPassword" tabindex="-1">
+          <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
       </div>
-    </mat-card-footer>
-  </mat-card>
+      <mat-error *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')" class="field-error">
+        Password is required
+      </mat-error>
+
+      <button type="submit" class="submit-btn" [disabled]="loginForm.invalid || isLoading">
+        <mat-spinner *ngIf="isLoading" diameter="20" class="btn-spinner"></mat-spinner>
+        <span *ngIf="!isLoading">Sign In</span>
+      </button>
+
+      <a class="forgot-link">Forgot password?</a>
+
+      <div class="divider"><span>or continue with</span></div>
+
+      <button type="button" class="oauth-btn" disabled>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        Continue with GitHub
+      </button>
+    </form>
+
+    <!-- ═══════ REGISTER FORM ═══════ -->
+    <form *ngIf="isRegistering" [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" [@formSlide]>
+      <div class="input-group">
+        <mat-icon class="field-icon">person_outline</mat-icon>
+        <input type="text" formControlName="username" placeholder="Choose a username" autocomplete="username" />
+      </div>
+      <mat-error *ngIf="registerForm.get('username')?.touched && registerForm.get('username')?.hasError('required')" class="field-error">
+        Username is required
+      </mat-error>
+
+      <div class="input-group">
+        <mat-icon class="field-icon">email</mat-icon>
+        <input type="email" formControlName="email" placeholder="Enter your email" autocomplete="email" />
+      </div>
+
+      <div class="input-group">
+        <mat-icon class="field-icon">lock_outline</mat-icon>
+        <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Create a password" autocomplete="new-password" />
+        <button type="button" class="toggle-pw" (click)="showPassword = !showPassword" tabindex="-1">
+          <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </div>
+      <mat-error *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('minlength')" class="field-error">
+        Password must be at least 6 characters
+      </mat-error>
+
+      <!-- Password strength indicator -->
+      <div class="strength-bar" *ngIf="registerForm.get('password')?.value">
+        <div class="strength-fill" [style.width]="passwordStrengthPercent + '%'" [style.background]="passwordStrengthColor"></div>
+      </div>
+      <span class="strength-label" *ngIf="registerForm.get('password')?.value" [style.color]="passwordStrengthColor">
+        {{ passwordStrengthLabel }}
+      </span>
+
+      <div class="input-group">
+        <mat-icon class="field-icon">lock</mat-icon>
+        <input [type]="showPassword ? 'text' : 'password'" formControlName="confirmPassword" placeholder="Confirm password" autocomplete="new-password" />
+      </div>
+      <mat-error *ngIf="registerForm.get('confirmPassword')?.touched && registerForm.hasError('passwordMismatch')" class="field-error">
+        Passwords do not match
+      </mat-error>
+
+      <button type="submit" class="submit-btn" [disabled]="registerForm.invalid || isLoading">
+        <mat-spinner *ngIf="isLoading" diameter="20" class="btn-spinner"></mat-spinner>
+        <span *ngIf="!isLoading">Create Account</span>
+      </button>
+    </form>
+
+  </main>
 </div>

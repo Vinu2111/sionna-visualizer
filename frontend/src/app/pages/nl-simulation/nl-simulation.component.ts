@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -25,7 +25,7 @@ import { ParsedSimulationParams, ParseHistory, EXAMPLE_QUERIES } from './nl-simu
   templateUrl: './nl-simulation.component.html',
   styleUrls: ['./nl-simulation.component.scss']
 })
-export class NlSimulationComponent implements OnInit {
+export class NlSimulationComponent implements OnInit, OnDestroy {
 
   // Input state
   queryText = '';
@@ -47,11 +47,55 @@ export class NlSimulationComponent implements OnInit {
   frequencyOptions = [2.4, 5, 28, 39, 60, 77];
   antennaOptions = [1, 2, 4, 8, 16, 32];
 
+  // FIX 5: Animated typewriter placeholder
+  currentPlaceholder = '';
+  private typewriterExamples = [
+    'Simulate 28 GHz MIMO 4x4 CDL-A with QPSK...',
+    'Run AWGN BER test for 64QAM SNR from -5 to 25 dB...',
+    'Compare BPSK and QPSK in rural TDL-B scenario...',
+    '60 GHz beamforming with 32 antennas...'
+  ];
+  private typewriterIndex = 0;
+  private charIndex = 0;
+  private typewriterTimer: any = null;
+  private clearTimer: any = null;
+
   constructor(private service: NlSimulationService, private fb: FormBuilder) {}
 
   ngOnInit() {
     this.service.getParseHistory().subscribe(h => this.history = h);
     this.initForm();
+    this.startTypewriter();
+  }
+
+  ngOnDestroy() {
+    // Clean up typewriter timers
+    if (this.typewriterTimer) clearInterval(this.typewriterTimer);
+    if (this.clearTimer) clearTimeout(this.clearTimer);
+  }
+
+  // ── Typewriter effect for placeholder ──────────────────────────────────────
+  private startTypewriter(): void {
+    this.typewriterIndex = 0;
+    this.charIndex = 0;
+    this.typeNextChar();
+  }
+
+  private typeNextChar(): void {
+    const text = this.typewriterExamples[this.typewriterIndex];
+    if (this.charIndex <= text.length) {
+      this.currentPlaceholder = text.slice(0, this.charIndex);
+      this.charIndex++;
+      this.typewriterTimer = setTimeout(() => this.typeNextChar(), 40);
+    } else {
+      // Pause, then clear and move to next example
+      this.clearTimer = setTimeout(() => {
+        this.typewriterIndex = (this.typewriterIndex + 1) % this.typewriterExamples.length;
+        this.charIndex = 0;
+        this.currentPlaceholder = '';
+        this.typeNextChar();
+      }, 2500);
+    }
   }
 
   initForm(params?: ParsedSimulationParams) {
@@ -112,7 +156,7 @@ export class NlSimulationComponent implements OnInit {
 
   getConfidenceColor(): string {
     if (!this.parsedParams) return '';
-    const map: Record<string, string> = { HIGH: '#4caf50', MEDIUM: '#ff9800', LOW: '#f44336' };
+    const map: Record<string, string> = { HIGH: '#10b981', MEDIUM: '#f59e0b', LOW: '#f43f5e' };
     return map[this.parsedParams.confidence] ?? '#999';
   }
 

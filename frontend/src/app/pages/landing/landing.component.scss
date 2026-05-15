@@ -102,24 +102,28 @@ $border-glow: rgba(0, 194, 203, 0.4);
 // ═══════════════════════════════════════════════════════════════════════════════
 // SECTION 1: HERO
 // ═══════════════════════════════════════════════════════════════════════════════
+// FIX 1: Hero vertically centered, no blank space above heading
 .hero-section {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 140px 24px 100px;
-  min-height: 100vh;
+  padding: 0 24px;  /* removed excessive top padding */
+  min-height: calc(100vh - 64px); /* fills viewport minus navbar */
   background: radial-gradient(ellipse at center top, rgba($purple, 0.08) 0%, transparent 60%),
               radial-gradient(ellipse at 80% 80%, rgba($teal, 0.06) 0%, transparent 50%),
               linear-gradient(180deg, $bg-deep 0%, $bg-dark 100%);
   overflow: hidden;
 }
 
-// Particles
+// Particles — absolute fill, matches hero height exactly
 .particles-container {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   overflow: hidden;
 }
@@ -132,10 +136,12 @@ $border-glow: rgba(0, 194, 203, 0.4);
   opacity: 0;
 }
 
+// Hero content centered via parent flex, z-index above particles
 .hero-content {
   max-width: 860px;
   z-index: 2;
   position: relative;
+  padding: 40px 20px;
 }
 
 .hero-badge {
@@ -636,8 +642,8 @@ $border-glow: rgba(0, 194, 203, 0.4);
   }
 
   .hero-section {
-    padding: 100px 20px 60px;
-    min-height: auto;
+    padding: 0 20px;
+    min-height: calc(100vh - 56px);
   }
 
   .subline {

@@ -1,36 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+// ─── Design Tokens ───────────────────────────────────────────────────────────
+$teal: #00C2CB;
+$purple: #7C3AED;
+$dark: #0a0a1a;
+$dark-card: #111827;
+$text: #F0F4F8;
+$text-dim: #8899A6;
+
+// ─── KEYFRAMES ───────────────────────────────────────────────────────────────
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba($teal, 0.3)); }
+  50%      { transform: scale(1.05); filter: drop-shadow(0 0 16px rgba($teal, 0.5)); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes chipFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ─── PAGE CONTAINER ──────────────────────────────────────────────────────────
 .nl-page {
-  padding: 32px;
+  padding: 0;
   max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
-  background: #f4f6f9;
+  font-family: 'Inter', sans-serif;
 }
 
-// ── Page Header ──────────────────────────────────────────────────────────────
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+// ─── AI HEADER — dark gradient with grid ─────────────────────────────────────
+.ai-header {
+  position: relative;
+  padding: 56px 32px 48px;
+  text-align: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, $dark 0%, darken($purple, 30%) 50%, $dark 100%);
+  border-radius: 0 0 24px 24px;
   margin-bottom: 32px;
-
-  .header-icon {
-    width: 56px; height: 56px;
-    background: linear-gradient(135deg, #7c4dff, #651fff);
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    mat-icon { color: white; font-size: 32px; width: 32px; height: 32px; }
-  }
-
-  h1 { margin: 0; font-size: 28px; font-weight: 800; color: #1a1a2e; }
-  p  { margin: 4px 0 0; color: #666; font-size: 15px; }
 }
 
-// ── Input Card ───────────────────────────────────────────────────────────────
+.header-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba($teal, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba($teal, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.header-content {
+  position: relative;
+  z-index: 1;
+}
+
+.ai-icon-pulse {
+  font-size: 64px;
+  display: inline-block;
+  animation: pulse-glow 2s ease-in-out infinite;
+  margin-bottom: 16px;
+}
+
+.ai-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 12px;
+  background: linear-gradient(135deg, $teal, $purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.ai-subtitle {
+  font-size: 1.1rem;
+  color: rgba($text, 0.65);
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+
+.powered-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: rgba($purple, 0.15);
+  border: 1px solid rgba($purple, 0.3);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba($text, 0.6);
+  letter-spacing: 0.5px;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: $purple;
+  }
+}
+
+// ─── INPUT CARD with glow ────────────────────────────────────────────────────
 .input-card {
   padding: 28px;
   border-radius: 16px;
-  margin-bottom: 28px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  margin: 0 32px 28px;
 
   .input-area {
     position: relative;
@@ -42,181 +121,436 @@
     min-height: 140px;
     padding: 20px;
     font-size: 16px;
-    font-family: inherit;
-    border: 2px solid #e0e0e0;
+    font-family: 'Inter', sans-serif;
+    border: 2px solid rgba($teal, 0.15);
     border-radius: 12px;
     resize: vertical;
     line-height: 1.6;
-    color: #222;
-    background: #fafafa;
-    transition: border-color 0.2s;
+    color: $text;
+    background: rgba(255, 255, 255, 0.03);
+    transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
 
     &:focus {
       outline: none;
-      border-color: #7c4dff;
-      background: #fff;
+      border-color: $teal;
+      box-shadow: 0 0 0 3px rgba($teal, 0.15);
+      background: rgba(255, 255, 255, 0.04);
     }
 
-    &::placeholder { color: #bbb; }
+    &::placeholder { color: rgba($text-dim, 0.5); }
   }
 
   .char-counter {
     position: absolute;
     bottom: 10px; right: 14px;
-    font-size: 12px; color: #aaa;
-    &.warn { color: #ff9800; font-weight: bold; }
-  }
-
-  .example-chips {
-    display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px;
-
-    .chip-label { font-size: 13px; color: #888; font-weight: 500; }
-
-    .ex-chip {
-      background: #f3f0ff; border: 1px solid #d1c4e9;
-      color: #7c4dff; border-radius: 20px;
-      padding: 6px 14px; font-size: 13px; font-weight: 500;
-      cursor: pointer; transition: 0.2s all;
-      &:hover { background: #7c4dff; color: white; border-color: #7c4dff; }
-    }
-  }
-
-  .parse-btn {
-    width: 100%; height: 52px;
-    font-size: 16px; font-weight: 600;
-    letter-spacing: 0.3px;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #7c4dff, #651fff);
-  }
-
-  .btn-spinner { display: inline-block; }
-
-  .parse-error {
-    display: flex; align-items: center; gap: 8px;
-    background: #ffebee; color: #c62828;
-    padding: 12px 16px; border-radius: 8px;
-    margin-top: 15px; font-size: 14px;
-    mat-icon { font-size: 18px; }
+    font-size: 12px; color: rgba($text-dim, 0.5);
+    &.warn { color: #f59e0b; font-weight: bold; }
   }
 }
 
-// ── Results Grid ─────────────────────────────────────────────────────────────
+// ─── Example Chips with glow ─────────────────────────────────────────────────
+.example-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+
+  .chip-label { font-size: 13px; color: $text-dim; font-weight: 500; }
+
+  .ex-chip {
+    background: transparent;
+    border: 1px solid rgba($teal, 0.25);
+    color: $teal;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba($teal, 0.12);
+      border-color: $teal;
+      box-shadow: 0 0 12px rgba($teal, 0.15);
+    }
+  }
+}
+
+// ─── Parse Button — gradient teal→purple ─────────────────────────────────────
+.parse-btn {
+  width: 100%;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 12px !important;
+  border: none;
+  background: linear-gradient(135deg, $teal, $purple) !important;
+  color: #ffffff !important;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 0 24px rgba($teal, 0.4);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-spinner { display: inline-block; }
+
+.parse-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(244, 63, 94, 0.1);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 14px;
+  mat-icon { font-size: 18px; }
+}
+
+// ─── Results Grid ────────────────────────────────────────────────────────────
 .results-grid {
   display: grid;
   grid-template-columns: 380px 1fr;
   gap: 24px;
-  margin-bottom: 28px;
+  margin: 0 32px 28px;
 
   @media (max-width: 960px) { grid-template-columns: 1fr; }
 }
 
-// ── Understanding Card (left) ─────────────────────────────────────────────────
+// ─── Understanding Card (left) — teal left border ────────────────────────────
 .understanding-card {
-  padding: 24px; border-radius: 16px; height: fit-content;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  padding: 24px;
+  border-radius: 16px;
+  height: fit-content;
+  border-left: 4px solid $teal !important;
+  animation: slideInLeft 0.4s ease;
 
   h3 {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 16px; font-weight: 700; color: #333; margin: 0 0 20px;
-    mat-icon { color: #7c4dff; }
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: $text;
+    margin: 0 0 20px;
+    mat-icon { color: $teal; }
   }
 
   .confidence-banner {
-    border-left: 4px solid; padding: 16px; border-radius: 8px;
-    background: #f9f9f9; margin-bottom: 20px;
-    display: flex; gap: 12px; align-items: flex-start;
-    strong { display: block; font-size: 14px; margin-bottom: 4px; }
-    p { margin: 0; font-size: 13px; color: #444; line-height: 1.5; }
-    mat-icon { margin-top: 2px; flex-shrink: 0; }
+    padding: 16px;
+    border-radius: 10px;
+    background: rgba($teal, 0.05);
+    margin-bottom: 20px;
+  }
+
+  .conf-pill {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .conf-summary {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba($text, 0.75);
+    line-height: 1.5;
   }
 
   .missing-notice {
-    background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 14px; margin-bottom: 16px;
-    .missing-title { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #f57f17; margin-bottom: 8px; mat-icon { font-size: 16px; } }
-    .missing-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .missing-tag { background: #fff9c4; border: 1px solid #f9a825; color: #e65100; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-    .defaults-note { font-size: 11px; color: #999; }
+    background: rgba(#f59e0b, 0.08);
+    border: 1px solid rgba(#f59e0b, 0.25);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+
+    .missing-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #f59e0b;
+      margin-bottom: 10px;
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    }
+
+    .missing-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .missing-tag {
+      background: rgba(#f59e0b, 0.1);
+      border: 1px solid rgba(#f59e0b, 0.3);
+      color: #f59e0b;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
   }
 
   .filled-summary {
-    .filled-title { font-size: 12px; color: #888; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; }
+    .filled-title {
+      font-size: 0.75rem;
+      color: $text-dim;
+      font-weight: 600;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     .filled-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .filled-chip { display: flex; align-items: center; gap: 4px; background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; mat-icon { font-size: 12px; } }
+
+    .filled-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba($teal, 0.08);
+      border: 1px solid rgba($teal, 0.2);
+      color: $teal;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      animation: chipFadeIn 0.3s ease backwards;
+
+      .ai-sparkle {
+        font-size: 0.7rem;
+        opacity: 0.8;
+      }
+    }
   }
 
   .comparison-notice {
-    display: flex; align-items: center; gap: 10px;
-    background: #e3f2fd; color: #1565c0; padding: 12px; border-radius: 8px;
-    margin-top: 16px; font-size: 13px;
-    mat-icon { color: #1976d2; }
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba($purple, 0.08);
+    border: 1px solid rgba($purple, 0.2);
+    color: rgba($text, 0.8);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 16px;
+    font-size: 0.85rem;
+    mat-icon { color: $purple; }
   }
 }
 
-// ── Params Card (right) ────────────────────────────────────────────────────────
+// ─── Params Card (right) ─────────────────────────────────────────────────────
 .params-card {
-  padding: 28px; border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  padding: 28px;
+  border-radius: 16px;
 
   h3 {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 16px; font-weight: 700; color: #333; margin: 0 0 24px;
-    mat-icon { color: #7c4dff; }
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: $text;
+    margin: 0 0 24px;
+    mat-icon { color: $teal; }
   }
 
   .params-form { display: flex; flex-direction: column; gap: 18px; }
 
   .field-row {
-    display: flex; flex-direction: column; gap: 6px;
-    label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: $text-dim;
+      letter-spacing: 0.5px;
+    }
   }
 
   .field-with-badge { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
   .toggle-group {
     ::ng-deep .mat-button-toggle { font-size: 12px; height: 36px; line-height: 36px; }
-    ::ng-deep .mat-button-toggle-checked { background: #7c4dff; color: white; }
+    ::ng-deep .mat-button-toggle-checked { background: $teal; color: $dark; }
   }
 
   .param-select { width: 200px; font-size: 14px; }
   .param-select-sm { width: 100px; font-size: 14px; }
-  .param-input { width: 100px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; &:focus { outline: none; border-color: #7c4dff; } }
+  .param-input {
+    width: 100px;
+    padding: 8px 12px;
+    border: 1px solid rgba($teal, 0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    color: $text;
+    font-family: 'Inter', sans-serif;
+    &:focus { outline: none; border-color: $teal; box-shadow: 0 0 0 2px rgba($teal, 0.15); }
+  }
 
-  .ai-badge { background: #ede7f6; color: #7c4dff; padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
-  .default-badge { background: #f5f5f5; color: #aaa; padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .ai-badge {
+    background: rgba($teal, 0.1);
+    border: 1px solid rgba($teal, 0.25);
+    color: $teal;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .default-badge {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba($text-dim, 0.6);
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
 
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-  .run-btn { height: 50px; font-size: 15px; font-weight: 600; border-radius: 10px; width: 100%; margin-top: 8px; }
+  .run-btn {
+    height: 50px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 12px !important;
+    width: 100%;
+    margin-top: 8px;
+    background: linear-gradient(135deg, $teal, darken($teal, 10%)) !important;
+    color: $dark !important;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba($teal, 0.3);
+    }
+  }
 }
 
-// ── History Panel ─────────────────────────────────────────────────────────────
-.history-panel {
-  border-radius: 12px !important;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.04) !important;
+// ─── History Timeline ────────────────────────────────────────────────────────
+.history-timeline {
+  margin: 0 32px 48px;
+}
 
-  ::ng-deep .mat-expansion-panel-header { font-weight: 700; font-size: 14px; }
-  ::ng-deep .mat-panel-title { display: flex; align-items: center; gap: 10px; color: #555; mat-icon { color: #7c4dff; } }
+.history-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 20px;
+  mat-icon { color: $teal; }
+}
 
-  .history-list { display: flex; flex-direction: column; }
+.timeline {
+  position: relative;
+  padding-left: 24px;
 
-  .h-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 8px; border-bottom: 1px solid #f0f0f0;
-    cursor: pointer; border-radius: 6px; transition: 0.15s;
-    &:hover { background: #f8f4ff; }
-
-    .h-query { font-size: 14px; color: #333; flex: 1; }
-    .h-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; flex-shrink: 0; }
-
-    .h-conf {
-      padding: 2px 10px; border-radius: 10px; font-weight: 700; font-size: 11px;
-      &.high   { background: #e8f5e9; color: #2e7d32; }
-      &.medium { background: #fff8e1; color: #e65100; }
-      &.low    { background: #ffebee; color: #c62828; }
-    }
-    .h-type { color: #888; }
-    .h-time { color: #bbb; white-space: nowrap; }
+  // Vertical line
+  &::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba($teal, 0.15);
   }
+}
+
+.timeline-item {
+  position: relative;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba($teal, 0.05);
+  }
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -20px;
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid;
+
+  &.high   { background: #10b981; border-color: #10b981; }
+  &.medium { background: #f59e0b; border-color: #f59e0b; }
+  &.low    { background: #f43f5e; border-color: #f43f5e; }
+}
+
+.timeline-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.timeline-query {
+  font-size: 0.9rem;
+  color: rgba($text, 0.8);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.h-conf {
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.7rem;
+
+  &.high   { background: rgba(#10b981, 0.15); color: #10b981; }
+  &.medium { background: rgba(#f59e0b, 0.15); color: #f59e0b; }
+  &.low    { background: rgba(#f43f5e, 0.15); color: #f43f5e; }
+}
+
+.h-type { color: $text-dim; }
+.h-time { color: rgba($text-dim, 0.5); white-space: nowrap; }
+
+// ─── Mobile Responsive ───────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .ai-header { padding: 40px 20px 32px; }
+  .ai-title { font-size: 1.8rem; }
+  .input-card, .results-grid, .history-timeline { margin-left: 16px; margin-right: 16px; }
+  .results-grid { grid-template-columns: 1fr; }
+  .params-card .two-col { grid-template-columns: 1fr; }
+  .nl-textarea { min-height: 120px; }
 }

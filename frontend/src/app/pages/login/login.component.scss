@@ -1,107 +1,414 @@
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: calc(100vh - 64px);
-  background-color: transparent;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+// ─── Design Tokens ───────────────────────────────────────────────────────────
+$teal: #00C2CB;
+$purple: #7C3AED;
+$dark: #0a0a1a;
+$card: #132236;
+$text: #F0F4F8;
+$text-dim: #8899A6;
+
+// ─── KEYFRAMES ───────────────────────────────────────────────────────────────
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-.login-card {
-  width: 100%;
-  max-width: 400px;
-  background: var(--card-bg-color) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  color: var(--text-main);
-  border-radius: 16px !important;
-  border: 1px solid var(--border-color) !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
-  padding: 1.5rem;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
-  .login-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 1.5rem;
+// ─── PAGE CONTAINER ──────────────────────────────────────────────────────────
+.login-page {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  background: $dark;
+}
 
-    mat-card-title {
-      font-size: 2.2rem;
-      font-family: 'Outfit', sans-serif;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-    
-    mat-card-subtitle {
-      color: var(--text-muted);
-    }
+// ─── LEFT BRANDING PANEL ─────────────────────────────────────────────────────
+.branding-panel {
+  width: 40%;
+  min-height: 100vh;
+  background: linear-gradient(180deg, $dark 0%, darken($dark, 2%) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+  position: relative;
+  overflow: hidden;
+
+  // Subtle grid pattern overlay
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba($teal, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba($teal, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
   }
+}
 
-  .full-width {
-    width: 100%;
-    margin-bottom: 1rem;
-    
-    ::ng-deep .mat-mdc-form-field-flex {
-      background-color: rgba(255,255,255,0.02);
-    }
-  }
+.brand-content {
+  position: relative;
+  z-index: 1;
+  max-width: 360px;
+}
 
-  .submit-btn {
-    width: 100%;
-    height: 48px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
-    color: #fff !important;
-    font-weight: 600;
+.brand-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, $teal, $purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 16px;
+  letter-spacing: -0.5px;
+}
+
+.brand-tagline {
+  font-size: 1.1rem;
+  color: $text-dim;
+  margin: 0 0 40px;
+  line-height: 1.6;
+}
+
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: rgba($text, 0.75);
+
+  .check {
+    color: $teal;
+    font-weight: 700;
     font-size: 1.1rem;
-    margin-top: 1rem;
+  }
+}
+
+.ber-curve-svg {
+  width: 100%;
+  max-width: 280px;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 8px rgba($teal, 0.3));
+}
+
+// ─── RIGHT FORM PANEL ────────────────────────────────────────────────────────
+.form-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 56px;
+  max-width: 540px;
+  margin: 0 auto;
+  animation: slideInRight 0.5s ease;
+}
+
+.mobile-brand {
+  display: none;
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, $teal, $purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 32px;
+  text-align: center;
+}
+
+// ─── TAB SWITCHER ────────────────────────────────────────────────────────────
+.tab-switcher {
+  display: flex;
+  position: relative;
+  margin-bottom: 32px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: $text-dim;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: color 0.2s ease;
+
+  &.active {
+    color: $teal;
+    font-weight: 600;
+  }
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 50%;
+  height: 2px;
+  background: $teal;
+  border-radius: 2px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.register {
+    transform: translateX(100%);
+  }
+}
+
+// ─── ALERTS ──────────────────────────────────────────────────────────────────
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  animation: fadeIn 0.3s ease;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  &.error {
+    background: rgba(244, 63, 94, 0.1);
+    color: #f43f5e;
+    border: 1px solid rgba(244, 63, 94, 0.25);
+  }
+
+  &.success {
+    background: rgba($teal, 0.1);
+    color: $teal;
+    border: 1px solid rgba($teal, 0.25);
+  }
+}
+
+// ─── AUTH FORM ───────────────────────────────────────────────────────────────
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0 16px;
+  height: 52px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus-within {
+    border-color: $teal;
+    box-shadow: 0 0 0 2px rgba($teal, 0.15);
+  }
+
+  .field-icon {
+    color: $text-dim;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: $text;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    height: 100%;
+
+    &::placeholder {
+      color: rgba($text-dim, 0.6);
+    }
+  }
+
+  .toggle-pw {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    border: none !important;
 
-    .btn-spinner {
-      margin-right: 0;
+    mat-icon {
+      color: $text-dim;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      transition: color 0.2s;
+    }
+
+    &:hover mat-icon {
+      color: $teal;
     }
   }
+}
 
-  mat-card-footer {
-    padding: 1rem 0;
-    margin-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
+.field-error {
+  font-size: 0.8rem;
+  margin: -8px 0 0 4px;
+}
 
-    .toggle-mode {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--text-muted);
+// ─── SUBMIT BUTTON ───────────────────────────────────────────────────────────
+.submit-btn {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, $teal, darken($teal, 10%));
+  color: $dark;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 
-      button {
-        color: var(--primary-color);
-        font-weight: 600;
-      }
-    }
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba($teal, 0.3);
   }
 
-  .alert {
-    padding: 0.8rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    
-    &.error {
-      background-color: rgba(244, 63, 94, 0.1);
-      color: var(--error-color);
-      border: 1px solid rgba(244, 63, 94, 0.3);
-    }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
-    &.success {
-      background-color: rgba(14, 165, 233, 0.1);
-      color: var(--secondary-color);
-      border: 1px solid rgba(14, 165, 233, 0.3);
-    }
+  .btn-spinner {
+    display: inline-block;
+  }
+}
+
+// ─── FORGOT LINK ─────────────────────────────────────────────────────────────
+.forgot-link {
+  text-align: center;
+  color: $text-dim;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  margin-top: 4px;
+
+  &:hover {
+    color: $teal;
+  }
+}
+
+// ─── DIVIDER ─────────────────────────────────────────────────────────────────
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 12px 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  span {
+    padding: 0 16px;
+    font-size: 0.8rem;
+    color: $text-dim;
+    white-space: nowrap;
+  }
+}
+
+// ─── OAUTH BUTTON ────────────────────────────────────────────────────────────
+.oauth-btn {
+  width: 100%;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: $text;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  &:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ─── PASSWORD STRENGTH INDICATOR ─────────────────────────────────────────────
+.strength-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: -6px 0 0;
+}
+
+.strength-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.strength-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: -4px;
+}
+
+// ─── MOBILE RESPONSIVE ───────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .branding-panel {
+    display: none;
+  }
+
+  .mobile-brand {
+    display: block;
+  }
+
+  .form-panel {
+    padding: 40px 24px;
+    max-width: 100%;
+  }
+
+  .login-page {
+    flex-direction: column;
   }
 }
